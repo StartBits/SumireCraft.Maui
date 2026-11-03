@@ -491,10 +491,10 @@ touched, and the format hook rejects a misspelled name.
 - `CentralPackageTransitivePinningEnabled` **must stay `false`**. Turning it on promotes
   build-time-only packages such as `Microsoft.Maui.Resizetizer` (`PrivateAssets="all"`) into real
   package dependencies in the generated `.nuspec`.
-- GitHub Actions workflows are **manual-only** (`workflow_dispatch`) for now. Automatic triggers
-  are commented out, not deleted. They come back on `release/1.0` before its pull request into
-  `main` is opened, once the whole flow has been tried on a `try/` branch, which is never merged (the
-  `releasing` skill).
+- CI runs on every pull request into `main` or a release branch, and the release workflow on every
+  push to `main` that touches a package path. Both also run by hand (`workflow_dispatch`), which
+  publishes nothing. A change to a workflow is tried on a `try/` branch first (the `releasing`
+  skill).
 - **`dotnet add package` rewrites `Directory.Packages.props` wholesale**: blank lines go, line
   endings turn to CRLF, and the new `PackageVersion` lands in the first group whatever its label.
   `.claude/settings.json` denies it to Claude Code. Add the `PackageVersion` line by hand, in the
