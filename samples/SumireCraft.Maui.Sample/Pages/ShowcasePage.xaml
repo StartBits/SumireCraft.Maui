@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- The page the pictures in README.md are taken from, on Android. Each section is one picture, so
+     a section keeps to what that picture shows and stays inside the screen without scrolling. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+             x:Class="SumireCraft.Maui.Sample.Pages.ShowcasePage"
+             Title="Showcase">
+
+  <ContentPage.Resources>
+    <!-- The dot is a Label rather than an Ellipse, the same as on the badge page. -->
+    <DataTemplate x:Key="Dot">
+      <Label Text="●" TextColor="#D32F2F" FontSize="16" />
+    </DataTemplate>
+
+    <Style x:Key="Caption" TargetType="Label">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+    </Style>
+  </ContentPage.Resources>
+
+  <VerticalStackLayout Padding="24,16" Spacing="28">
+
+    <!-- The badges: a number, one past its maximum, a dot, and the same row right to left. -->
+    <VerticalStackLayout AutomationId="ShowcaseBadges" Spacing="14">
+      <Label Text="SmrBadgeView" Style="{StaticResource Caption}" />
+      <HorizontalStackLayout Spacing="24">
+        <smr:SmrBadgeView Text="3">
+          <Button Text="Inbox" WidthRequest="96" />
+        </smr:SmrBadgeView>
+        <smr:SmrBadgeView Text="99+">
+          <Button Text="Inbox" WidthRequest="96" />
+        </smr:SmrBadgeView>
+        <smr:SmrBadgeView BadgeTemplate="{StaticResource Dot}">
+          <Button Text="Feed" WidthRequest="96" />
+        </smr:SmrBadgeView>
+      </HorizontalStackLayout>
+      <HorizontalStackLayout Spacing="24" FlowDirection="RightToLeft">
+        <smr:SmrBadgeView Text="3">
+          <Button Text="Inbox" WidthRequest="96" />
+        </smr:SmrBadgeView>
+        <smr:SmrBadgeView Text="99+">
+          <Button Text="Inbox" WidthRequest="96" />
+        </smr:SmrBadgeView>
+        <smr:SmrBadgeView BadgeTemplate="{StaticResource Dot}">
+          <Button Text="Feed" WidthRequest="96" />
+        </smr:SmrBadgeView>
+      </HorizontalStackLayout>
+      <Label Text="Right to left, the badge follows the end." Style="{StaticResource Caption}" />
+    </VerticalStackLayout>
+
+    <!-- A count going up: the badge appears with the first message and reads 99+ past 99. -->
+    <VerticalStackLayout AutomationId="ShowcaseCounter" Spacing="14">
+      <Label Text="BadgeCounter" Style="{StaticResource Caption}" />
+      <HorizontalStackLayout Spacing="12">
+        <smr:SmrBadgeView Text="{Binding Badge.Text}">
+          <Button Text="Inbox" WidthRequest="120" />
+        </smr:SmrBadgeView>
+        <Button
+          AutomationId="ShowcaseAddOne"
+          Text="+1"
+          Command="{Binding AddCommand}"
+          CommandParameter="1" />
+        <Button
+          AutomationId="ShowcaseAddMany"
+          Text="+25"
+          Command="{Binding AddCommand}"
+          CommandParameter="25" />
+      </HorizontalStackLayout>
+    </VerticalStackLayout>
+
+    <!-- Taps at the default interval. Five taps open the debug room and leave the inbox count
+         as it was, because the burst is read once, when it ends. -->
+    <VerticalStackLayout AutomationId="ShowcaseTaps" Spacing="14">
+      <Label Text="SmrTapBehavior" Style="{StaticResource Caption}" />
+      <Label
+        AutomationId="ShowcaseTapTarget"
+        Text="Tap here"
+        HeightRequest="120"
+        BackgroundColor="#8467E0"
+        TextColor="White"
+        FontSize="20"
+        HorizontalTextAlignment="Center"
+        VerticalTextAlignment="Center">
+        <Label.Behaviors>
+          <smr:SmrTapBehavior>
+            <smr:SmrTap Count="1" Command="{Binding OpenInboxCommand}" />
+            <smr:SmrTap Count="5" Match="AtLeast" Command="{Binding OpenDebugRoomCommand}" />
+          </smr:SmrTapBehavior>
+        </Label.Behaviors>
+      </Label>
+      <Label
+        AutomationId="ShowcaseOpened"
+        Text="{Binding Opened}"
+        FontSize="24"
+        FontAttributes="Bold"
+        HorizontalTextAlignment="Center" />
+      <HorizontalStackLayout Spacing="6" HorizontalOptions="Center">
+        <Label Text="Inbox opened" Style="{StaticResource Caption}" />
+        <Label Text="{Binding InboxCount}" Style="{StaticResource Caption}" FontAttributes="Bold" />
+        <Label Text="times" Style="{StaticResource Caption}" />
+      </HorizontalStackLayout>
+    </VerticalStackLayout>
+
+    <Button
+      AutomationId="ShowcaseReset"
+      Text="Reset"
+      Command="{Binding ResetCommand}"
+      HorizontalOptions="Start" />
+
+  </VerticalStackLayout>
+
+</ContentPage>

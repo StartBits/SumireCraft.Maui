@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SumireCraft.Maui.Sample.Pages.ExceptionPage"
+             Title="Exceptions">
+
+  <ScrollView>
+    <VerticalStackLayout
+      Padding="24"
+      Spacing="16">
+
+      <Label
+        AutomationId="ExceptionPageTitle"
+        Text="Exceptions"
+        Style="{StaticResource Headline}"
+        HorizontalTextAlignment="Start" />
+
+      <Label
+        Text="Every failure below is caught where it happens and reported to IExceptionSink. The log hears about all of them. An alert comes up only for a command you were waiting on — and not for one you cancelled yourself." />
+
+      <Button
+        AutomationId="FailButton"
+        Text="Run a command that fails"
+        Command="{Binding FailCommand}"
+        HorizontalOptions="Start" />
+
+      <Label
+        Text="Loading takes ten seconds. Cancel it and nothing is reported. Give it a one-second timeout instead and the timeout is a failure like any other." />
+
+      <HorizontalStackLayout Spacing="8">
+        <Button
+          AutomationId="LoadButton"
+          Text="Load"
+          Command="{Binding LoadCommand}" />
+        <Button
+          AutomationId="CancelButton"
+          Text="Cancel"
+          Command="{Binding CancelCommand}" />
+        <Button
+          AutomationId="TimeOutButton"
+          Text="Load with a 1 s timeout"
+          Command="{Binding LoadWithTimeoutCommand}" />
+      </HorizontalStackLayout>
+
+      <Label
+        Text="Work nobody is waiting for is reported too, but as Background. It goes to the log and nowhere else." />
+
+      <Button
+        AutomationId="FailInBackgroundButton"
+        Text="Fail in the background"
+        Command="{Binding FailInBackgroundCommand}"
+        HorizontalOptions="Start" />
+
+      <HorizontalStackLayout Spacing="8">
+        <Label Text="last" />
+        <Label AutomationId="LastOutcome" Text="{Binding LastOutcome}" FontAttributes="Bold" />
+      </HorizontalStackLayout>
+
+      <Button
+        AutomationId="ResetButton"
+        Text="Reset"
+        Command="{Binding ResetCommand}"
+        HorizontalOptions="Start" />
+
+    </VerticalStackLayout>
+  </ScrollView>
+
+</ContentPage>

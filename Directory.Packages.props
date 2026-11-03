@@ -1,0 +1,40 @@
+﻿<Project>
+
+  <!-- Central Package Management. Project files list Include only, never Version. -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Keep transitive pinning disabled. Enabling it promotes build-time-only packages such as
+         Microsoft.Maui.Resizetizer (PrivateAssets="all") into direct dependencies, which then
+         show up in the generated .nuspec. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label=".NET MAUI">
+    <!-- The MAUI workload adds implicit package references, and CPM validates those too, so every
+         Microsoft.Maui.* package is pinned here. Keep these in sync with $(MauiVersion).
+
+         Microsoft.Maui.Controls is the minimum the packages ask of an application, and it is
+         written out for app authors too. Raising it is a minor release at least: change the summary
+         line and the Supported versions table in README.md and the summary line in both
+         PACKAGE-README.md files, and say so under Changed in CHANGELOG.md. -->
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.20" />
+    <PackageVersion Include="Microsoft.Maui.Core" Version="10.0.20" />
+    <PackageVersion Include="Microsoft.Maui.Essentials" Version="10.0.20" />
+    <PackageVersion Include="Microsoft.Maui.Resizetizer" Version="10.0.20" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="SumireCraft" Condition="'$(SumireConsumerBuild)' == 'true'">
+    <!-- Only a Consumer build references these. Everything else reaches the projects directly. -->
+    <PackageVersion Include="SumireCraft.Maui.Controls" Version="$(SumireVersion)" />
+    <PackageVersion Include="SumireCraft.Maui.Core" Version="$(SumireCoreVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test">
+    <PackageVersion Include="Appium.WebDriver" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.10.0" />
+    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+  </ItemGroup>
+
+</Project>

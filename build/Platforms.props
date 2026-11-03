@@ -1,0 +1,66 @@
+﻿<Project>
+
+  <!-- Routes platform-specific code to the right target framework, by file name and by folder.
+
+       This is the "Combine filename and folder multi-targeting" configuration from the .NET MAUI
+       documentation, kept as it is written there. .NET MAUI does none of this on its own: the SDK
+       auto-excludes Platforms\<Platform>\ at the *project root* and nothing else, so a nested
+       folder and a file named SafetyNet.Windows.cs are both compiled into every target framework
+       until the rules below say otherwise.
+
+       One deliberate difference from the documentation: the conditions test _SumirePlatform
+       instead of $(TargetFramework.StartsWith('net8.0-android')). The published sample hard-codes
+       the .NET version, so it would quietly stop matching the day this repository moves to a new
+       one. GetTargetPlatformIdentifier does not care which version it is.
+
+       Suffixes and folder names are matched case-sensitively on Linux and macOS, so write them
+       exactly as they appear here: .Android.cs, .MaciOS.cs, .iOS.cs, .MacCatalyst.cs,
+       .Windows.cs. MaciOS is .NET MAUI's own name for code shared by iOS and Mac Catalyst.
+
+       Import this at the END of a project file, after the default Compile items are established. -->
+
+  <PropertyGroup>
+    <_SumirePlatform>$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)'))</_SumirePlatform>
+  </PropertyGroup>
+
+  <!-- Android -->
+  <ItemGroup Condition="'$(_SumirePlatform)' != 'android'">
+    <Compile Remove="**\*.Android.cs" />
+    <None Include="**\*.Android.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <Compile Remove="**\Android\**\*.cs" />
+    <None Include="**\Android\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+  </ItemGroup>
+
+  <!-- Both iOS and Mac Catalyst -->
+  <ItemGroup Condition="'$(_SumirePlatform)' != 'ios' and '$(_SumirePlatform)' != 'maccatalyst'">
+    <Compile Remove="**\*.MaciOS.cs" />
+    <None Include="**\*.MaciOS.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <Compile Remove="**\MaciOS\**\*.cs" />
+    <None Include="**\MaciOS\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+  </ItemGroup>
+
+  <!-- iOS -->
+  <ItemGroup Condition="'$(_SumirePlatform)' != 'ios'">
+    <Compile Remove="**\*.iOS.cs" />
+    <None Include="**\*.iOS.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <Compile Remove="**\iOS\**\*.cs" />
+    <None Include="**\iOS\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+  </ItemGroup>
+
+  <!-- Mac Catalyst -->
+  <ItemGroup Condition="'$(_SumirePlatform)' != 'maccatalyst'">
+    <Compile Remove="**\*.MacCatalyst.cs" />
+    <None Include="**\*.MacCatalyst.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <Compile Remove="**\MacCatalyst\**\*.cs" />
+    <None Include="**\MacCatalyst\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+  </ItemGroup>
+
+  <!-- Windows -->
+  <ItemGroup Condition="'$(_SumirePlatform)' != 'windows'">
+    <Compile Remove="**\*.Windows.cs" />
+    <None Include="**\*.Windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <Compile Remove="**\Windows\**\*.cs" />
+    <None Include="**\Windows\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+  </ItemGroup>
+
+</Project>

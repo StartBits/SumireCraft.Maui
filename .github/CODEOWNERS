@@ -1,0 +1,32 @@
+# Who must approve a pull request that touches a path. GitHub enforces it once main's ruleset asks
+# for a code owner's review (the releasing skill sets that up when the repository goes public).
+#
+# Everything is the maintainer's for now, named by their own account: an organization cannot be a
+# code owner, only a person or one of its teams. The paths below are named again so that they stay
+# with the maintainer when the first line is given to a wider team: they run by themselves, steer
+# Claude, or ship to every application (CLAUDE.md, "Security", which also says how this list and
+# permissions.ask in .claude/settings.json divide the work). A later line wins over an earlier one;
+# a pattern without a leading slash matches at any depth.
+
+*                       @Horomix
+
+/.claude/               @Horomix
+/.vscode/               @Horomix
+/.mcp.json              @Horomix
+CLAUDE.md               @Horomix
+CLAUDE.local.md         @Horomix
+/.github/               @Horomix
+/build/                 @Horomix
+*.props                 @Horomix
+*.targets               @Horomix
+*.csproj                @Horomix
+*.slnx                  @Horomix
+Directory.Build.rsp     @Horomix
+nuget.config            @Horomix
+NuGet.config            @Horomix
+NuGet.Config            @Horomix
+global.json             @Horomix
+.editorconfig           @Horomix
+/.gitattributes         @Horomix
+/src/                   @Horomix
+/tests/                 @Horomix

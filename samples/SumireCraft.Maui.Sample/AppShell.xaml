@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+  x:Class="SumireCraft.Maui.Sample.AppShell"
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:pages="clr-namespace:SumireCraft.Maui.Sample.Pages"
+  Title="SumireCraft.Maui"
+  FlyoutBehavior="Flyout">
+
+  <!-- One entry per page, and one page per thing worth showing. A widget that needs a
+       demonstration gets a page of its own rather than another section on a shared one, so that
+       a UI test can open exactly the page it is about. -->
+
+  <ShellContent
+    AutomationId="HomeMenuItem"
+    Title="Home"
+    Route="home"
+    ContentTemplate="{DataTemplate pages:HomePage}" />
+
+  <ShellContent
+    AutomationId="TapMenuItem"
+    Title="SmrTapBehavior"
+    Route="tap"
+    ContentTemplate="{DataTemplate pages:TapPage}" />
+
+  <ShellContent
+    AutomationId="BadgeMenuItem"
+    Title="SmrBadgeView"
+    Route="badge"
+    ContentTemplate="{DataTemplate pages:BadgePage}" />
+
+  <ShellContent
+    AutomationId="ExceptionMenuItem"
+    Title="Exceptions"
+    Route="exceptions"
+    ContentTemplate="{DataTemplate pages:ExceptionPage}" />
+
+  <!-- The pictures in README.md are taken from this page. No UI test drives it. -->
+  <ShellContent
+    AutomationId="ShowcaseMenuItem"
+    Title="Showcase"
+    Route="showcase"
+    ContentTemplate="{DataTemplate pages:ShowcasePage}" />
+
+</Shell>

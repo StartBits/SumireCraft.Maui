@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+             x:Class="SumireCraft.Maui.Sample.Pages.BadgePage"
+             Title="SmrBadgeView">
+
+  <ScrollView AutomationId="BadgePageScroll">
+    <VerticalStackLayout
+      Padding="24"
+      Spacing="16"
+      FlowDirection="{Binding FlowDirection}">
+
+      <Label
+        AutomationId="BadgePageTitle"
+        Text="SmrBadgeView"
+        Style="{StaticResource Headline}"
+        HorizontalTextAlignment="Start" />
+
+      <Label
+        Text="A badge sits over one corner of whatever it wraps. What the badge says is given to it already decided, so an empty badge is simply not drawn." />
+
+      <Label
+        Text="Here a BadgeCounter decides it. Zero leaves the text empty, so binding Text alone is enough. Its IsVisible is not bound: on SmrBadgeView that would hide the button as well." />
+
+      <VerticalStackLayout Spacing="6">
+        <Label Text="Count. Zero draws no badge, and above 99 reads 99+." />
+        <Entry
+          AutomationId="BadgeCountEntry"
+          Text="{Binding Badge.Count}"
+          Keyboard="Numeric"
+          WidthRequest="140"
+          HorizontalOptions="Start" />
+      </VerticalStackLayout>
+
+      <VerticalStackLayout Spacing="6">
+        <Label Text="Placement, and which way the page runs" />
+        <!-- Flip shares a row of buttons rather than taking one of its own: one more row
+             pushes the bottom of the badged buttons off a Windows test window, where an
+             element out of sight reports a position that means nothing. -->
+        <HorizontalStackLayout Spacing="6">
+          <Button
+            AutomationId="PlacementTopStart"
+            Text="TopStart"
+            Command="{Binding SetPlacementCommand}"
+            CommandParameter="TopStart" />
+          <Button
+            AutomationId="PlacementTopEnd"
+            Text="TopEnd"
+            Command="{Binding SetPlacementCommand}"
+            CommandParameter="TopEnd" />
+          <Button
+            AutomationId="FlipFlowDirection"
+            Text="Flip"
+            Command="{Binding FlipFlowDirectionCommand}" />
+        </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="6">
+          <Button
+            AutomationId="PlacementBottomStart"
+            Text="BottomStart"
+            Command="{Binding SetPlacementCommand}"
+            CommandParameter="BottomStart" />
+          <Button
+            AutomationId="PlacementBottomEnd"
+            Text="BottomEnd"
+            Command="{Binding SetPlacementCommand}"
+            CommandParameter="BottomEnd" />
+        </HorizontalStackLayout>
+      </VerticalStackLayout>
+
+      <HorizontalStackLayout Spacing="8">
+        <Label Text="in effect:" VerticalTextAlignment="Center" />
+        <Label
+          AutomationId="CurrentPlacement"
+          Text="{Binding Placement}"
+          FontAttributes="Bold"
+          VerticalTextAlignment="Center" />
+        <Label
+          AutomationId="CurrentFlowDirection"
+          Text="{Binding FlowDirection}"
+          FontAttributes="Bold"
+          VerticalTextAlignment="Center" />
+        <!-- One label rather than a caption and a number: a bare 0 here would be taken for a badge
+             drawn at zero by a test that looks for one by its text. -->
+        <Label
+          AutomationId="InboxPresses"
+          Text="{Binding InboxPresses, StringFormat='Inbox pressed: {0}'}"
+          VerticalTextAlignment="Center" />
+      </HorizontalStackLayout>
+
+      <!-- Side by side rather than one under the other: Android leaves whatever is below the
+           screen out of the tree, and the dot has to be on screen to be found. The row is
+           kept narrow for the same reason sideways. -->
+      <!-- Inbox is drawn over Feed: at 99+ its badge can reach past the spacing, and Feed,
+           laid out after it, would otherwise cover that part. ZIndex is set on the
+           SmrBadgeView, because it orders the children of this row and the badge is not one
+           of them. The spacing is kept narrower than the part of 99+ that hangs out, so that
+           this is needed. -->
+      <HorizontalStackLayout Spacing="6">
+        <smr:SmrBadgeView
+          ZIndex="1"
+          Text="{Binding Badge.Text}"
+          Placement="{Binding Placement}">
+          <Button
+            AutomationId="BadgedButton"
+            Text="Inbox"
+            Command="{Binding PressInboxCommand}"
+            WidthRequest="220"
+            HeightRequest="72" />
+        </smr:SmrBadgeView>
+
+        <!-- A text dot rather than an Ellipse: a shape has no automation peer on Windows,
+             so a test could never find it. -->
+        <smr:SmrBadgeView
+          IsBadgeVisible="{Binding Badge.IsVisible}"
+          Placement="{Binding Placement}">
+          <smr:SmrBadgeView.BadgeTemplate>
+            <DataTemplate>
+              <Label
+                AutomationId="DotBadge"
+                Text="●"
+                TextColor="#D32F2F"
+                FontSize="16" />
+            </DataTemplate>
+          </smr:SmrBadgeView.BadgeTemplate>
+          <Button
+            AutomationId="DotBadgedButton"
+            Text="Feed"
+            WidthRequest="100"
+            HeightRequest="72" />
+        </smr:SmrBadgeView>
+      </HorizontalStackLayout>
+
+      <Label Text="A badge can be drawn with anything. The dot beside Inbox has no text, so it is shown and hidden by IsBadgeVisible, bound to the same counter." />
+
+      <!-- Kept to one short line, like the label above: Android leaves whatever is below the
+           screen out of the tree, and the button under it has to be found without scrolling. -->
+      <Label Text="Everything the badge is drawn with can be said outright." />
+
+      <!-- Straight in the column, around a button of a set width, with nothing said about
+           HorizontalOptions: the plain way to write one. The control stretches across the
+           column here, and the badge still has to follow the button.
+           A badge hangs a quarter out past its corner, and the offset moves it back towards
+           the start and up from there: about 8 out past each edge, for a badge this size. -->
+      <smr:SmrBadgeView
+        Text="NEW"
+        Placement="TopEnd"
+        Offset="-4,-2"
+        Fill="MidnightBlue"
+        Stroke="White"
+        StrokeThickness="2"
+        CornerRadius="12,15,18,20">
+        <smr:SmrBadgeView.BadgeShadow>
+          <Shadow Brush="Black" Opacity="0.5" Offset="4,4" Radius="8" />
+        </smr:SmrBadgeView.BadgeShadow>
+        <Button
+          AutomationId="StyledBadgedButton"
+          Text="Drafts"
+          WidthRequest="220"
+          HeightRequest="72" />
+      </smr:SmrBadgeView>
+
+    </VerticalStackLayout>
+  </ScrollView>
+
+</ContentPage>

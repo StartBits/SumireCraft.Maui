@@ -1,0 +1,20 @@
+﻿<Project>
+
+  <!-- Settings for the published libraries under src\ only. Everything the repository shares still
+       comes from the root file, imported first; MSBuild stops at the nearest Directory.Build.props
+       and would otherwise never see it. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup Label="AOT">
+    <!-- Declares that the libraries work under trimming and Native AOT, and turns on the analyzers
+         that hold them to it. iOS and Mac Catalyst always trim, and an application that publishes
+         with AOT on Android or Windows trims too, so a library that breaks under the trimmer breaks
+         somebody's release build, not their debug one.
+
+         On every build rather than when packing. The analyzers report on the library's own code
+         while it compiles, so a warning that appeared only at pack time would be found last, and an
+         application built from the sample never sees them at all. -->
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+</Project>

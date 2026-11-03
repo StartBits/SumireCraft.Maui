@@ -1,0 +1,119 @@
+root = true
+
+# Every file takes these, so a type with no section of its own below -- .ps1, .svg, .txt, LICENSE --
+# is UTF-8 without a BOM, LF, four spaces. .claude/hooks/policy.mjs enforces the encoding part for
+# Claude Code's edits and before each commit; keep its lists in step with this file.
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Visual Studio re-saves XML-based project and markup files in the system ANSI codepage
+# (Shift_JIS on Japanese Windows) when they carry no byte order mark, which corrupts them on the
+# next edit. Every file type Visual Studio edits through that path keeps a UTF-8 BOM.
+# Everything else -- C# included, since sources here are ASCII only -- stays BOM-less.
+[*.{csproj,props,targets,slnx,sln,xaml,resx,xml,appxmanifest,manifest,plist,xcprivacy}]
+charset = utf-8-bom
+
+[*.{json,yml,yaml,mjs,js}]
+indent_size = 2
+
+[*.{csproj,props,targets,config,xml,xaml,slnx,resx,appxmanifest,manifest}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+# using directives
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+csharp_using_directive_placement = outside_namespace:warning
+
+# namespaces and types
+csharp_style_namespace_declarations = file_scoped:warning
+# Namespaces are kept flat (SumireCraft.Maui, SumireCraft.Maui.Controls) whatever the folder, so
+# IDE0130 would flag every file below the project root.
+dotnet_style_namespace_match_folder = false
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+
+# var usage: always prefer var. The type is one hover away in every editor, and mixing the two
+# styles produces IDE0007/IDE0008 noise that carries no real information.
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+# expression-bodied members
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+
+# braces and qualification
+csharp_prefer_braces = true:warning
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+# require XML documentation comments on public API
+dotnet_diagnostic.CS1591.severity = warning
+
+# naming: interfaces start with I
+dotnet_naming_rule.interfaces_start_with_i.symbols = interface_symbol
+dotnet_naming_rule.interfaces_start_with_i.style = prefix_i_style
+dotnet_naming_rule.interfaces_start_with_i.severity = warning
+dotnet_naming_symbols.interface_symbol.applicable_kinds = interface
+dotnet_naming_style.prefix_i_style.required_prefix = I
+dotnet_naming_style.prefix_i_style.capitalization = pascal_case
+
+# naming: private constants and static readonly fields use PascalCase, like the public ones.
+# Without these, the _camelCase rule below reaches them too and every one shows as IDE1006.
+dotnet_naming_rule.private_constants_pascal.symbols = private_constant_symbol
+dotnet_naming_rule.private_constants_pascal.style = pascal_style
+dotnet_naming_rule.private_constants_pascal.severity = suggestion
+dotnet_naming_symbols.private_constant_symbol.applicable_kinds = field
+dotnet_naming_symbols.private_constant_symbol.applicable_accessibilities = private
+dotnet_naming_symbols.private_constant_symbol.required_modifiers = const
+
+dotnet_naming_rule.private_static_readonly_pascal.symbols = private_static_readonly_symbol
+dotnet_naming_rule.private_static_readonly_pascal.style = pascal_style
+dotnet_naming_rule.private_static_readonly_pascal.severity = suggestion
+dotnet_naming_symbols.private_static_readonly_symbol.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly_symbol.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly_symbol.required_modifiers = static, readonly
+
+dotnet_naming_style.pascal_style.capitalization = pascal_case
+
+# naming: private fields use _camelCase
+dotnet_naming_rule.private_fields_underscore.symbols = private_field_symbol
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel_style
+dotnet_naming_rule.private_fields_underscore.severity = suggestion
+dotnet_naming_symbols.private_field_symbol.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbol.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel_style.required_prefix = _
+dotnet_naming_style.underscore_camel_style.capitalization = camel_case
+
+# CsWinRT asks for partial on every class that implements an interface WinRT maps to a .NET one
+# (IDisposable, INotifyPropertyChanged, even List<T> through IList<T>), in case an instance is
+# passed across the WinRT ABI. Nothing here is: bindings are MAUI's own and never reach WinUI's
+# DataContext. Visual Studio reports these whatever CsWinRTAotWarningLevel says, so they are
+# turned off here rather than there. A type that a Windows handler does hand to WinUI still needs
+# partial, and needs it said in a comment.
+dotnet_diagnostic.CsWinRT1028.severity = none
+dotnet_diagnostic.CsWinRT1030.severity = none
+
+# samples and tests do not need XML documentation comments
+[{samples,tests}/**/*.cs]
+dotnet_diagnostic.CS1591.severity = none
+
+# A test builds its subject, then does what it tests in a statement of its own, so an object
+# initializer (IDE0017) would fold the act into the arrange. Test methods keep block bodies (IDE0022)
+# however short, so that each one reads the same way.
+[tests/**/*.cs]
+dotnet_diagnostic.IDE0017.severity = none
+dotnet_diagnostic.IDE0022.severity = none
+# A test reaches its subject through the interface the platform calls, on purpose (CA1859).
+dotnet_diagnostic.CA1859.severity = none

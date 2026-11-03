@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "ask": [
+      "Edit(/.claude/**)",
+      "Edit(/.vscode/**)",
+      "Edit(/.mcp.json)",
+      "Edit(**/CLAUDE.md)",
+      "Edit(**/CLAUDE.local.md)",
+      "Edit(/.github/**)",
+      "Edit(/build/**)",
+      "Edit(**/*.props)",
+      "Edit(**/*.targets)",
+      "Edit(**/*.csproj)",
+      "Edit(**/*.slnx)",
+      "Edit(**/Directory.Build.rsp)",
+      "Edit(**/nuget.config)",
+      "Edit(**/NuGet.config)",
+      "Edit(**/NuGet.Config)",
+      "Edit(**/global.json)",
+      "Edit(**/.editorconfig)",
+      "Edit(/.gitattributes)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git -C * push*)",
+      "PowerShell(git push)",
+      "PowerShell(git push *)",
+      "PowerShell(git -C * push*)",
+      "Bash(dotnet nuget push *)",
+      "PowerShell(dotnet nuget push *)",
+      "Bash(gh api *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh release *)",
+      "Bash(gh workflow run *)",
+      "Bash(gh secret *)",
+      "Bash(gh repo edit *)",
+      "PowerShell(gh api *)",
+      "PowerShell(gh pr merge *)",
+      "PowerShell(gh release *)",
+      "PowerShell(gh workflow run *)",
+      "PowerShell(gh secret *)",
+      "PowerShell(gh repo edit *)"
+    ],
+    "deny": [
+      "Bash(dotnet nuget add source *)",
+      "Bash(dotnet nuget update source *)",
+      "PowerShell(dotnet nuget add source *)",
+      "PowerShell(dotnet nuget update source *)",
+      "Bash(dotnet add package *)",
+      "Bash(dotnet add * package *)",
+      "Bash(dotnet package add *)",
+      "PowerShell(dotnet add package *)",
+      "PowerShell(dotnet add * package *)",
+      "PowerShell(dotnet package add *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-file.mjs\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-commit.mjs\"",
+            "timeout": 1500
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/analysis-sdk.mjs\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/reply-language.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

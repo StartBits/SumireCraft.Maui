@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+             xmlns:abc="clr-namespace:SumireCraft.Maui.Sample.Wrapping"
+             x:Class="SumireCraft.Maui.Sample.Pages.TapPage"
+             Title="SmrTapBehavior">
+
+  <ScrollView>
+    <VerticalStackLayout
+      Padding="24"
+      Spacing="16">
+
+      <Label
+        AutomationId="TapPageTitle"
+        Text="SmrTapBehavior"
+        Style="{StaticResource Headline}"
+        HorizontalTextAlignment="Start" />
+
+      <Label
+        Text="A burst of taps is read as a whole, once, when the tapping stops. So five taps open the debug room without the one-tap line firing on the way there — and three taps match neither line, because one of them asks for exactly one tap." />
+
+      <VerticalStackLayout Spacing="6">
+        <Label Text="Interval in milliseconds. Leave it empty for the default." />
+        <HorizontalStackLayout Spacing="8">
+          <Entry
+            AutomationId="IntervalEntry"
+            Text="{Binding IntervalText}"
+            Placeholder="default"
+            Keyboard="Numeric"
+            WidthRequest="110"
+            VerticalTextAlignment="Center" />
+          <Label
+            Text="in effect:"
+            VerticalTextAlignment="Center" />
+          <Label
+            AutomationId="EffectiveInterval"
+            Text="{Binding Interval}"
+            FontAttributes="Bold"
+            VerticalTextAlignment="Center" />
+        </HorizontalStackLayout>
+      </VerticalStackLayout>
+
+      <Label
+        AutomationId="BurstTarget"
+        Text="Tap exactly once for the inbox&#10;Tap five or more times for the debug room&#10;Anything in between means neither"
+        HeightRequest="120"
+        BackgroundColor="#8467E0"
+        TextColor="White"
+        HorizontalTextAlignment="Center"
+        VerticalTextAlignment="Center">
+        <Label.Behaviors>
+          <smr:SmrTapBehavior Interval="{Binding Interval}">
+            <smr:SmrTap Count="1" Command="{Binding OpenInboxCommand}" />
+            <smr:SmrTap Count="5" Match="AtLeast" Command="{Binding OpenDebugRoomCommand}" />
+          </smr:SmrTapBehavior>
+        </Label.Behaviors>
+      </Label>
+
+      <HorizontalStackLayout Spacing="8">
+        <Label Text="inbox" />
+        <Label AutomationId="InboxCount" Text="{Binding InboxCount}" FontAttributes="Bold" />
+        <Label Text="debug room" />
+        <Label AutomationId="DebugRoomCount" Text="{Binding DebugRoomCount}" FontAttributes="Bold" />
+      </HorizontalStackLayout>
+
+      <!-- The same line twice: once as the library ships it, once wrapped in types an
+           application called Abc owns, so that its pages name only its own types and
+           replacing the library one day is one change rather than one per page. Side by side
+           rather than stacked, because Android leaves what is off the screen out of the tree
+           the tests search. -->
+      <Grid
+        ColumnDefinitions="*,*"
+        ColumnSpacing="8">
+
+        <Label
+          AutomationId="DoubleTapTarget"
+          Text="SmrTapBehavior&#10;Exactly two taps&#10;Three do nothing"
+          HeightRequest="120"
+          BackgroundColor="#4A4458"
+          TextColor="White"
+          HorizontalTextAlignment="Center"
+          VerticalTextAlignment="Center">
+          <Label.Behaviors>
+            <smr:SmrTapBehavior Interval="{Binding Interval}">
+              <smr:SmrTap Count="2" Match="Exactly" Command="{Binding DoubleTapCommand}" />
+            </smr:SmrTapBehavior>
+          </Label.Behaviors>
+        </Label>
+
+        <Label
+          Grid.Column="1"
+          AutomationId="WrappedDoubleTapTarget"
+          Text="AbcTapBehavior&#10;Exactly two taps&#10;Three do nothing"
+          HeightRequest="120"
+          BackgroundColor="#4A4458"
+          TextColor="White"
+          HorizontalTextAlignment="Center"
+          VerticalTextAlignment="Center">
+          <Label.Behaviors>
+            <abc:AbcTapBehavior Interval="{Binding Interval}">
+              <abc:AbcTap Count="2" Match="Exactly" Command="{Binding WrappedDoubleTapCommand}" />
+            </abc:AbcTapBehavior>
+          </Label.Behaviors>
+        </Label>
+
+      </Grid>
+
+      <HorizontalStackLayout Spacing="8">
+        <Label Text="double tap" />
+        <Label AutomationId="DoubleTapCount" Text="{Binding DoubleTapCount}" FontAttributes="Bold" />
+        <Label Text="wrapped" />
+        <Label AutomationId="WrappedDoubleTapCount" Text="{Binding WrappedDoubleTapCount}" FontAttributes="Bold" />
+      </HorizontalStackLayout>
+
+      <HorizontalStackLayout Spacing="8">
+        <Label Text="last" />
+        <Label AutomationId="LastAction" Text="{Binding LastAction}" FontAttributes="Bold" />
+      </HorizontalStackLayout>
+
+      <Button
+        AutomationId="ResetButton"
+        Text="Reset"
+        Command="{Binding ResetCommand}"
+        HorizontalOptions="Start" />
+
+    </VerticalStackLayout>
+  </ScrollView>
+
+</ContentPage>

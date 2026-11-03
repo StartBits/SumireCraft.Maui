@@ -1,0 +1,32 @@
+# Normalize every text file to LF, both in the repository and in the working tree, so the
+# sources are byte-identical on Windows, macOS and Linux. This overrides core.autocrlf.
+* text=auto eol=lf
+
+# Byte order marks are file content, not a line-ending concern, so Git cannot manage them.
+# The BOM policy lives in .editorconfig: MSBuild and XAML files keep a UTF-8 BOM because
+# Visual Studio otherwise re-saves them in the system ANSI codepage (Shift_JIS on Japanese
+# Windows). Everything else is UTF-8 without BOM.
+
+*.cs        text diff=csharp
+*.csproj    text
+*.props     text
+*.targets   text
+*.slnx      text
+*.xaml      text
+*.resx      text
+*.json      text
+*.md        text
+*.yml       text
+*.ps1       text
+*.xml       text
+*.config    text
+*.plist     text
+*.svg       text
+
+*.png       binary
+*.gif       binary
+*.jpg       binary
+*.ico       binary
+*.ttf       binary
+*.otf       binary
+*.snk       binary

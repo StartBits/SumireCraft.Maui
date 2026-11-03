@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(SumireLibraryTargetFrameworks)</TargetFrameworks>
+
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+
+    <!-- Mirrors .NET MAUI itself, where the types from Microsoft.Maui.Core live in
+         namespace Microsoft.Maui. -->
+    <RootNamespace>SumireCraft.Maui</RootNamespace>
+    <AssemblyName>SumireCraft.Maui.Core</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package">
+    <!-- Core is released only when it changes; build\Version.props explains the numbering. -->
+    <Version>$(SumireCoreVersion)</Version>
+    <PackageId>SumireCraft.Maui.Core</PackageId>
+    <Title>SumireCraft.Maui.Core</Title>
+    <Description>Building blocks for .NET MAUI: one place to report exceptions, an opt-in safety net for what nothing caught, and a busy gate. Useful on its own, without SumireCraft.Maui.Controls.</Description>
+    <!-- What someone looking for this would type. The sink is the heart of it, but nobody searches
+         for its name before they know it. -->
+    <SumirePackageTags>exception-handling;error-reporting;unhandled-exception;busy</SumirePackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SumireCraftExceptions is configured through UseSumireCraftCore() and nothing else, so the
+         setter stays internal. The tests still have to reach it. -->
+    <InternalsVisibleTo Include="SumireCraft.Maui.UnitTests" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\Package.props" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\Platforms.props" />
+
+</Project>

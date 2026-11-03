@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(SumireLibraryTargetFrameworks)</TargetFrameworks>
+
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <MauiXamlInflator>SourceGen</MauiXamlInflator>
+
+    <RootNamespace>SumireCraft.Maui.Controls</RootNamespace>
+    <AssemblyName>SumireCraft.Maui.Controls</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package">
+    <PackageId>SumireCraft.Maui.Controls</PackageId>
+    <Title>SumireCraft.Maui.Controls</Title>
+    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, and SmrTapBehavior runs a different command for one tap, a double tap, or five.</Description>
+    <SumirePackageTags>controls;ui;badge;tap;gesture</SumirePackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" />
+    <ProjectReference Include="..\SumireCraft.Maui.Core\SumireCraft.Maui.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SmrTapBehavior measures with TimeProvider.System and offers no way to say otherwise,
+         because an application has no reason to. The tests still have to hand it a clock. -->
+    <InternalsVisibleTo Include="SumireCraft.Maui.UnitTests" />
+  </ItemGroup>
+
+  <!-- Bounds the dependency on Core below the next major version of Controls. Packing writes the
+       Core this was built with as the minimum and nothing as the maximum, so an application that
+       took Core 2.x directly would keep Controls 1.x on it without a word, and fail at run time
+       wherever 2.x broke something Controls calls. With the bound, NuGet warns (NU1608) instead.
+       The two share one sequence of numbers, so a Core of the next major comes with a Controls of
+       its own. A project reference has no setting for a range, so the version packing read is
+       rewritten after it has read it.
+
+       The bound follows Controls, not Core: a Controls 2.0.0 released while Core stays at 1.x
+       accepts [1.x, 3.0.0). -->
+  <Target Name="BoundCoreDependency" AfterTargets="_GetProjectReferenceVersions">
+    <PropertyGroup>
+      <!-- The leading number alone, so that a prerelease such as 1.1.0-preview.1 still works. -->
+      <_SumireMajor>$([System.Text.RegularExpressions.Regex]::Match('$(SumireVersion)', '^\d+').Value)</_SumireMajor>
+      <_SumireNextMajor>$([MSBuild]::Add($(_SumireMajor), 1)).0.0</_SumireNextMajor>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Condition="'%(Filename)' == 'SumireCraft.Maui.Core'">
+        <ProjectVersion>[%(ProjectVersion), $(_SumireNextMajor))</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+      <_SumireBoundCore Include="@(_ProjectReferencesWithVersions)"
+                        Condition="'%(Filename)' == 'SumireCraft.Maui.Core' and $([System.String]::Copy('%(ProjectVersion)').StartsWith('['))" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Both names above are NuGet's own, behind an underscore, and may change with the SDK. If they
+       do, AfterTargets quietly runs nothing and the package goes out unbounded, so packing stops
+       here instead. Hooked to GenerateNuspec, which has no underscore and runs the target above
+       among its dependencies first. -->
+  <Target Name="CheckCoreDependencyBound" BeforeTargets="GenerateNuspec">
+    <Error Condition="'@(_SumireBoundCore)' == ''"
+           Text="The dependency on SumireCraft.Maui.Core was not given its upper bound. BoundCoreDependency relies on NuGet's _GetProjectReferenceVersions target and _ProjectReferencesWithVersions items; check whether the SDK renamed them." />
+  </Target>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\Package.props" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\Platforms.props" />
+
+</Project>

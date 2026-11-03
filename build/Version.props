@@ -1,0 +1,26 @@
+﻿<Project>
+
+  <!-- The version numbers, kept in a file of their own so that raising them is not itself a change
+       to Core: .github/scripts/check-versions.ps1 compares Core against its last release and
+       leaves this file out.
+
+       Releases are numbered from one sequence. Controls takes every number. Core takes a number
+       only in a release that changes it, and then the same one as Controls, so Core may skip some:
+
+         1.0.0  Controls 1.0.0  Core 1.0.0   first release
+         1.0.1  Controls 1.0.1  Core 1.0.1   Core changed, so both
+         1.0.2  Controls 1.0.2  Core 1.0.1   Controls alone
+         1.0.3  Controls 1.0.3  Core 1.0.3   Core changed: the next free number, not 1.0.2
+
+       So SumireVersion is the release, and the tag is v$(SumireVersion). SumireCoreVersion is
+       either the same or the version of an earlier release, whose tag the same script diffs
+       against.
+       Controls names the Core it was built with as its minimum, because packing reads Core's own
+       Version through the project reference, and the next major version of Controls as the bound
+       (BoundCoreDependency in the Controls project). -->
+  <PropertyGroup>
+    <SumireVersion>1.0.0</SumireVersion>
+    <SumireCoreVersion>1.0.0</SumireCoreVersion>
+  </PropertyGroup>
+
+</Project>

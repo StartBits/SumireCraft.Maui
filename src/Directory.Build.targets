@@ -1,0 +1,20 @@
+﻿<Project>
+
+  <PropertyGroup Label="AOT">
+    <!-- Takes the trim analyzer back from .NET MAUI. Unless an application publishes with Native AOT
+         or full trimming, Microsoft.Maui.Controls switches the analyzer off and suppresses its
+         warnings, and it does so unconditionally, after Directory.Build.props has been read. Left
+         alone, IsAotCompatible would check the libraries for Native AOT and quietly not for
+         trimming: a call such as Type.GetType(string) would build without a word.
+
+         That switch is meant for applications, which may trim only partly and would otherwise be
+         told about code that is never trimmed. A library is checked for its own code alone, and
+         that is the code this repository answers for.
+
+         In a .targets file because it has to come after the package's own targets, and nothing
+         that Directory.Build.props sets can. -->
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+  </PropertyGroup>
+
+</Project>

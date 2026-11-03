@@ -1,0 +1,175 @@
+name: Release
+
+# A push to main that touches a package publishes it: merging into main is releasing. The workflow
+# checks the versions in build/Version.props, builds, tests, packs, pushes to nuget.org, and then
+# tags the release v<Controls version>. Tagging and publishing are one workflow because a tag pushed
+# with GITHUB_TOKEN starts no other workflow.
+#
+# Publishing uses nuget.org's Trusted Publishing: no API key is stored anywhere. The job asks GitHub
+# for a short-lived token, nuget.org checks it against a policy and hands back a key valid for one
+# hour. Before enabling the push trigger:
+#   - on nuget.org, under the account's Trusted Publishing, a policy owned by the account that will
+#     own the packages, for repository owner StartBits, repository SumireCraft.Maui, workflow file
+#     release.yml, environment release, allowed to publish new packages as well. The environment is
+#     what makes the maintainer's approval count: without it, anyone who can push a branch could
+#     run an edited copy of this file that names no environment, and the policy would still accept
+#     its token;
+#   - in the secrets of the release environment, NUGET_USER: the nuget.org user name (the profile
+#     name, not an email address).
+# A policy made while the repository is private is active for seven days only, until the first
+# publish locks it to the repository, so make it shortly before releasing.
+#
+# The push trigger stays commented out while main is still squashed and force-pushed: each squash
+# would otherwise publish. It comes back on release/1.0, before its pull request into main.
+#
+# Run by hand (workflow_dispatch), from any branch, it checks, builds, tests and packs, and publishes
+# nothing and tags nothing. Only a push to main publishes.
+#
+# Two jobs, so that the one holding the rights to publish and to tag runs none of the repository's
+# code. The build job runs everything the build runs -- MSBuild, the tests, the packages restored --
+# with read access alone. The publish job takes the packages it made, in the release environment,
+# where GitHub asks the maintainer before it starts once the environment's rules are set (the
+# releasing skill).
+#
+# Every action is named by its full commit SHA, with its version in a comment beside it.
+on:
+  # push:
+  #   branches: [main]
+  #   # What goes into a package. Also written in .github/scripts/check-versions.ps1, which ci.yml
+  #   # runs on every pull request into main; keep the two in step.
+  #   paths:
+  #     - 'src/**'
+  #     - 'build/**'
+  #     - 'global.json'
+  #     - 'Directory.*.props'
+  workflow_dispatch:
+
+# Two runs on one branch never overlap: a second run of the same version would not yet see the
+# first's tag. GitHub keeps only one run waiting per group, so if a third push to main arrives while
+# one runs and one waits, the waiting one is dropped and its version is never published: the newer
+# run publishes its own, and a re-run of the dropped one fails, being below it. One merge at a time.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+# Nothing unless a job asks for it.
+permissions: {}
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    permissions:
+      contents: read
+
+    outputs:
+      controls: ${{ steps.version.outputs.controls }}
+      core: ${{ steps.version.outputs.core }}
+      publish-core: ${{ steps.version.outputs.publish-core }}
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # The tags are needed to compare against the last release.
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The file policy and the characters a reader cannot see, as the commit check has them.
+      - name: Check files
+        run: node .claude/hooks/check-commit.mjs --all
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          global-json-file: global.json
+
+      - name: Install MAUI workloads
+        run: dotnet workload install maui-windows android ios maccatalyst
+
+      - name: Restore
+        run: dotnet restore SumireCraft.Maui.slnx
+
+      - name: Check versions
+        id: version
+        shell: pwsh
+        run: ./.github/scripts/check-versions.ps1
+
+      - name: Build
+        run: dotnet build SumireCraft.Maui.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test --project tests/SumireCraft.Maui.UnitTests/SumireCraft.Maui.UnitTests.csproj -c Release --no-build
+
+      - name: Pack
+        run: dotnet pack SumireCraft.Maui.slnx -c Release --no-build -o artifacts
+
+      - name: Upload packages
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: nupkg
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+
+  publish:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: release
+
+    permissions:
+      # To make the tag.
+      contents: write
+      # To ask GitHub for the token that nuget.org exchanges for a key.
+      id-token: write
+
+    # The versions come from the build job's outputs, read from build/Version.props. They reach the
+    # scripts below through the environment, never written into them, so that whatever that file
+    # says is a value to the script and not a line of it.
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: nupkg
+          path: artifacts
+
+      # Right before pushing, because the key it returns lasts an hour.
+      - name: Log in to nuget.org
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      # Pushed before tagging, so that a run that fails halfway can be re-run as it is: a package
+      # already on nuget.org is skipped, and the tag is made once everything is there.
+      - name: Push to nuget.org
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+          CONTROLS: ${{ needs.build.outputs.controls }}
+          CORE: ${{ needs.build.outputs.core }}
+          PUBLISH_CORE: ${{ needs.build.outputs.publish-core }}
+        run: |
+          # Each push takes the .snupkg beside its .nupkg along.
+          $packages = @("artifacts/SumireCraft.Maui.Controls.${env:CONTROLS}.nupkg")
+          if ($env:PUBLISH_CORE -eq 'true') {
+            $packages = @("artifacts/SumireCraft.Maui.Core.${env:CORE}.nupkg") + $packages
+          }
+          foreach ($package in $packages) {
+            dotnet nuget push $package --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      # Made through the API on the commit that was built, so that this job needs no checkout.
+      - name: Tag
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTROLS: ${{ needs.build.outputs.controls }}
+        run: |
+          gh api "repos/$env:GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/v$env:CONTROLS" -f "sha=$env:GITHUB_SHA"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -1,0 +1,88 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>$(SumireTargetFrameworks)</TargetFrameworks>
+
+		<!-- The Mac Catalyst runtime identifiers are in samples\Directory.Build.props. -->
+
+		<!-- Always, not just in Release. A Debug package otherwise leaves its assemblies out for
+		     fast deployment to push separately, and a package installed on its own then aborts on
+		     startup with "No assemblies found". Anything that installs the package rather than
+		     deploying it, such as the UI tests or a person handed the file, would get that. Fast
+		     deployment is worth less than a package in bin\ that runs. -->
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+
+		<OutputType>Exe</OutputType>
+		<RootNamespace>SumireCraft.Maui.Sample</RootNamespace>
+		<IsPackable>false</IsPackable>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- Enable XAML source generation for faster build times and improved performance.
+		     This generates C# code from XAML at compile time instead of runtime inflation.
+		     To disable, remove this line.
+		     For individual files, you can override by setting Inflator metadata:
+		       <MauiXaml Update="MyPage.xaml" Inflator="Default" /> (reverts to defaults: Runtime for Debug, XamlC for Release)
+		       <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
+		<MauiXamlInflator>SourceGen</MauiXamlInflator>
+
+		<!-- Display name -->
+		<ApplicationTitle>SumireCraft.Maui.Sample</ApplicationTitle>
+
+		<!-- App Identifier -->
+		<ApplicationId>com.companyname.sumirecraft.maui.sample</ApplicationId>
+
+		<!-- Versions -->
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationVersion>1</ApplicationVersion>
+
+		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
+		<WindowsPackageType>None</WindowsPackageType>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- App Icon -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#8467E0" />
+
+		<!-- Splash Screen -->
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#8467E0" BaseSize="128,128" />
+
+		<!-- Images -->
+		<MauiImage Include="Resources\Images\*" />
+		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+		
+		<!-- Custom Fonts -->
+		<MauiFont Include="Resources\Fonts\*" />
+
+		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<!-- Versions are managed centrally in Directory.Packages.props at the repository root -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+	</ItemGroup>
+
+	<!-- The one thing the Consumer configuration changes: the library arrives as a package rather
+	     than as the project next door. See CLAUDE.md for what to run.
+
+	     The extra source is set here rather than in nuget.config so that it applies to this build
+	     alone. artifacts\ is not in the repository, and a source that points at a folder nobody has
+	     is a restore error for everybody. -->
+	<ItemGroup Condition="'$(SumireConsumerBuild)' != 'true'">
+		<ProjectReference Include="..\..\src\SumireCraft.Maui.Controls\SumireCraft.Maui.Controls.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(SumireConsumerBuild)' == 'true'">
+		<RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)..\..\artifacts</RestoreAdditionalProjectSources>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(SumireConsumerBuild)' == 'true'">
+		<PackageReference Include="SumireCraft.Maui.Controls" />
+	</ItemGroup>
+
+</Project>

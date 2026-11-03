@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Plain net10.0, and no reference to anything under src. This project drives the sample
+         application from the outside through Appium, so it needs none of the library's types and
+         none of the MAUI workload. -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- xUnit.net v3 builds a test project into an executable that runs its own tests. -->
+    <OutputType>Exe</OutputType>
+
+    <RootNamespace>SumireCraft.Maui.UITests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Appium.WebDriver" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

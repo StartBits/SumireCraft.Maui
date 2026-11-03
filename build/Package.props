@@ -1,0 +1,35 @@
+﻿<Project>
+
+  <!-- Imported only by the projects under src\ that are published to NuGet.
+       The sample app and the test project do not use this file. -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <!-- The tags every package shares, followed by the ones a project names in SumirePackageTags.
+         Not PackageTags itself: this file is imported at the end of the project file, so a
+         PackageTags set there would be overwritten here. -->
+    <PackageTags>maui;dotnet-maui;sumirecraft;$(SumirePackageTags)</PackageTags>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Source Link: only mark the build deterministic on CI -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <!-- Each package carries a short README of its own, which points to the one on GitHub. The
+         repository's README is written for GitHub alone, so its images can use relative paths. -->
+    <None Include="$(MSBuildProjectDirectory)\PACKAGE-README.md" Pack="true" PackagePath="README.md" Visible="false" />
+  </ItemGroup>
+
+</Project>

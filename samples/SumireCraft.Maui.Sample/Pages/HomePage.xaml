@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:sample="clr-namespace:SumireCraft.Maui.Sample"
+             x:Class="SumireCraft.Maui.Sample.Pages.HomePage"
+             Title="Home">
+
+  <ScrollView>
+    <VerticalStackLayout
+      Padding="24"
+      Spacing="20">
+
+      <Label
+        AutomationId="HomeTitle"
+        Text="SumireCraft.Maui"
+        Style="{StaticResource Headline}"
+        HorizontalTextAlignment="Start" />
+
+      <Label
+        Text="A small widget library for .NET MAUI, plus the safety net the framework does not give you."
+        FontSize="16" />
+
+      <BoxView
+        HeightRequest="1"
+        Color="{AppThemeBinding Light=#D0CCD8, Dark=#4A4458}" />
+
+      <Label
+        Text="What this application is for"
+        FontAttributes="Bold"
+        FontSize="18" />
+
+      <Label
+        Text="Every widget worth demonstrating has a page of its own, listed in the menu. Each page is small enough to take in at a glance, shows one thing, and says on the page itself what should happen — so it can be read by hand and driven by an automated test without either getting in the other's way." />
+
+      <BoxView
+        HeightRequest="1"
+        Color="{AppThemeBinding Light=#D0CCD8, Dark=#4A4458}" />
+
+      <HorizontalStackLayout Spacing="8">
+        <Label
+          Text="Built as"
+          VerticalTextAlignment="Center" />
+        <Label
+          AutomationId="BuildConfiguration"
+          Text="{x:Static sample:Build.Configuration}"
+          FontAttributes="Bold"
+          VerticalTextAlignment="Center" />
+      </HorizontalStackLayout>
+
+    </VerticalStackLayout>
+  </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,101 @@
+﻿<Project>
+
+  <!-- Settings shared by every project in the repository.
+       NuGet packaging settings live in build\Package.props instead. -->
+
+  <PropertyGroup Label="Configurations">
+    <!-- Consumer builds the sample against the published packages instead of the projects beside
+         it, so that what gets driven by the UI tests is what someone installing from NuGet would
+         get. It is not a third kind of build: it is Release with a different reference, and the
+         one thing it proves that Release cannot is that the package itself is right.
+
+         Every project has to list it. MSBuild refuses a configuration it was never told about. -->
+    <Configurations>Debug;Release;Consumer</Configurations>
+    <SumireConsumerBuild Condition="'$(Configuration)' == 'Consumer'">true</SumireConsumerBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(SumireConsumerBuild)' == 'true'">
+    <!-- Spelled out because the SDK only optimizes for a configuration literally called Release.
+         The platform SDKs do the same with trimming and ahead-of-time compilation; what they set
+         for Release by name is spelled out for the applications in samples\Directory.Build.props. -->
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <!-- No LangVersion: the target framework picks the language version, so the compiler, Visual Studio
+       and VS Code agree on it. With `latest`, the C# extension for VS Code, whose compiler is newer than
+       the SDK's, read it as a newer version and suggested preview syntax the build then rejects. -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Label="TargetFrameworks">
+    <!-- The one place the .NET version is written down. Moving to a newer one is an edit here and
+         nowhere else.
+
+         These are values, not an assignment to TargetFrameworks. The test project wants a single
+         framework rather than the list, and handing it TargetFrameworks as well would leave it
+         depending on how TargetFramework and TargetFrameworks resolve against each other. Instead
+         every project says in one line which of the two it wants. -->
+    <SumirePlainTargetFramework>net10.0</SumirePlainTargetFramework>
+    <SumireWindowsTargetFramework>net10.0-windows10.0.19041.0</SumireWindowsTargetFramework>
+
+    <!-- The platforms an application runs on. -->
+    <SumireTargetFrameworks>net10.0-android</SumireTargetFrameworks>
+    <SumireTargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(SumireTargetFrameworks);net10.0-ios;net10.0-maccatalyst</SumireTargetFrameworks>
+    <SumireTargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(SumireTargetFrameworks);$(SumireWindowsTargetFramework)</SumireTargetFrameworks>
+
+    <!-- The libraries build for plain net10.0 as well, which .NET MAUI supports for exactly this
+         purpose: a unit test project is plain net10.0, and can only reference a library that is
+         too. That holds for the tests here and for the tests of any application that uses the
+         packages. It also takes the platforms out of the test run, so the tests run on Linux, and
+         views can be built in them: under a Windows target, constructing any Element reaches
+         WinUI and throws outside a running application.
+
+         An application cannot target plain net10.0, so the sample keeps SumireTargetFrameworks. -->
+    <SumireLibraryTargetFrameworks>$(SumirePlainTargetFramework);$(SumireTargetFrameworks)</SumireLibraryTargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Label="SupportedOSPlatformVersion">
+    <!-- The oldest operating systems the library runs on. Shared by the cross-targeting projects,
+         the sample included: a sample that supported less than the library could not reference it.
+         The one exception is Mac Catalyst, which samples/Directory.Build.props raises for the
+         sample alone because the SDK will not build an application this old. Raising the library's
+         past it means raising that one too, or removing it.
+
+         They are written out for app authors too, in the summary line of README.md and of both
+         PACKAGE-README.md files, and CLAUDE.md lists them under Conventions. Change those with them,
+         and say so in CHANGELOG.md.
+
+         These conditions read TargetFramework, which is a global property in a cross-targeting
+         inner build and therefore already set by the time this file is evaluated. A project with a
+         single framework sets it in its own body instead, far too late for this file to see, so
+         such a project states its versions itself. -->
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)build\Version.props" />
+
+  <PropertyGroup>
+    <Authors>StartBits</Authors>
+    <Company>StartBits</Company>
+    <RepositoryUrl>https://github.com/startbits/SumireCraft.Maui</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/startbits/SumireCraft.Maui</PackageProjectUrl>
+
+    <Product>SumireCraft.Maui</Product>
+    <Copyright>Copyright (c) $([System.DateTime]::UtcNow.Year) StartBits</Copyright>
+
+    <!-- Controls and everything unpublished take the release version; Core sets its own. A Version
+         passed on the command line would give both packages the same one, because a global
+         property wins, so release.yml does not pass one. -->
+    <Version>$(SumireVersion)</Version>
+  </PropertyGroup>
+
+</Project>

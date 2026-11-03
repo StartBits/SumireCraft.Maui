@@ -1,0 +1,64 @@
+﻿<Project>
+
+  <!-- Settings for the applications under samples\ only. Everything the repository shares still
+       comes from the root file, imported first; MSBuild stops at the nearest Directory.Build.props
+       and would otherwise never see it. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup Label="RuntimeIdentifiers">
+    <!-- Mac Catalyst picks its runtime identifiers by configuration: x64 alone in Debug, x64 and
+         arm64 in Release. Restore and build then disagree whenever they run in different
+         configurations. Visual Studio restores in Debug, and a Release build that follows without
+         restoring again stops with NETSDK1047, because nothing for maccatalyst-arm64 was
+         restored. Naming both outright makes every configuration ask for the same thing.
+
+         Both rather than arm64 alone: the Mac App Store refuses a Mac Catalyst app that names
+         arm64 only.
+
+         Here rather than in the root file because only an application has runtime identifiers
+         to choose; the libraries under src\ must not get them. The condition reads
+         TargetFramework, which a cross-targeting inner build has already set by the time this
+         file is evaluated. -->
+    <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <PropertyGroup Label="SupportedOSPlatformVersion">
+    <!-- Where a platform SDK refuses to build an application for an operating system as old as the
+         one the library promises, the sample asks for the oldest the SDK accepts, and the library
+         keeps its promise. The libraries still build for the older one: the SDK asks this of
+         applications alone.
+
+         .NET for Mac Catalyst 27.0 refuses an application below Mac Catalyst 17.0, against the
+         library's 15.0 in the root file. An application may ask for more than a library it
+         references; it is asking for less that would not build. So this means something only
+         while it is above the root file's value: raise the library's past it, and this goes. -->
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">17.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Consumer" Condition="'$(SumireConsumerBuild)' == 'true'">
+    <!-- Consumer is meant to be Release with a different reference, but the platform SDKs decide
+         what Release does by the configuration's name, and Consumer is not called Release. Left to
+         them, an Android Consumer build was neither trimmed nor compiled ahead of time, so its UI
+         tests proved nothing about either. What changes how the application runs is spelled out
+         here, as the SDKs set it for Release.
+
+         Left out on purpose: Android's AndroidManagedSymbols and AndroidPackageFormats, which change
+         the package and not what runs; and IL stripping on iOS and Mac Catalyst, which the SDK turns
+         on only where the AOT compiler runs, a condition not yet known when this file is read.
+         Turned on regardless, it would strip the IL from an application nothing has compiled.
+
+         Taken from .NET 10's SDKs. To see what a newer one sets for Release by name, preprocess the
+         sample (dotnet msbuild -pp) and look for conditions on '$(Configuration)' == 'Release'.
+         Here rather than in the root file because only an application is trimmed or compiled ahead
+         of time; the libraries under src\ must not get these. -->
+    <PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">true</PublishTrimmed>
+    <RunAOTCompilation Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">true</RunAOTCompilation>
+    <MtouchUseLlvm Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">true</MtouchUseLlvm>
+    <MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">SdkOnly</MtouchLink>
+  </PropertyGroup>
+
+  <ItemGroup Label="Consumer" Condition="'$(SumireConsumerBuild)' == 'true' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+    <CustomEntitlements Include="com.apple.security.cs.allow-jit" Type="Boolean" Value="true" />
+  </ItemGroup>
+
+</Project>
