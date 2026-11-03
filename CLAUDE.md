@@ -412,7 +412,8 @@ opened -- for the maintainer to look before going on.
 Branch names are all lower case: Windows cannot hold two that differ only in case. For now, a
 change to documentation alone goes in a `feature/` or `fix/` branch too. `bugfix/` is not used,
 because it reads too close to `hotfix/`, and there is no bare `release` branch, because git cannot
-have `release` and `release/1.1` at once.
+have `release` and `release/1.1` at once. `dependabot/` branches are Dependabot's own, named by it
+and outside these rules; the `releasing` skill says how its pull requests are read.
 
 **Merging into `main` releases whatever changed in a package.** What goes into a package is a
 list of paths -- `src/`, `build/`, `global.json` and the root `Directory.*.props` -- written in two
