@@ -97,8 +97,9 @@ so the squashing ended where the first release branch began:
      only actions by GitHub, verified creators and `NuGet/login`; full-SHA pinning required;
      approval before any outside contributor's pull request runs a workflow, every time and not
      only the first.
-   - **Security.** Secret scanning with push protection, Dependabot alerts, and private
-     vulnerability reporting.
+   - **Security.** Secret scanning with push protection, the dependency graph, Dependabot alerts,
+     and private vulnerability reporting. Dependabot *security updates* stay off, though GitHub
+     suggests them: their pull requests raise NuGet packages, which is a release.
    - **Dependabot version updates** for `github-actions` alone, in a `.github/dependabot.yml`
      written then: the workflows sit outside the package paths, so its pull requests can go to
      `main`. Not for NuGet: the .NET MAUI version is a minimum chosen on purpose, and raising it is
@@ -157,6 +158,17 @@ pull request into `main`, so these go through `release/1.0` like everything else
 
 The README describing something not yet published is not such a change: it goes with that change
 through the release branch.
+
+Dependabot's weekly pull request is such a change too, one that arrives by itself on a
+`dependabot/` branch it names (`.github/dependabot.yml`). It is known by its author,
+`dependabot[bot]`, not by that name, which anyone who can push could give a branch. It did not
+come from the conversation, so it is read like any outside change: `security-review` joins, and
+each new SHA is checked against its action's own repository (*Security* in `CLAUDE.md`). Its CI
+proves less than it seems: `download-artifact` and `NuGet/login` run only in `release.yml`'s
+publish job, which no pull request starts, so for those two read the release notes between the
+versions, and let a major version wait for a release that can afford to find out. The maintainer
+approves it as a code owner -- it is not theirs, so the approval counts -- rather than merging
+past the review. Then step 3 above.
 
 ## A hotfix
 
