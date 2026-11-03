@@ -29,7 +29,8 @@ organizations:
   `release.yml` alone.
 
 Then look again at what step 5 of *The switch from squashing* set up: the review ruleset's bypass,
-which goes once there is a second code owner, and the `release` environment's required reviewers.
+which goes once there is a second code owner, and the `release` environment's required reviewers,
+where *Prevent self-review* goes on once there is a second one.
 
 Trusted Publishing ties the nuget.org organization's policy to the member who created it, and
 `NUGET_USER` names that member's nuget.org user name. If they leave the organization the policy
@@ -42,14 +43,13 @@ rulesets hold for a code owner.
 
 ## The switch from squashing
 
-The `squash` skill keeps the history to one commit, and a squash force-pushes `main`. Once a
-branch has been cut from `main`, a force-push would leave that branch on a history that no longer
-exists, so the squash ends where the first release branch begins:
+Until `release/1.0`, the history was kept to one commit, squashed and force-pushed. Once a branch
+has been cut from `main`, a force-push would leave that branch on a history that no longer exists,
+so the squashing ended where the first release branch began:
 
-1. Run the UI tests in Debug, then Release, then Consumer (the `ui-tests` and `consumer-build`
-   skills), every test green in all three. Then the last squash, on the maintainer's word as
-   always.
-2. Cut `release/1.0` from `main`. From here on, nothing is squashed or force-pushed.
+1. The UI tests ran in Debug, then Release, then Consumer, every test green in all three, and the
+   last squash followed. (Done.)
+2. `release/1.0` was cut from `main`, and the squash skill was deleted on it. (Done.)
 3. What 1.0.0 still needs goes in by `feature/` and `fix/` branches, as in any release.
 4. Try the whole flow on a `try/` branch, which is never merged, before the first pull request
    into `main`, because that merge publishes (see *Trying the flow*).
@@ -71,7 +71,7 @@ exists, so the squash ends where the first release branch begins:
 
    Public, the repository can also be guarded on GitHub's side, which nothing in Claude Code can do
    for commits made elsewhere (*Security* in `CLAUDE.md`). Walk the maintainer through these in the
-   repository's settings, after the last squash, since a squash force-pushes `main`:
+   repository's settings:
 
    - **Rulesets.** On `main` and `release/**`, two of them. The first, with no one on its bypass
      list: changes only by pull request, the CI check passing, no force-push, no deletion. The
@@ -89,7 +89,8 @@ exists, so the squash ends where the first release branch begins:
    - **The `release` environment**, which `release.yml`'s publish job runs in: the maintainer as
      required reviewer, deployments from `main` only, and `NUGET_USER` as its secret rather than the
      repository's. It holds only if the nuget.org policy names the environment too (the comment at
-     the top of `release.yml`).
+     the top of `release.yml`). Leave *Prevent self-review* off: the merge that starts the run is
+     the maintainer's, and while they are its only reviewer, no one else could approve it.
    - **CODEOWNERS.** Once pushed, open `.github/CODEOWNERS` on GitHub: a line it cannot use is
      marked there.
    - **Actions**, in the organization's settings so that every repository there inherits them:
@@ -106,8 +107,9 @@ exists, so the squash ends where the first release branch begins:
    hold it against and passes. `CHANGELOG.md` already has its `## [1.0.0]` section; it takes its
    date as in step 4 of *A release*.
 
-After the first release, delete the `squash` skill and its line in `CLAUDE.md`, and this section
-with them: what it checks before the switch, step 4 of *A release* checks before every release.
+After the first release, move what step 5 sets up on GitHub into *Accounts*, which points to it,
+and delete the rest of this section: what step 1 checked before the switch, step 4 of
+*A release* checks before every release.
 
 ## A release
 
