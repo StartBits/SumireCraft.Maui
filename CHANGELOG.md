@@ -8,7 +8,7 @@ alone, and says so in its heading; Core keeps the version of the last release th
 
 A release that raises the minimum version of .NET MAUI says so under *Changed*.
 
-## [1.0.0]
+## [1.0.0] - 2026-11-03
 
 The first release, of both packages.
 
