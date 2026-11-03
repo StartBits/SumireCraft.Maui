@@ -10,6 +10,9 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <!-- Shown under Release Notes on nuget.org. One changelog covers both packages, and each
+         release's entry says whether Core changed in it. -->
+    <PackageReleaseNotes>https://github.com/startbits/SumireCraft.Maui/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <!-- The tags every package shares, followed by the ones a project names in SumirePackageTags.
          Not PackageTags itself: this file is imported at the end of the project file, so a
          PackageTags set there would be overwritten here. -->
