@@ -28,7 +28,7 @@ organizations:
   organization's Trusted Publishing policy. No personal API key: packages are published by
   `release.yml` alone.
 
-Then look again at what step 5 of *The switch from squashing* set up: the review ruleset's bypass,
+Then look again at what step 6 of *The switch from squashing* set up: the review ruleset's bypass,
 which goes once there is a second code owner, and the `release` environment's required reviewers,
 where *Prevent self-review* goes on once there is a second one.
 
@@ -53,9 +53,9 @@ so the squashing ended where the first release branch began:
 3. What 1.0.0 still needs goes in by `feature/` and `fix/` branches, as in any release.
 4. Try the whole flow on a `try/` branch, which is never merged, before the first pull request
    into `main`, because that merge publishes (see *Trying the flow*).
-5. Turn the workflows' automatic triggers back on, by a `feature/` branch into `release/1.0`.
-   Without them the pull request into `main` is not checked and its merge publishes nothing.
-   Before the pull request into `main`, the maintainer makes the repository public -- the README's
+5. The workflows' automatic triggers were turned back on, by a `feature/` branch into
+   `release/1.0`, after trying them on `try/release-flow`. (Done.)
+6. Before the pull request into `main`, the maintainer makes the repository public -- the README's
    and the PACKAGE-READMEs' links into GitHub lead nowhere until then -- and only after that sets
    up Trusted Publishing as the comment at the top of `release.yml` says: the policy on nuget.org,
    with `release` as its environment, and the `NUGET_USER` secret. Walk them through both then. A
@@ -95,19 +95,26 @@ so the squashing ended where the first release branch began:
      marked there.
    - **Actions**, in the organization's settings so that every repository there inherits them:
      only actions by GitHub, verified creators and `NuGet/login`; full-SHA pinning required;
-     approval before a first-time contributor's pull request runs any workflow.
+     approval before any outside contributor's pull request runs a workflow, every time and not
+     only the first.
    - **Security.** Secret scanning with push protection, Dependabot alerts, and private
      vulnerability reporting.
    - **Dependabot version updates** for `github-actions` alone, in a `.github/dependabot.yml`
      written then: the workflows sit outside the package paths, so its pull requests can go to
      `main`. Not for NuGet: the .NET MAUI version is a minimum chosen on purpose, and raising it is
      a release (*Packages* in `CLAUDE.md`). Dependabot alerts still cover NuGet.
-6. The pull request from `release/1.0` into `main` publishes 1.0.0. `build/Version.props` already
+7. The pull request from `release/1.0` into `main` publishes 1.0.0. `build/Version.props` already
    says 1.0.0 and there is no earlier tag to compare with, so the version check has nothing to
    hold it against and passes. `CHANGELOG.md` already has its `## [1.0.0]` section; it takes its
    date as in step 4 of *A release*.
 
-After the first release, move what step 5 sets up on GitHub into *Accounts*, which points to it,
+   The merge publishes only because `release/1.0` touches a package path: the squashed `main`
+   already held every package file at 1.0.0, so a pull request that changed none of them would
+   pass its checks and publish nothing, without a word. `build/Package.props` gained the release
+   notes on `release/1.0`, which is what starts the release workflow. Every later release raises
+   `build/Version.props`, so this is the first release's alone.
+
+After the first release, move what step 6 sets up on GitHub into *Accounts*, which points to it,
 and delete the rest of this section: what step 1 checked before the switch, step 4 of
 *A release* checks before every release.
 
