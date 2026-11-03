@@ -4,12 +4,11 @@ name: CI
 # main also has its versions checked, because merging it publishes whatever changed in a package
 # (.github/scripts/check-versions.ps1).
 #
-# The pull_request trigger stays commented out while main is still squashed and force-pushed. It
-# comes back on release/1.0, with release.yml's, before its pull request into main. Until then only
-# manual runs (Run workflow, on the Actions tab) are possible.
+# Run by hand (Run workflow, on the Actions tab) it does the same for any branch, and checks the
+# versions only when given a base.
 on:
-  # pull_request:
-  #   branches: [main, 'release/**']
+  pull_request:
+    branches: [main, 'release/**']
   workflow_dispatch:
     inputs:
       base:
@@ -53,8 +52,10 @@ jobs:
       - name: Install MAUI workloads
         run: dotnet workload install maui-windows android ios maccatalyst
 
+      # In the configuration it builds in: the Windows sample needs a runtime pack in Release alone,
+      # and a build that does not restore cannot fetch it.
       - name: Restore
-        run: dotnet restore SumireCraft.Maui.slnx
+        run: dotnet restore SumireCraft.Maui.slnx -p:Configuration=Release
 
       # Run by hand with a base, so that the check can be tried on a try/ branch before a real pull
       # request depends on it.

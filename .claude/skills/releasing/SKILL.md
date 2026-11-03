@@ -28,8 +28,9 @@ organizations:
   organization's Trusted Publishing policy. No personal API key: packages are published by
   `release.yml` alone.
 
-Then look again at what step 5 of *The switch from squashing* set up: the review ruleset's bypass,
-which goes once there is a second code owner, and the `release` environment's required reviewers.
+Then look again at what step 6 of *The switch from squashing* set up: the review ruleset's bypass,
+which goes once there is a second code owner, and the `release` environment's required reviewers,
+where *Prevent self-review* goes on once there is a second one.
 
 Trusted Publishing ties the nuget.org organization's policy to the member who created it, and
 `NUGET_USER` names that member's nuget.org user name. If they leave the organization the policy
@@ -42,20 +43,19 @@ rulesets hold for a code owner.
 
 ## The switch from squashing
 
-The `squash` skill keeps the history to one commit, and a squash force-pushes `main`. Once a
-branch has been cut from `main`, a force-push would leave that branch on a history that no longer
-exists, so the squash ends where the first release branch begins:
+Until `release/1.0`, the history was kept to one commit, squashed and force-pushed. Once a branch
+has been cut from `main`, a force-push would leave that branch on a history that no longer exists,
+so the squashing ended where the first release branch began:
 
-1. Run the UI tests in Debug, then Release, then Consumer (the `ui-tests` and `consumer-build`
-   skills), every test green in all three. Then the last squash, on the maintainer's word as
-   always.
-2. Cut `release/1.0` from `main`. From here on, nothing is squashed or force-pushed.
+1. The UI tests ran in Debug, then Release, then Consumer, every test green in all three, and the
+   last squash followed. (Done.)
+2. `release/1.0` was cut from `main`, and the squash skill was deleted on it. (Done.)
 3. What 1.0.0 still needs goes in by `feature/` and `fix/` branches, as in any release.
 4. Try the whole flow on a `try/` branch, which is never merged, before the first pull request
    into `main`, because that merge publishes (see *Trying the flow*).
-5. Turn the workflows' automatic triggers back on, by a `feature/` branch into `release/1.0`.
-   Without them the pull request into `main` is not checked and its merge publishes nothing.
-   Before the pull request into `main`, the maintainer makes the repository public -- the README's
+5. The workflows' automatic triggers were turned back on, by a `feature/` branch into
+   `release/1.0`, after trying them on `try/release-flow`. (Done.)
+6. Before the pull request into `main`, the maintainer makes the repository public -- the README's
    and the PACKAGE-READMEs' links into GitHub lead nowhere until then -- and only after that sets
    up Trusted Publishing as the comment at the top of `release.yml` says: the policy on nuget.org,
    with `release` as its environment, and the `NUGET_USER` secret. Walk them through both then. A
@@ -71,7 +71,7 @@ exists, so the squash ends where the first release branch begins:
 
    Public, the repository can also be guarded on GitHub's side, which nothing in Claude Code can do
    for commits made elsewhere (*Security* in `CLAUDE.md`). Walk the maintainer through these in the
-   repository's settings, after the last squash, since a squash force-pushes `main`:
+   repository's settings:
 
    - **Rulesets.** On `main` and `release/**`, two of them. The first, with no one on its bypass
      list: changes only by pull request, the CI check passing, no force-push, no deletion. The
@@ -89,25 +89,35 @@ exists, so the squash ends where the first release branch begins:
    - **The `release` environment**, which `release.yml`'s publish job runs in: the maintainer as
      required reviewer, deployments from `main` only, and `NUGET_USER` as its secret rather than the
      repository's. It holds only if the nuget.org policy names the environment too (the comment at
-     the top of `release.yml`).
+     the top of `release.yml`). Leave *Prevent self-review* off: the merge that starts the run is
+     the maintainer's, and while they are its only reviewer, no one else could approve it.
    - **CODEOWNERS.** Once pushed, open `.github/CODEOWNERS` on GitHub: a line it cannot use is
      marked there.
    - **Actions**, in the organization's settings so that every repository there inherits them:
      only actions by GitHub, verified creators and `NuGet/login`; full-SHA pinning required;
-     approval before a first-time contributor's pull request runs any workflow.
-   - **Security.** Secret scanning with push protection, Dependabot alerts, and private
-     vulnerability reporting.
+     approval before any outside contributor's pull request runs a workflow, every time and not
+     only the first.
+   - **Security.** Secret scanning with push protection, the dependency graph, Dependabot alerts,
+     and private vulnerability reporting. Dependabot *security updates* stay off, though GitHub
+     suggests them: their pull requests raise NuGet packages, which is a release.
    - **Dependabot version updates** for `github-actions` alone, in a `.github/dependabot.yml`
      written then: the workflows sit outside the package paths, so its pull requests can go to
      `main`. Not for NuGet: the .NET MAUI version is a minimum chosen on purpose, and raising it is
      a release (*Packages* in `CLAUDE.md`). Dependabot alerts still cover NuGet.
-6. The pull request from `release/1.0` into `main` publishes 1.0.0. `build/Version.props` already
+7. The pull request from `release/1.0` into `main` publishes 1.0.0. `build/Version.props` already
    says 1.0.0 and there is no earlier tag to compare with, so the version check has nothing to
    hold it against and passes. `CHANGELOG.md` already has its `## [1.0.0]` section; it takes its
    date as in step 4 of *A release*.
 
-After the first release, delete the `squash` skill and its line in `CLAUDE.md`, and this section
-with them: what it checks before the switch, step 4 of *A release* checks before every release.
+   The merge publishes only because `release/1.0` touches a package path: the squashed `main`
+   already held every package file at 1.0.0, so a pull request that changed none of them would
+   pass its checks and publish nothing, without a word. `build/Package.props` gained the release
+   notes on `release/1.0`, which is what starts the release workflow. Every later release raises
+   `build/Version.props`, so this is the first release's alone.
+
+After the first release, move what step 6 sets up on GitHub into *Accounts*, which points to it,
+and delete the rest of this section: what step 1 checked before the switch, step 4 of
+*A release* checks before every release.
 
 ## A release
 
@@ -148,6 +158,17 @@ pull request into `main`, so these go through `release/1.0` like everything else
 
 The README describing something not yet published is not such a change: it goes with that change
 through the release branch.
+
+Dependabot's weekly pull request is such a change too, one that arrives by itself on a
+`dependabot/` branch it names (`.github/dependabot.yml`). It is known by its author,
+`dependabot[bot]`, not by that name, which anyone who can push could give a branch. It did not
+come from the conversation, so it is read like any outside change: `security-review` joins, and
+each new SHA is checked against its action's own repository (*Security* in `CLAUDE.md`). Its CI
+proves less than it seems: `download-artifact` and `NuGet/login` run only in `release.yml`'s
+publish job, which no pull request starts, so for those two read the release notes between the
+versions, and let a major version wait for a release that can afford to find out. The maintainer
+approves it as a code owner -- it is not theirs, so the approval counts -- rather than merging
+past the review. Then step 3 above.
 
 ## A hotfix
 

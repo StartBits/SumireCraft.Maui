@@ -6,7 +6,7 @@ This file holds what applies to every change. The rest of the guidance lives und
 where it costs nothing until it is needed:
 
 - **Skills** (`.claude/skills/`) for one kind of task, read when that task comes up: `ui-tests`,
-  `consumer-build`, `code-analysis`, `readme-images`, `releasing` and `squash`.
+  `consumer-build`, `code-analysis`, `readme-images` and `releasing`.
 - **Rules** (`.claude/rules/`) for one part of the tree, loaded when a matching file is read or
   written: `platform-code`.
 - **Hooks** (`.claude/hooks/`, wired in `.claude/settings.json`) for what must happen every time
@@ -384,9 +384,17 @@ changes only through reviewed pull requests (the `releasing` skill sets that up)
 
 ## Git workflow
 
-This applies once the first release branch is cut. Until then the history is kept to one commit by
-the `squash` skill. Where one ends and the other begins, and the steps of a release and of a
-hotfix, are the `releasing` skill.
+The steps of a release and of a hotfix are the `releasing` skill. `main`, a release branch and a
+tag are never force-pushed: a branch cut from a rewritten history, or a tag on it, is left on
+commits that no longer exist.
+
+A commit's author is the maintainer as a person, set in the repository's local git config
+(`git config user.name`, `git config user.email`), never the company the packages are published
+under. The address is the account's no-reply one (`<id>+<login>@users.noreply.github.com`), which
+GitHub links to the account whatever name the commit gives. Like the maintainer's language, it is
+not written here: it belongs to whoever is maintaining. Before the first commit in a clone, look
+at the two values: an address that is not a no-reply one, or a name that is not the maintainer's,
+is asked about, never changed by Claude.
 
 Every change goes in through a branch and a pull request; nothing is pushed to `main` directly.
 Claude takes a change as far as opening the pull request, after the review loop above, and the
@@ -404,7 +412,8 @@ opened -- for the maintainer to look before going on.
 Branch names are all lower case: Windows cannot hold two that differ only in case. For now, a
 change to documentation alone goes in a `feature/` or `fix/` branch too. `bugfix/` is not used,
 because it reads too close to `hotfix/`, and there is no bare `release` branch, because git cannot
-have `release` and `release/1.1` at once.
+have `release` and `release/1.1` at once. `dependabot/` branches are Dependabot's own, named by it
+and outside these rules; the `releasing` skill says how its pull requests are read.
 
 **Merging into `main` releases whatever changed in a package.** What goes into a package is a
 list of paths -- `src/`, `build/`, `global.json` and the root `Directory.*.props` -- written in two
@@ -427,8 +436,8 @@ A release raises the patch for fixes alone, the minor for a feature, and the maj
 breaking change, as the README's *Supported versions* promises.
 
 Pull requests are merged with a merge commit, never squashed or rebased, so each release's history
-stays readable. Inside a `feature/` or `fix/` branch, commits may be squashed before the pull
-request.
+stays readable. Inside a `feature/` or `fix/` branch, commits may be squashed before they are
+pushed.
 
 ## Feedback
 
@@ -483,10 +492,10 @@ touched, and the format hook rejects a misspelled name.
 - `CentralPackageTransitivePinningEnabled` **must stay `false`**. Turning it on promotes
   build-time-only packages such as `Microsoft.Maui.Resizetizer` (`PrivateAssets="all"`) into real
   package dependencies in the generated `.nuspec`.
-- GitHub Actions workflows are **manual-only** (`workflow_dispatch`) for now. Automatic triggers
-  are commented out, not deleted. They come back on `release/1.0` before its pull request into
-  `main` is opened, once the whole flow has been tried on a `try/` branch, which is never merged (the
-  `releasing` skill).
+- CI runs on every pull request into `main` or a release branch, and the release workflow on every
+  push to `main` that touches a package path. Both also run by hand (`workflow_dispatch`), which
+  publishes nothing. A change to a workflow is tried on a `try/` branch first (the `releasing`
+  skill).
 - **`dotnet add package` rewrites `Directory.Packages.props` wholesale**: blank lines go, line
   endings turn to CRLF, and the new `PackageVersion` lands in the first group whatever its label.
   `.claude/settings.json` denies it to Claude Code. Add the `PackageVersion` line by hand, in the

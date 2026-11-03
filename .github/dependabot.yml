@@ -1,0 +1,27 @@
+# Keeps the actions the workflows use up to date. Dependabot keeps each one pinned by its full
+# commit SHA and rewrites the version in the comment beside it. Its pull requests go to main: the
+# workflows are outside the package paths, so updating one is not a release. How to read one is in
+# the releasing skill (A change outside the packages).
+#
+# Not NuGet: the .NET MAUI version is a minimum chosen on purpose, and raising any package version
+# is a release (Packages in CLAUDE.md). Dependabot alerts still cover NuGet.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # A version a week old, not one released yesterday: a hijacked release is usually found and
+    # pulled within days, and two of these actions run in the job that publishes.
+    cooldown:
+      default-days: 7
+    # Minor and patch updates in one pull request a week. A major version comes in a pull request of
+    # its own, so that it can wait without holding the rest back; upload-artifact's and
+    # download-artifact's are merged together.
+    groups:
+      actions:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch

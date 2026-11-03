@@ -7,7 +7,10 @@ name: Release
 #
 # Publishing uses nuget.org's Trusted Publishing: no API key is stored anywhere. The job asks GitHub
 # for a short-lived token, nuget.org checks it against a policy and hands back a key valid for one
-# hour. Before enabling the push trigger:
+# hour. Before the first pull request into main is merged:
+#   - the release environment, protected: the maintainer as required reviewer, deployments from
+#     main only. Without that, nothing stops a run that names it, and GitHub creates an environment
+#     that does not exist yet, unprotected, the first time a job names it;
 #   - on nuget.org, under the account's Trusted Publishing, a policy owned by the account that will
 #     own the packages, for repository owner StartBits, repository SumireCraft.Maui, workflow file
 #     release.yml, environment release, allowed to publish new packages as well. The environment is
@@ -18,9 +21,6 @@ name: Release
 #     name, not an email address).
 # A policy made while the repository is private is active for seven days only, until the first
 # publish locks it to the repository, so make it shortly before releasing.
-#
-# The push trigger stays commented out while main is still squashed and force-pushed: each squash
-# would otherwise publish. It comes back on release/1.0, before its pull request into main.
 #
 # Run by hand (workflow_dispatch), from any branch, it checks, builds, tests and packs, and publishes
 # nothing and tags nothing. Only a push to main publishes.
@@ -33,15 +33,15 @@ name: Release
 #
 # Every action is named by its full commit SHA, with its version in a comment beside it.
 on:
-  # push:
-  #   branches: [main]
-  #   # What goes into a package. Also written in .github/scripts/check-versions.ps1, which ci.yml
-  #   # runs on every pull request into main; keep the two in step.
-  #   paths:
-  #     - 'src/**'
-  #     - 'build/**'
-  #     - 'global.json'
-  #     - 'Directory.*.props'
+  push:
+    branches: [main]
+    # What goes into a package. Also written in .github/scripts/check-versions.ps1, which ci.yml
+    # runs on every pull request into main; keep the two in step.
+    paths:
+      - 'src/**'
+      - 'build/**'
+      - 'global.json'
+      - 'Directory.*.props'
   workflow_dispatch:
 
 # Two runs on one branch never overlap: a second run of the same version would not yet see the
@@ -90,8 +90,10 @@ jobs:
       - name: Install MAUI workloads
         run: dotnet workload install maui-windows android ios maccatalyst
 
+      # In the configuration it builds in: the Windows sample needs a runtime pack in Release alone,
+      # and a build that does not restore cannot fetch it.
       - name: Restore
-        run: dotnet restore SumireCraft.Maui.slnx
+        run: dotnet restore SumireCraft.Maui.slnx -p:Configuration=Release
 
       - name: Check versions
         id: version
