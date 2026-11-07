@@ -74,9 +74,11 @@ so the squashing ended where the first release branch began:
    repository's settings:
 
    - **Rulesets.** On `main` and `release/**`, two of them. The first, with no one on its bypass
-     list: changes only by pull request, the CI check passing, no force-push, no deletion. The
-     second: a code owner's review (`.github/CODEOWNERS`). On tags `v*`, a third: no update and no
-     deletion, so a published version's tag always points where it did.
+     list: changes only by pull request, the CI check passing, no force-push, no deletion. Its
+     check is not required when a branch is created (*Do not require status checks on creation*),
+     or no release branch could be pushed (step 1 of *A release*). The second: a code owner's
+     review (`.github/CODEOWNERS`). On tags `v*`, a third: no update and no deletion, so a
+     published version's tag always points where it did.
 
      The review is a ruleset of its own because of its bypass. GitHub never counts the author's
      own approval, and Claude opens pull requests from the maintainer's account, so while the
@@ -128,6 +130,17 @@ and delete the rest of this section: what step 1 checked before the switch, step
    `CHANGELOG.md`, with no date yet, and a link line for it at the bottom, above the existing ones,
    comparing with the last tag
    (`[1.1.0]: https://github.com/startbits/SumireCraft.Maui/compare/v1.0.0...v1.1.0`).
+
+   Then push the branch with that commit on it. The ruleset on `release/**` requires CI on
+   everything but a branch's creation. If the push is refused with
+   `Required status check "build" is expected`, its *Do not require status checks on creation*
+   has been turned off, and turning it back on is the maintainer's. In 1.1, passing CI on the
+   same commit on a `try/` branch first did not let the push through; only that setting did.
+
+   Nothing has checked the first commit at that point, so run CI by hand on the new branch
+   (`gh workflow run ci.yml --ref release/x.y -f base=<main's SHA>`), which checks the versions as
+   the final pull request will. No one reviews it either until that pull request into `main`, so
+   read it there with the rest.
 2. Each change is a `feature/` or `fix/` branch cut from the release branch, reviewed, and merged
    back into it by pull request. Each one that an app author would notice adds its line to that
    section. Repeat.
@@ -170,6 +183,17 @@ versions, and let a major version wait for a release that can afford to find out
 approves it as a code owner -- it is not theirs, so the approval counts -- rather than merging
 past the review. Then step 3 above.
 
+A major version waits by being pointed at the open release branch
+(`gh pr edit <n> --base release/x.y`), so that a hotfix from `main` still publishes with the
+version that has published before. Point `upload-artifact` and `download-artifact` together, as
+`.github/dependabot.yml` merges them together. Changing the base starts no CI (`ci.yml` does not
+run on `edited`), so its check stays the run against `main`; in 1.1, `@dependabot rebase` brought
+no new one. Before it is merged into the release branch, try the upload and the download together
+(*Trying the flow*). Approve it just before merging, not when it is pointed there: the review
+ruleset keeps an approval through later pushes, and the pull request may stay open for weeks. Once
+it is merged, step 3 does not apply; the next pull request into the release branch builds it with
+the rest.
+
 ## A hotfix
 
 Only when the next release cannot wait; a fix that can goes through the release branch.
@@ -197,3 +221,10 @@ Workflows are tried on a `try/<what>` branch (`try/release-flow`), which is neve
 deleted afterwards, and run there by hand (`workflow_dispatch`). Check before each run that
 nothing in it can publish from that branch, and push no tag: publishing to nuget.org cannot be
 undone.
+
+`download-artifact` runs only in `release.yml`'s publish job, which no run from a `try/` branch
+reaches. To try a new version of it with `upload-artifact`, put the pull requests' changes on the
+`try/` branch and add a job of its own there, after the build job, whose `permissions` hold
+`contents: read` and nothing more: no `environment`, no `id-token`, no tag, no push. It downloads
+`nupkg` with the step the publish job uses and lists what arrived. Never edit the publish job
+itself, not even on a `try/` branch: it can write tags, and the tag ruleset lets no one delete one.
