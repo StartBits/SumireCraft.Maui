@@ -19,8 +19,8 @@
        Version through the project reference, and the next major version of Controls as the bound
        (BoundCoreDependency in the Controls project). -->
   <PropertyGroup>
-    <SumireVersion>1.0.0</SumireVersion>
-    <SumireCoreVersion>1.0.0</SumireCoreVersion>
+    <SumireVersion>1.1.0</SumireVersion>
+    <SumireCoreVersion>1.1.0</SumireCoreVersion>
   </PropertyGroup>
 
 </Project>

@@ -8,6 +8,8 @@ alone, and says so in its heading; Core keeps the version of the last release th
 
 A release that raises the minimum version of .NET MAUI says so under *Changed*.
 
+## [1.1.0]
+
 ## [1.0.0] - 2026-11-03
 
 The first release, of both packages.
@@ -59,4 +61,5 @@ The first release, of both packages.
 - `SumireCraft.Maui.Controls` depends on `SumireCraft.Maui.Core` below its own next major version,
   so NuGet warns when an application takes a newer Core than that.
 
+[1.1.0]: https://github.com/startbits/SumireCraft.Maui/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/startbits/SumireCraft.Maui/releases/tag/v1.0.0
