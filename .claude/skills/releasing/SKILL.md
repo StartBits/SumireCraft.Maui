@@ -29,8 +29,10 @@ organizations:
   `release.yml` alone.
 
 Then look again at what step 6 of *The switch from squashing* set up: the review ruleset's bypass,
-which goes once there is a second code owner, and the `release` environment's required reviewers,
-where *Prevent self-review* goes on once there is a second one.
+which goes once there is a second code owner, the creation ruleset's bypass, which stays, so that
+release branches are still cut by the organization's owner and not by the new maintainer, and the
+`release` environment's required reviewers, where *Prevent self-review* goes on once there is a
+second one.
 
 Trusted Publishing ties the nuget.org organization's policy to the member who created it, and
 `NUGET_USER` names that member's nuget.org user name. If they leave the organization the policy
@@ -77,8 +79,12 @@ so the squashing ended where the first release branch began:
      list: changes only by pull request, the CI check passing, no force-push, no deletion. Its
      check is not required when a branch is created (*Do not require status checks on creation*),
      or no release branch could be pushed (step 1 of *A release*). The second: a code owner's
-     review (`.github/CODEOWNERS`). On tags `v*`, a third: no update and no deletion, so a
-     published version's tag always points where it did.
+     review (`.github/CODEOWNERS`), which a push after the approval dismisses. On `release/**`
+     alone, a third: *Restrict creations*, with **Organization admin** on its bypass list in
+     **always** mode, since a branch is created by a push and not by a pull request. A release
+     branch can be deleted by no one (step 5 of *A release*), so only the organization's owner
+     cuts one. On tags `v*`, a fourth: no update and no deletion, so a published version's tag
+     always points where it did.
 
      The review is a ruleset of its own because of its bypass. GitHub never counts the author's
      own approval, and Claude opens pull requests from the maintainer's account, so while the
@@ -86,8 +92,9 @@ so the squashing ended where the first release branch began:
      only** mode. A bypass lifts every rule of its ruleset; kept apart, it lifts the review and
      leaves CI and the ban on direct pushes standing. The repository belongs to the StartBits
      organization, where a bypass names a role rather than a person: **Organization admin**, held
-     by the maintainer alone. Anyone given that role later can skip the review too, so look at the
-     bypass again whenever an owner is added, and take it away when a second code owner joins.
+     by the maintainer alone. Anyone given that role later can skip the review and cut a release
+     branch too, so look at both bypasses again whenever an owner is added. Take the review's
+     away when a second code owner joins; the creation ruleset's stays.
    - **The `release` environment**, which `release.yml`'s publish job runs in: the maintainer as
      required reviewer, deployments from `main` only, and `NUGET_USER` as its secret rather than the
      repository's. It holds only if the nuget.org policy names the environment too (the comment at
@@ -154,8 +161,12 @@ and delete the rest of this section: what step 1 checked before the switch, step
    stays as it was, say so in the heading (`## [1.1.0] - 2027-04-15 (Controls only)`). Then open a
    pull request from the release branch into `main`. Its checks fail unless the version has gone up
    and Core is numbered right.
-5. The maintainer merges, and the release workflow tags and publishes. Delete the release branch;
-   the tag stays, and is what that release is found by from then on.
+5. The maintainer merges, and the release workflow tags and publishes. The release branch stays,
+   but it is no longer open: nothing more goes into it, and the tag is what that release is found
+   by from then on. Release branches are kept because the ruleset that forbids deleting them also
+   guards `main`, and is never switched off to make a deletion pass. Once more than one major
+   version takes fixes, release branches start to matter after their release, and which to keep is
+   decided again then.
 
 ## A change outside the packages
 
@@ -189,10 +200,9 @@ version that has published before. Point `upload-artifact` and `download-artifac
 `.github/dependabot.yml` merges them together. Changing the base starts no CI (`ci.yml` does not
 run on `edited`), so its check stays the run against `main`; in 1.1, `@dependabot rebase` brought
 no new one. Before it is merged into the release branch, try the upload and the download together
-(*Trying the flow*). Approve it just before merging, not when it is pointed there: the review
-ruleset keeps an approval through later pushes, and the pull request may stay open for weeks. Once
-it is merged, step 3 does not apply; the next pull request into the release branch builds it with
-the rest.
+(*Trying the flow*), and approve it then: the pull request may stay open for weeks, and a push to
+it in that time dismisses an earlier approval anyway. Once it is merged, step 3 does not apply;
+the next pull request into the release branch builds it with the rest.
 
 ## A hotfix
 
@@ -202,7 +212,7 @@ Only when the next release cannot wait; a fix that can goes through the release 
 2. Fix it on that branch itself -- no branches under it -- and raise `build/Version.props` there.
    Add its dated `## [x.y.z]` section and link line to `CHANGELOG.md` as a release does.
 3. Open a pull request into `main`. The same checks apply, and merging publishes it. Delete the
-   hotfix branch, as a release branch is; the tag stays.
+   hotfix branch, which no ruleset keeps; the tag stays.
 4. If a release branch is open, merge `main` into it so the fix is not lost. `build/Version.props`
    conflicts, because both raised it:
    - `SumireVersion`: keep the release branch's, unless it is the number the hotfix just took; then
