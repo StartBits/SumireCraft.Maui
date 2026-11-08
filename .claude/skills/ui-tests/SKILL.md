@@ -11,7 +11,7 @@ dialog coming up. UI tests drive the sample application through Appium for those
 ## Running them
 
 ```powershell
-appium                                          # leave running in another terminal
+appium --address 127.0.0.1                      # leave running in another terminal
 
 dotnet build samples/SumireCraft.Maui.Sample -f net10.0-windows10.0.19041.0
 dotnet build samples/SumireCraft.Maui.Sample -f net10.0-android    # with an emulator running
@@ -20,9 +20,18 @@ dotnet test --project tests/SumireCraft.Maui.UITests/SumireCraft.Maui.UITests.cs
 dotnet test --project tests/SumireCraft.Maui.UITests/SumireCraft.Maui.UITests.csproj -- --filter-class "*.Android*"
 ```
 
+Start Appium with `--address 127.0.0.1`, on the Mac too. Without it, Appium listens on every network
+the machine is on (`0.0.0.0`, seen on Windows with Appium 3.7.0), and whoever reaches the port can
+drive the emulator, the simulator or, through WinAppDriver and Mac2, the desktop. The tests connect
+to `127.0.0.1` already. The flag covers Appium's own port, 4723, and nothing a driver opens for
+itself -- WinAppDriver's 4724, WebDriverAgent's 8100, Mac2's 10100 -- whose addresses have not been
+looked at yet. During a run, `Get-NetTCPConnection -State Listen` on Windows or
+`lsof -nP -iTCP -sTCP:LISTEN` on a Mac shows them.
+
 On a Mac, for iOS (on a simulator that is already running) and Mac Catalyst:
 
 ```sh
+appium --address 127.0.0.1                      # leave running in another terminal
 xcrun simctl boot "iPhone 17"                   # any iPhone simulator; the tests drive the first one running
 
 dotnet build samples/SumireCraft.Maui.Sample -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64
@@ -169,7 +178,9 @@ as `ExceptionTests.WaitFor` does. A search by `AutomationId` does wait.
 
 ## One-time setup
 
-`npm i -g appium`, then `appium driver install windows` and `appium driver install uiautomator2`.
+`npm i -g appium --before=<a date a week ago>` (*Security* in `CLAUDE.md`; it does not reach the
+drivers, which Appium installs through npm itself), then `appium driver install windows` and
+`appium driver install uiautomator2`.
 Windows also needs WinAppDriver (`appium driver run windows install-wad`, which asks to elevate) and
 developer mode switched on. Android needs `JAVA_HOME` and `ANDROID_HOME` set **in the environment the
 Appium server is started from** -- the driver shells out to `java` and to the SDK's own tools, and
