@@ -7,7 +7,7 @@ internal static class AppiumServer
     public static Uri Uri { get; } = new("http://127.0.0.1:4723/");
 
     public static string StartHint =>
-        $"No Appium server answered at {Uri}. Start one in another terminal with: appium";
+        $"No Appium server answered at {Uri}. Start one in another terminal with: appium --address 127.0.0.1";
 
     public static bool IsListening
     {
