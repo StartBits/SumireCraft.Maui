@@ -403,8 +403,8 @@ that, so they are installed or updated only when the UI tests need it. How Appiu
 `ui-tests` skill's.
 
 Claude Code's own hooks see only what Claude does. A commit made by anyone else passes them by,
-which is why CI runs the same file checks, and why, once the repository is public, `main` takes
-changes only through reviewed pull requests (the `releasing` skill sets that up).
+which is why CI runs the same file checks, and why `main` takes changes only through reviewed pull
+requests (*What is set up on GitHub* in the `releasing` skill).
 
 ## Git workflow
 
