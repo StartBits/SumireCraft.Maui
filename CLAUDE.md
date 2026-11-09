@@ -422,8 +422,9 @@ is asked about, never changed by Claude.
 
 Every change goes in through a branch and a pull request; nothing is pushed to `main` directly.
 Claude takes a change as far as opening the pull request, after the review loop above, and the
-maintainer merges. For now, stop after each step -- branch cut, change committed, pull request
-opened -- for the maintainer to look before going on.
+maintainer merges. Where to pause along the way for the maintainer to look is theirs to say, and
+like their language it is not written here: if nothing in your memory says, ask before cutting
+the branch.
 
 | Branch | Cut from | Merged into | For |
 | --- | --- | --- | --- |
