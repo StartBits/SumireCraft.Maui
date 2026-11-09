@@ -7,20 +7,18 @@ name: Release
 #
 # Publishing uses nuget.org's Trusted Publishing: no API key is stored anywhere. The job asks GitHub
 # for a short-lived token, nuget.org checks it against a policy and hands back a key valid for one
-# hour. Before the first pull request into main is merged:
+# hour. It rests on three things:
 #   - the release environment, protected: the maintainer as required reviewer, deployments from
 #     main only. Without that, nothing stops a run that names it, and GitHub creates an environment
 #     that does not exist yet, unprotected, the first time a job names it;
-#   - on nuget.org, under the account's Trusted Publishing, a policy owned by the account that will
-#     own the packages, for repository owner StartBits, repository SumireCraft.Maui, workflow file
+#   - on nuget.org, under the account's Trusted Publishing, a policy owned by the account that
+#     owns the packages, for repository owner StartBits, repository SumireCraft.Maui, workflow file
 #     release.yml, environment release, allowed to publish new packages as well. The environment is
 #     what makes the maintainer's approval count: without it, anyone who can push a branch could
 #     run an edited copy of this file that names no environment, and the policy would still accept
 #     its token;
 #   - in the secrets of the release environment, NUGET_USER: the nuget.org user name (the profile
 #     name, not an email address).
-# A policy made while the repository is private is active for seven days only, until the first
-# publish locks it to the repository, so make it shortly before releasing.
 #
 # Run by hand (workflow_dispatch), from any branch, it checks, builds, tests and packs, and publishes
 # nothing and tags nothing. Only a push to main publishes.
@@ -28,8 +26,8 @@ name: Release
 # Two jobs, so that the one holding the rights to publish and to tag runs none of the repository's
 # code. The build job runs everything the build runs -- MSBuild, the tests, the packages restored --
 # with read access alone. The publish job takes the packages it made, in the release environment,
-# where GitHub asks the maintainer before it starts once the environment's rules are set (the
-# releasing skill).
+# where GitHub asks the maintainer before it starts (the environment's rules are in the releasing
+# skill).
 #
 # Every action is named by its full commit SHA, with its version in a comment beside it.
 on:

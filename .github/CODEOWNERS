@@ -1,5 +1,5 @@
-# Who must approve a pull request that touches a path. GitHub enforces it once main's ruleset asks
-# for a code owner's review (the releasing skill sets that up when the repository goes public).
+# Who must approve a pull request that touches a path. GitHub enforces it through the ruleset that
+# asks for a code owner's review (What is set up on GitHub, in the releasing skill).
 #
 # Everything is the maintainer's for now, named by their own account: an organization cannot be a
 # code owner, only a person or one of its teams. The paths below are named again so that they stay

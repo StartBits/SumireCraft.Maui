@@ -403,8 +403,8 @@ that, so they are installed or updated only when the UI tests need it. How Appiu
 `ui-tests` skill's.
 
 Claude Code's own hooks see only what Claude does. A commit made by anyone else passes them by,
-which is why CI runs the same file checks, and why, once the repository is public, `main` takes
-changes only through reviewed pull requests (the `releasing` skill sets that up).
+which is why CI runs the same file checks, and why `main` takes changes only through reviewed pull
+requests (*What is set up on GitHub* in the `releasing` skill).
 
 ## Git workflow
 
@@ -422,8 +422,9 @@ is asked about, never changed by Claude.
 
 Every change goes in through a branch and a pull request; nothing is pushed to `main` directly.
 Claude takes a change as far as opening the pull request, after the review loop above, and the
-maintainer merges. For now, stop after each step -- branch cut, change committed, pull request
-opened -- for the maintainer to look before going on.
+maintainer merges. Where to pause along the way for the maintainer to look is theirs to say, and
+like their language it is not written here: if nothing in your memory says, ask before cutting
+the branch.
 
 | Branch | Cut from | Merged into | For |
 | --- | --- | --- | --- |

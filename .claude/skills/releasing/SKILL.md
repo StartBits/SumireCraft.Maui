@@ -1,6 +1,6 @@
 ---
 name: releasing
-description: Who holds the repository and the packages (the StartBits organizations on GitHub and nuget.org) and how a maintainer is added, cutting a release branch, releasing it into main, making a hotfix to a published version, and the switch from the squash workflow to branches. Use when preparing or publishing a release, for an urgent fix, or when a maintainer joins or leaves. The rules these steps follow are the Git workflow section of CLAUDE.md.
+description: Who holds the repository and the packages (the StartBits organizations on GitHub and nuget.org) and how a maintainer is added, what is set up on GitHub, cutting a release branch, releasing it into main, and making a hotfix to a published version. Use when preparing or publishing a release, for an urgent fix, or when a maintainer joins or leaves. The rules these steps follow are the Git workflow section of CLAUDE.md.
 ---
 
 # Releasing
@@ -28,7 +28,7 @@ organizations:
   organization's Trusted Publishing policy. No personal API key: packages are published by
   `release.yml` alone.
 
-Then look again at what step 6 of *The switch from squashing* set up: the review ruleset's bypass,
+Then look again at three things in *What is set up on GitHub*: the review ruleset's bypass,
 which goes once there is a second code owner, the creation ruleset's bypass, which stays, so that
 release branches are still cut by the organization's owner and not by the new maintainer, and the
 `release` environment's required reviewers, where *Prevent self-review* goes on once there is a
@@ -40,93 +40,58 @@ stops working, so a remaining administrator makes it again, with everything the 
 of `release.yml` asks for -- the `release` environment above all -- and `NUGET_USER` changes with
 it.
 
-Anyone else, once the repository is public, contributes by a pull request from a fork, which the
-rulesets hold for a code owner.
+Anyone else contributes by a pull request from a fork, which the rulesets hold for a code owner.
 
-## The switch from squashing
+### What is set up on GitHub
 
-Until `release/1.0`, the history was kept to one commit, squashed and force-pushed. Once a branch
-has been cut from `main`, a force-push would leave that branch on a history that no longer exists,
-so the squashing ended where the first release branch began:
+The StartBits organization's own settings: two-factor authentication required of every member,
+members' base permission at **No permission** so that each repository grants its own, and only
+owners creating repositories. If they are not in place, walk the maintainer through them first. The
+maintainer is its one owner; their two-factor recovery codes are what stand between a lost phone
+and a lost organization, so check they are kept somewhere safe.
 
-1. The UI tests ran in Debug, then Release, then Consumer, every test green in all three, and the
-   last squash followed. (Done.)
-2. `release/1.0` was cut from `main`, and the squash skill was deleted on it. (Done.)
-3. What 1.0.0 still needs goes in by `feature/` and `fix/` branches, as in any release.
-4. Try the whole flow on a `try/` branch, which is never merged, before the first pull request
-   into `main`, because that merge publishes (see *Trying the flow*).
-5. The workflows' automatic triggers were turned back on, by a `feature/` branch into
-   `release/1.0`, after trying them on `try/release-flow`. (Done.)
-6. Before the pull request into `main`, the maintainer makes the repository public -- the README's
-   and the PACKAGE-READMEs' links into GitHub lead nowhere until then -- and only after that sets
-   up Trusted Publishing as the comment at the top of `release.yml` says: the policy on nuget.org,
-   with `release` as its environment, and the `NUGET_USER` secret. Walk them through both then. A
-   policy made while the repository is still private lapses after seven days without a publish, so
-   making it public first avoids that.
+The repository is guarded on GitHub's side too, which nothing in Claude Code can do for commits
+made elsewhere (*Security* in `CLAUDE.md`). If one of these is missing, walk the maintainer through
+it:
 
-   The StartBits organization's own settings do not wait for any of this, and if they are not in
-   place yet, walk the maintainer through them first: two-factor authentication required of every
-   member, members' base permission at **No permission** so that each repository grants its own,
-   and only owners creating repositories. The maintainer is its one owner; their two-factor
-   recovery codes are what stand between a lost phone and a lost organization, so check they are
-   kept somewhere safe.
+- **Rulesets.** On `main` and `release/**`, two of them. The first, with no one on its bypass
+  list: changes only by pull request, the CI check passing, no force-push, no deletion. Its
+  check is not required when a branch is created (*Do not require status checks on creation*),
+  or no release branch could be pushed (step 1 of *A release*). The second: a code owner's
+  review (`.github/CODEOWNERS`), which a push after the approval dismisses. On `release/**`
+  alone, a third: *Restrict creations*, with **Organization admin** on its bypass list in
+  **always** mode, since a branch is created by a push and not by a pull request. A release
+  branch can be deleted by no one (step 5 of *A release*), so only the organization's owner
+  cuts one. On tags `v*`, a fourth: no update and no deletion, so a published version's tag
+  always points where it did.
 
-   Public, the repository can also be guarded on GitHub's side, which nothing in Claude Code can do
-   for commits made elsewhere (*Security* in `CLAUDE.md`). Walk the maintainer through these in the
-   repository's settings:
-
-   - **Rulesets.** On `main` and `release/**`, two of them. The first, with no one on its bypass
-     list: changes only by pull request, the CI check passing, no force-push, no deletion. Its
-     check is not required when a branch is created (*Do not require status checks on creation*),
-     or no release branch could be pushed (step 1 of *A release*). The second: a code owner's
-     review (`.github/CODEOWNERS`), which a push after the approval dismisses. On `release/**`
-     alone, a third: *Restrict creations*, with **Organization admin** on its bypass list in
-     **always** mode, since a branch is created by a push and not by a pull request. A release
-     branch can be deleted by no one (step 5 of *A release*), so only the organization's owner
-     cuts one. On tags `v*`, a fourth: no update and no deletion, so a published version's tag
-     always points where it did.
-
-     The review is a ruleset of its own because of its bypass. GitHub never counts the author's
-     own approval, and Claude opens pull requests from the maintainer's account, so while the
-     maintainer is the only code owner the second ruleset needs a bypass, in **pull requests
-     only** mode. A bypass lifts every rule of its ruleset; kept apart, it lifts the review and
-     leaves CI and the ban on direct pushes standing. The repository belongs to the StartBits
-     organization, where a bypass names a role rather than a person: **Organization admin**, held
-     by the maintainer alone. Anyone given that role later can skip the review and cut a release
-     branch too, so look at both bypasses again whenever an owner is added. Take the review's
-     away when a second code owner joins; the creation ruleset's stays.
-   - **The `release` environment**, which `release.yml`'s publish job runs in: the maintainer as
-     required reviewer, deployments from `main` only, and `NUGET_USER` as its secret rather than the
-     repository's. It holds only if the nuget.org policy names the environment too (the comment at
-     the top of `release.yml`). Leave *Prevent self-review* off: the merge that starts the run is
-     the maintainer's, and while they are its only reviewer, no one else could approve it.
-   - **CODEOWNERS.** Once pushed, open `.github/CODEOWNERS` on GitHub: a line it cannot use is
-     marked there.
-   - **Actions**, in the organization's settings so that every repository there inherits them:
-     only actions by GitHub, verified creators and `NuGet/login`; full-SHA pinning required;
-     approval before any outside contributor's pull request runs a workflow, every time and not
-     only the first.
-   - **Security.** Secret scanning with push protection, the dependency graph, Dependabot alerts,
-     and private vulnerability reporting. Dependabot *security updates* stay off, though GitHub
-     suggests them: their pull requests raise NuGet packages, which is a release.
-   - **Dependabot version updates** for `github-actions` alone, in a `.github/dependabot.yml`
-     written then: the workflows sit outside the package paths, so its pull requests can go to
-     `main`. Not for NuGet: the .NET MAUI version is a minimum chosen on purpose, and raising it is
-     a release (*Packages* in `CLAUDE.md`). Dependabot alerts still cover NuGet.
-7. The pull request from `release/1.0` into `main` publishes 1.0.0. `build/Version.props` already
-   says 1.0.0 and there is no earlier tag to compare with, so the version check has nothing to
-   hold it against and passes. `CHANGELOG.md` already has its `## [1.0.0]` section; it takes its
-   date as in step 4 of *A release*.
-
-   The merge publishes only because `release/1.0` touches a package path: the squashed `main`
-   already held every package file at 1.0.0, so a pull request that changed none of them would
-   pass its checks and publish nothing, without a word. `build/Package.props` gained the release
-   notes on `release/1.0`, which is what starts the release workflow. Every later release raises
-   `build/Version.props`, so this is the first release's alone.
-
-After the first release, move what step 6 sets up on GitHub into *Accounts*, which points to it,
-and delete the rest of this section: what step 1 checked before the switch, step 4 of
-*A release* checks before every release.
+  The review is a ruleset of its own because of its bypass. GitHub never counts the author's
+  own approval, and Claude opens pull requests from the maintainer's account, so while the
+  maintainer is the only code owner the second ruleset needs a bypass, in **pull requests
+  only** mode. A bypass lifts every rule of its ruleset; kept apart, it lifts the review and
+  leaves CI and the ban on direct pushes standing. The repository belongs to the StartBits
+  organization, where a bypass names a role rather than a person: **Organization admin**, held
+  by the maintainer alone. Anyone given that role later can skip the review and cut a release
+  branch too, so look at both bypasses again whenever an owner is added. Take the review's
+  away when a second code owner joins; the creation ruleset's stays.
+- **The `release` environment**, which `release.yml`'s publish job runs in: the maintainer as
+  required reviewer, deployments from `main` only, and `NUGET_USER` as its secret rather than the
+  repository's. It holds only if the nuget.org policy names the environment too (the comment at
+  the top of `release.yml`). Leave *Prevent self-review* off: the merge that starts the run is
+  the maintainer's, and while they are its only reviewer, no one else could approve it.
+- **CODEOWNERS.** Once pushed, open `.github/CODEOWNERS` on GitHub: a line it cannot use is
+  marked there.
+- **Actions**, in the organization's settings so that every repository there inherits them:
+  only actions by GitHub, verified creators and `NuGet/login`; full-SHA pinning required;
+  approval before any outside contributor's pull request runs a workflow, every time and not
+  only the first.
+- **Security.** Secret scanning with push protection, the dependency graph, Dependabot alerts,
+  and private vulnerability reporting. Dependabot *security updates* stay off, though GitHub
+  suggests them: their pull requests raise NuGet packages, which is a release.
+- **Dependabot version updates** for `github-actions` alone, in `.github/dependabot.yml`: the
+  workflows sit outside the package paths, so its pull requests can go to `main`. Not for NuGet:
+  the .NET MAUI version is a minimum chosen on purpose, and raising it is a release (*Packages* in
+  `CLAUDE.md`). Dependabot alerts still cover NuGet.
 
 ## A release
 
@@ -155,7 +120,9 @@ and delete the rest of this section: what step 1 checked before the switch, step
    fixes -- raise the number again before the pull request into `main`, and the section's heading
    and its link line with it, so that the heading still resolves.
 4. Run the UI tests on the release branch in Debug, then Release, then Consumer, every test green
-   in all three: CI does not run them, and the merge publishes. Then date the section
+   in all three: CI does not run them, and the merge publishes. Those three run on Windows and
+   Android. iOS and Mac Catalyst run on the Mac only when the release holds a change that could
+   behave differently there. Then date the section
    (`## [1.1.0] - 2027-04-15`), the day the pull request is opened: the merge day
    is not known yet, and a day or two apart matters less than a section left undated. If Core
    stays as it was, say so in the heading (`## [1.1.0] - 2027-04-15 (Controls only)`). Then open a
@@ -171,8 +138,7 @@ and delete the rest of this section: what step 1 checked before the switch, step
 ## A change outside the packages
 
 For the README, `CLAUDE.md`, `.claude/`, the workflows, the sample or the tests, when nothing on
-the release workflow's list of package paths changes. Until 1.0.0 is published, nothing checks a
-pull request into `main`, so these go through `release/1.0` like everything else.
+the release workflow's list of package paths changes.
 
 1. Cut `feature/<what>` or `fix/<what>` from `main`.
 2. Open a pull request into `main`. Its checks skip the version, since no package changes; if they
