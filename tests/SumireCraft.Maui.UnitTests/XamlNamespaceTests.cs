@@ -6,6 +6,7 @@ namespace SumireCraft.Maui.UnitTests;
 
 // The URI an application writes for the widgets in XAML. Once published it cannot change without
 // breaking every page that uses it, so these tests pin it down character for character.
+[Collection(XamlLoadingCollection.Name)]
 public class XamlNamespaceTests
 {
     private const string Uri = "https://github.com/startbits/SumireCraft.Maui";
