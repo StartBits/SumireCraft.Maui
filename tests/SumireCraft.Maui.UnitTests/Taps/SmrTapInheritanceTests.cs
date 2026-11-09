@@ -6,6 +6,7 @@ namespace SumireCraft.Maui.UnitTests.Taps;
 // What an application gets when it wraps the behavior in types of its own, so that the day this
 // library goes away there is one place to change rather than every page. "Abc" stands for that
 // application.
+[Collection(XamlLoadingCollection.Name)]
 public class SmrTapInheritanceTests
 {
     [Fact]
