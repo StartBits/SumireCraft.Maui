@@ -123,6 +123,10 @@ So a widget's public type goes in `Controls`, and the logic it delegates to goes
 rules for reading a burst of taps, is in `Core` and knows nothing about views. `SmrBadgeView` and
 `BadgeCounter` split the same way.
 
+A base class for widgets is the exception: the application writes it in XAML, as a style's
+`TargetType` or as the base of a widget of its own, so it goes in `Controls`, where the one xmlns
+reaches it. `SmrTemplatedView` is one.
+
 Parts of `Core` depend on each other through interfaces only. `BusyWatchdog` takes an
 `IBusyGate` and an `IExceptionSink`, never `BusyGate` or `ExceptionSink`, so each part can be
 replaced, tested and used on its own, and the dependency runs one way. `SumireCraftExceptions`, the
@@ -166,7 +170,7 @@ assets/                             the pictures in README.md, taken on Android 
 build/                              version numbers, pack settings and platform routing rules
 src/Directory.Build.props|targets   settings for the published libraries only (IsAotCompatible, trim analyzer)
 src/SumireCraft.Maui.Core/          Badges/ , Exceptions/ , Extensions/ , Gates/ , Hosting/ , Lifetime/ , Taps/
-src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , Taps/) , Hosting/
+src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , Fields/ , Taps/) , Templates/ , Hosting/
 samples/Directory.Build.props       settings for applications only (Mac Catalyst runtime identifiers and minimum)
 samples/SumireCraft.Maui.Sample/    the application the UI tests drive, and examples (not packed)
 tests/SumireCraft.Maui.UnitTests/   xUnit v3, plain net10.0 (the libraries build for it too)
@@ -486,6 +490,9 @@ The library is kept by one person, and fixes come at that pace.
   the original partial-method form, and that form forbids an accessibility modifier. Say so in a
   comment where it happens.
 - Every public type and member carries an XML documentation comment.
+- One top-level type per file in `src/`, named after it. The exception is a type that exists only
+  to hold up another and is hidden from applications (`[EditorBrowsable(Never)]`), such as
+  `TemplatedViewDefaults`: it sits in that type's file, after it.
 - Target frameworks: `net10.0-android`, `net10.0-ios`, `net10.0-maccatalyst`,
   `net10.0-windows10.0.19041.0`, and plain `net10.0` for the libraries. Minimum OS: Android 21, iOS 15, MacCatalyst 15, Windows 10.0.17763.
 - Package versions are centrally managed in `Directory.Packages.props`. Never put a `Version`

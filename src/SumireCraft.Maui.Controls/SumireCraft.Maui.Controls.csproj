@@ -14,8 +14,8 @@
   <PropertyGroup Label="Package">
     <PackageId>SumireCraft.Maui.Controls</PackageId>
     <Title>SumireCraft.Maui.Controls</Title>
-    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, and SmrTapBehavior runs a different command for one tap, a double tap, or five.</Description>
-    <SumirePackageTags>controls;ui;badge;tap;gesture</SumirePackageTags>
+    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, SmrTapBehavior runs a different command for one tap, a double tap, or five, and SmrField puts a title and an error around an input.</Description>
+    <SumirePackageTags>controls;ui;badge;tap;gesture;form;field</SumirePackageTags>
   </PropertyGroup>
 
   <ItemGroup>

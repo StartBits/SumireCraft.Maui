@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+             x:Class="SumireCraft.Maui.Sample.Pages.FieldPage"
+             Title="SmrField">
+
+  <!-- Short enough to fit on a phone without scrolling: Android leaves whatever is below the screen
+       out of the tree, and the markers under the fields have to be found. -->
+  <ScrollView>
+    <VerticalStackLayout
+      Padding="24"
+      Spacing="16">
+
+      <Label
+        AutomationId="FieldPageTitle"
+        Text="SmrField"
+        Style="{StaticResource Headline}"
+        HorizontalTextAlignment="Start" />
+
+      <Label
+        Text="A title above the entry and an error below it. The titles here are indented by a style for the SmrFieldTitle class in App.xaml, which reaches every field." />
+
+      <HorizontalStackLayout Spacing="8">
+        <Button
+          AutomationId="ToggleErrors"
+          Text="Errors"
+          Command="{Binding ToggleErrorsCommand}" />
+        <Label
+          AutomationId="ErrorsState"
+          Text="{Binding ErrorsState}"
+          VerticalTextAlignment="Center" />
+      </HorizontalStackLayout>
+
+      <!-- Keeps a line for its error, the default, so the marker under it stays where it is. -->
+      <VerticalStackLayout Spacing="0">
+        <smr:SmrField
+          Title="Name"
+          ErrorText="{Binding NameError}">
+          <Entry
+            AutomationId="NameEntry"
+            Text="{Binding Name}" />
+        </smr:SmrField>
+        <Label
+          AutomationId="BelowReserved"
+          Text="Stays put when the error appears." />
+      </VerticalStackLayout>
+
+      <!-- Closes up with no error, so the marker under it moves down when one appears. -->
+      <VerticalStackLayout Spacing="0">
+        <smr:SmrField
+          Title="Note"
+          ErrorText="{Binding NoteError}"
+          ReserveErrorSpace="False">
+          <Entry
+            AutomationId="NoteEntry"
+            Text="{Binding Note}" />
+        </smr:SmrField>
+        <Label
+          AutomationId="BelowClosed"
+          Text="Moves down when the error appears." />
+      </VerticalStackLayout>
+
+      <!-- Side by side: the field without a title keeps a line for one, so the two entries line up. -->
+      <Grid
+        ColumnDefinitions="*,*"
+        ColumnSpacing="12">
+        <smr:SmrField Title="City">
+          <Entry AutomationId="CityEntry" />
+        </smr:SmrField>
+        <smr:SmrField
+          Grid.Column="1"
+          ReserveTitleSpace="True">
+          <Entry AutomationId="DistrictEntry" />
+        </smr:SmrField>
+      </Grid>
+
+    </VerticalStackLayout>
+  </ScrollView>
+
+</ContentPage>

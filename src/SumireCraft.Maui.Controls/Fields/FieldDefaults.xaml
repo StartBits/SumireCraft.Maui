@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  The look a SmrField's default template starts from, written as an application would write it in
+  Styles.xaml but for the keys, which are only how the field finds these to add them to its own
+  resources. The labels carry these classes before the ones an application styles, SmrFieldTitle
+  and SmrFieldError, and of two class styles that set the same property the later class wins, so an
+  application's style replaces these wherever the two meet.
+
+  The error's colour is two classes, one for each theme, which the field swaps when the theme
+  changes. {AppThemeBinding} would be one style, but .NET MAUI ranks a binding above a plain value
+  set by a style of the same kind, so no application's class style could then change the colour.
+-->
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  x:Class="SumireCraft.Maui.Controls.FieldDefaults"
+  x:ClassModifier="internal">
+
+  <Style x:Key="Title" TargetType="Label" Class="SmrFieldTitleDefault">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+  </Style>
+
+  <Style x:Key="Error" TargetType="Label" Class="SmrFieldErrorDefault">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Margin" Value="0,4,0,0" />
+  </Style>
+
+  <!-- Material 3's error colour, in the light theme and in the dark. -->
+  <Style x:Key="ErrorLight" TargetType="Label" Class="SmrFieldErrorLightDefault">
+    <Setter Property="TextColor" Value="#B3261E" />
+  </Style>
+
+  <Style x:Key="ErrorDark" TargetType="Label" Class="SmrFieldErrorDarkDefault">
+    <Setter Property="TextColor" Value="#F2B8B5" />
+  </Style>
+
+</ResourceDictionary>

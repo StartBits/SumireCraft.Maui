@@ -10,6 +10,18 @@ A release that raises the minimum version of .NET MAUI says so under *Changed*.
 
 ## [1.1.0]
 
+### Added
+
+- `SmrField` in `SumireCraft.Maui.Controls`, which puts a title above whatever takes the input and
+  its error below. The error's line is kept by default, so that nothing below moves when an error
+  comes and goes; `ReserveErrorSpace` turns that off. `ReserveTitleSpace` keeps a line for a missing
+  title, so that a field without one lines up with a titled one beside it. The title and the error
+  are restyled through the style classes `SmrFieldTitle` and `SmrFieldError`, from App.xaml or a
+  page's resources.
+- `SmrTemplatedView` in `SumireCraft.Maui.Controls`, a content view that brings a default control
+  template which an application's styles replace like any other, including a style for every
+  templated view at once. `SmrField` is built on it, and an application's own widgets can be too.
+
 ## [1.0.0] - 2026-11-03
 
 The first release, of both packages.
