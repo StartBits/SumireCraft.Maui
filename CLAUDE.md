@@ -170,7 +170,7 @@ assets/                             the pictures in README.md, taken on Android 
 build/                              version numbers, pack settings and platform routing rules
 src/Directory.Build.props|targets   settings for the published libraries only (IsAotCompatible, trim analyzer)
 src/SumireCraft.Maui.Core/          Badges/ , Exceptions/ , Extensions/ , Gates/ , Hosting/ , Lifetime/ , Taps/
-src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , Taps/) , Templates/ , Hosting/
+src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , Fields/ , Taps/) , Templates/ , Hosting/
 samples/Directory.Build.props       settings for applications only (Mac Catalyst runtime identifiers and minimum)
 samples/SumireCraft.Maui.Sample/    the application the UI tests drive, and examples (not packed)
 tests/SumireCraft.Maui.UnitTests/   xUnit v3, plain net10.0 (the libraries build for it too)

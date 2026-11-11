@@ -11,6 +11,7 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 | | | What .NET MAUI leaves to you |
 | --- | --- | --- |
 | **UI** | [SmrBadgeView](#smrbadgeview) -- a count or a dot over the corner of any view | A badge that stays on the content's own corner, mirrors for right-to-left, and never pushes the layout around as the count grows. |
+| | [SmrField](#smrfield) -- a title above an input, and its error below | Every form repeats a title label, the input and an error label by hand, and their spacing drifts from page to page. This holds the error's line so nothing below jumps, and is restyled from App.xaml. |
 | **Input** | [SmrTapBehavior](#smrtapbehavior) -- a different command for one tap, a double tap, or five | A single-tap recognizer fires on the way to a double tap. This reads the whole burst once, is safe in a `Style`, and its bindings resolve. |
 | **Reliability** | [Exception reporting](#exceptions) -- one place to send every exception you catch | .NET MAUI catches nothing on an application's behalf. Log it, show it, or forward it to your crash reporter, from one place. |
 | | [Safety net](#the-safety-net) (opt-in) -- reports what nothing caught, as far as .NET hears of it | A throw on a background task can take the process down without a trace. |
@@ -302,6 +303,85 @@ One behavior can be put on several views, so it is safe to write in a `Style`, w
 same instance to every view the style is applied to. Each view counts its own taps, and a line's bindings
 resolve against the view that was tapped, so `CommandParameter="{Binding .}"` hands over that
 view's item. A `BindingContext` set on the behavior itself is used for every view instead.
+
+### SmrField
+
+Puts a title above whatever takes the input, and its error below.
+
+```xml
+xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+
+<smr:SmrField Title="Name" ErrorText="{Binding NameError}">
+    <Entry Text="{Binding Name}" />
+</smr:SmrField>
+```
+
+The field reads no validation of its own. The error is whatever text `ErrorText` is given -- by your
+view model, a validation library, or anything else -- and `HasError` says whether there is one, for
+a trigger on the content to follow.
+
+The title and the error take the height of their text, and the content whatever is left, so a field
+given a height of its own grows its content, an `Editor` say. A missing title leaves no row behind,
+unless `ReserveTitleSpace="True"` keeps a line for it, so that a field without a title lines up
+with a titled one beside it. A missing error keeps its line by default, so that an error coming and
+going does not push what lies below the field up and down; `ReserveErrorSpace="False"` lets the
+field close up instead.
+
+**Restyling.** The title and the error are labels with the style classes `SmrFieldTitle` and
+`SmrFieldError`. A style for either class in App.xaml restyles every field, and one in a page's
+resources restyles that page's fields:
+
+```xml
+<Style TargetType="Label" Class="SmrFieldError">
+    <Setter Property="TextColor" Value="DarkOrange" />
+</Style>
+```
+
+What such a style leaves unset keeps the field's own default: a font size of 14 for the title and 12
+for the error, and Material 3's error red, `#B3261E` in the light theme and `#F2B8B5` in the dark.
+A colour in your style may be written plainly or with `{AppThemeBinding}`. A page's style for a
+class hides App.xaml's for that class whole, as any style in .NET MAUI does, so what only App.xaml
+set falls back to the field's default on that page. A style for every `Label`, like the one in the
+Styles.xaml a new project starts with, still reaches both labels; where it and the field's defaults
+set the same thing, the field's defaults win.
+
+An application that stays in the light theme gets the light theme's red as long as .NET MAUI knows
+it: set `UserAppTheme = AppTheme.Light` in your `App`. Or write the colour plainly in a
+`SmrFieldError` style, which then holds in either theme.
+
+A screen reader reads the title, the content and the error in the order they are drawn, and does
+not stop on the blank line kept for an error. The field writes nothing on the content, so a name or
+a hint you give it stays yours. An error that appears is read when it is reached, not announced the
+moment it appears.
+
+A `ControlTemplate` of your own replaces the title, the error and their styles together; it shows
+`Title` and `ErrorText` through `{Binding Title, Source={RelativeSource TemplatedParent}}`, and the
+content through a `ContentPresenter`.
+
+### A templated widget of your own
+
+`SmrField` is built on `SmrTemplatedView`, a `ContentView` that brings a control template of its
+own, which your styles replace like any other: an implicit style for its type, an explicit one, or a
+style for every templated view at once (`TargetType="smr:SmrTemplatedView"` with
+`ApplyToDerivedTypes="True"`). A style that leaves the template alone, one that only sets a margin
+say, keeps it. Derive from it to give a widget of your own the same behaviour:
+
+```csharp
+public class AbcCard : SmrTemplatedView
+{
+    private static readonly ControlTemplate CardTemplate = new(() =>
+        new Border { Padding = 12, Content = new ContentPresenter() });
+
+    public AbcCard()
+        : base(CardTemplate)
+    {
+    }
+}
+```
+
+The default is kept in the view's own `Resources`. Giving the view a dictionary of your own, in code
+or in XAML, keeps it too: `Resources` then returns a dictionary that holds the default and merges
+yours, which is left as it was.
 
 ### Wrapping a widget in a type of your own
 

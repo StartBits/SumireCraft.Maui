@@ -73,16 +73,22 @@ public abstract class SmrTemplatedView : TemplatedViewDefaults
 /// it; nothing outside this library can.
 /// </para>
 /// <para>
-/// A dictionary given to the view in place of its own would leave the style behind, and a templated
-/// view around this one would then lend it its own default. So the view takes such a dictionary in
-/// a dictionary of its own that holds the style, and merges the given one into it. The given one is
-/// not written to, as it may be shared.
+/// A widget of this library may keep more defaults beside the template the same way, such as styles
+/// for the parts of its template, so that an application's styles replace them too.
+/// </para>
+/// <para>
+/// A dictionary given to the view in place of its own would leave the defaults behind, and a
+/// templated view around this one would then lend it its own. So the view takes such a dictionary
+/// in a dictionary of its own that holds the defaults, and merges the given one into it. The given
+/// one is not written to, as it may be shared.
 /// </para>
 /// </remarks>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public abstract class TemplatedViewDefaults : ContentView
 {
     private readonly Style _defaultStyle;
+
+    private readonly List<Style> _defaults = [];
 
     /// <summary>
     /// Keeps the default template where an application's styles can replace it.
@@ -98,7 +104,18 @@ public abstract class TemplatedViewDefaults : ContentView
             ApplyToDerivedTypes = true,
             Setters = { new Setter { Property = ControlTemplateProperty, Value = defaultTemplate } },
         };
-        Resources.Add(_defaultStyle);
+        AddDefault(_defaultStyle);
+    }
+
+    /// <summary>
+    /// Keeps one more default style in the view's own resources, where it stays when an application
+    /// gives the view a dictionary of its own.
+    /// </summary>
+    /// <param name="style">The style to keep.</param>
+    private protected void AddDefault(Style style)
+    {
+        _defaults.Add(style);
+        Resources.Add(style);
     }
 
     /// <inheritdoc/>
@@ -117,7 +134,12 @@ public abstract class TemplatedViewDefaults : ContentView
             return;
         }
 
-        var own = new ResourceDictionary { _defaultStyle };
+        var own = new ResourceDictionary();
+        foreach (var style in _defaults)
+        {
+            own.Add(style);
+        }
+
         own.MergedDictionaries.Add(given);
         Resources = own;
     }

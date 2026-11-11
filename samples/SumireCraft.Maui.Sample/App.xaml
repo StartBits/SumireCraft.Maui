@@ -9,6 +9,13 @@
         <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
         <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
       </ResourceDictionary.MergedDictionaries>
+
+      <!-- Every SmrField's title, restyled once for the whole application without writing a
+           template. Indented a little, to line up with the text inside an entry. A UI test reads
+           the indent to see that a style here reaches the label inside a field's template. -->
+      <Style TargetType="Label" Class="SmrFieldTitle">
+        <Setter Property="Margin" Value="4,0,0,4" />
+      </Style>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

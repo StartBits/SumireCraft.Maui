@@ -7,6 +7,8 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 - **SmrTapBehavior** -- a different command for one tap, a double tap, or five, read once when the
   tapping stops. For a view that does not answer taps itself, such as a label or an image; not
   for a `Button`.
+- **SmrField** -- a title above an input and its error below. The error's line is held so nothing
+  below jumps, and both labels are restyled from App.xaml through two style classes.
 
 This package brings in [SumireCraft.Maui.Core](https://www.nuget.org/packages/SumireCraft.Maui.Core)
 as well: exception reporting, an opt-in safety net, and a busy gate. Core is released only when it

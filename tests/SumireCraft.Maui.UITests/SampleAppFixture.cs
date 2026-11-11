@@ -215,7 +215,7 @@ public sealed class IosSampleApp : SampleAppFixture
 
         // The simulator already running, rather than one picked by name and version: those change
         // with every Xcode, and booting another would take longer than the tests themselves.
-        options.AddAdditionalAppiumOption("udid", _simulator.Value!);
+        options.AddAdditionalAppiumOption("udid", _simulator.Value);
 
         // The first session builds the driver's agent with Xcode, which takes minutes.
         options.AddAdditionalAppiumOption("wdaLaunchTimeout", (int)TimeSpan.FromMinutes(5).TotalMilliseconds);

@@ -30,6 +30,12 @@
     ContentTemplate="{DataTemplate pages:BadgePage}" />
 
   <ShellContent
+    AutomationId="FieldMenuItem"
+    Title="SmrField"
+    Route="field"
+    ContentTemplate="{DataTemplate pages:FieldPage}" />
+
+  <ShellContent
     AutomationId="ExceptionMenuItem"
     Title="Exceptions"
     Route="exceptions"
