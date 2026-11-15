@@ -211,6 +211,173 @@ public class SmrFieldRequiredTests
         Assert.Null(Mark(field)!.TextColor);
     }
 
+    // A span in .NET MAUI takes its label's font size and colour but not its family or attributes, so a
+    // marked title, drawn as spans, would lose the bold or the font a style for the title gave it. The
+    // field hands the title's font to the title's span, and to the mark wherever the mark's own style
+    // says nothing of it.
+
+    [Fact]
+    public void AMarkedTitle_KeepsTheFontItsStyleGivesIt()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        _ = new Grid { Resources = TitleFont("SmrFieldTitle", FontAttributes.Bold), Children = { field } };
+
+        var title = TitleSpan(field)!;
+        Assert.Equal(FontAttributes.Bold, title.FontAttributes);
+        Assert.Equal("Serif", title.FontFamily);
+        Assert.False(title.FontAutoScalingEnabled);
+    }
+
+    [Fact]
+    public void AMarkWithoutAStyle_TakesTheTitlesFont()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMarkStyleKey = null };
+        _ = new Grid { Resources = TitleFont("SmrFieldTitle", FontAttributes.Bold), Children = { field } };
+
+        var mark = Mark(field)!;
+        Assert.Equal(FontAttributes.Bold, mark.FontAttributes);
+        Assert.Equal("Serif", mark.FontFamily);
+        Assert.False(mark.FontAutoScalingEnabled);
+    }
+
+    [Fact]
+    public void AMarksStyle_WinsOverTheTitlesFontOnlyWhereItSaysSomething()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        var resources = TitleFont("SmrFieldTitle", FontAttributes.Italic);
+        resources.Add("SmrFieldRequiredMark", MarkStyle(Colors.Red));
+        _ = new Grid { Resources = resources, Children = { field } };
+
+        var mark = Mark(field)!;
+        Assert.Equal(FontAttributes.Bold, mark.FontAttributes);
+        Assert.Equal("Serif", mark.FontFamily);
+    }
+
+    [Fact]
+    public void AMarksStyle_SaysWhatItsBaseStyleSays()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        var resources = TitleFont("SmrFieldTitle", FontAttributes.Italic);
+        resources.Add("SmrFieldRequiredMark", new Style(typeof(Span))
+        {
+            BasedOn = MarkStyle(Colors.Red),
+            Setters = { new Setter { Property = Span.TextColorProperty, Value = Colors.Teal } },
+        });
+        _ = new Grid { Resources = resources, Children = { field } };
+
+        Assert.Equal(FontAttributes.Bold, Mark(field)!.FontAttributes);
+    }
+
+    [Fact]
+    public void AMarksStyleArrivingLater_TakesOverFromTheTitlesFont()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        var page = new Grid { Resources = TitleFont("SmrFieldTitle", FontAttributes.Italic), Children = { field } };
+
+        page.Resources.Add("SmrFieldRequiredMark", MarkStyle(Colors.Red));
+
+        Assert.Equal(FontAttributes.Bold, Mark(field)!.FontAttributes);
+    }
+
+    [Fact]
+    public void AMarksStyleTakenAway_LeavesTheMarkWithTheTitlesFont()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        var resources = TitleFont("SmrFieldTitle", FontAttributes.Italic);
+        resources.Add("SmrFieldRequiredMark", MarkStyle(Colors.Red));
+        _ = new Grid { Resources = resources, Children = { field } };
+
+        field.RequiredMarkStyleKey = null;
+
+        Assert.Equal(FontAttributes.Italic, Mark(field)!.FontAttributes);
+    }
+
+    [Fact]
+    public void ATitlesFontChangedLater_IsFollowedByTheTitleAndTheMark()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMarkStyleKey = null };
+        _ = new Grid { Resources = TitleFont("AppFieldTitle", FontAttributes.Bold), Children = { field } };
+
+        field.TitleStyleClass = "AppFieldTitle";
+
+        Assert.Equal(FontAttributes.Bold, TitleSpan(field)!.FontAttributes);
+        Assert.Equal(FontAttributes.Bold, Mark(field)!.FontAttributes);
+    }
+
+    [Fact]
+    public void AFieldMadeRequiredLater_KeepsTheTitlesFont()
+    {
+        var field = new SmrField { Title = "Name" };
+        _ = new Grid { Resources = TitleFont("SmrFieldTitle", FontAttributes.Bold), Children = { field } };
+
+        field.IsRequired = true;
+
+        Assert.Equal(FontAttributes.Bold, TitleSpan(field)!.FontAttributes);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void AStyleKeyTakenAway_TakesTheMarksStyleAway(string? key)
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Red), Children = { field } };
+
+        field.RequiredMarkStyleKey = key;
+
+        Assert.Null(Mark(field)!.Style);
+        Assert.Null(Mark(field)!.TextColor);
+    }
+
+    [Fact]
+    public void AStyleKeyChangedToOneWithNoStyle_LeavesTheMarkLookingLikeTheTitle()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Red), Children = { field } };
+
+        field.RequiredMarkStyleKey = "Undefined";
+
+        AssertLooksLikeTheTitle(field);
+    }
+
+    [Fact]
+    public void AStyleKeyTakenAwayAndThenChangedToOneWithNoStyle_LeavesTheMarkLookingLikeTheTitle()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Red), Children = { field } };
+
+        field.RequiredMarkStyleKey = null;
+        field.RequiredMarkStyleKey = "Undefined";
+
+        AssertLooksLikeTheTitle(field);
+    }
+
+    [Fact]
+    public void AStyleKeyChangedToAnotherForTheSameStyle_KeepsTheStyle()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        var style = MarkStyle(Colors.Red);
+        _ = new Grid { Resources = new ResourceDictionary { { "SmrFieldRequiredMark", style }, { "AppFieldRequiredMark", style } }, Children = { field } };
+
+        field.RequiredMarkStyleKey = null;
+        field.RequiredMarkStyleKey = "AppFieldRequiredMark";
+
+        Assert.Equal(Colors.Red, Mark(field)!.TextColor);
+    }
+
+    [Fact]
+    public void AStyleKeyGivenBack_BringsTheMarksStyleBack()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Red), Children = { field } };
+
+        field.RequiredMarkStyleKey = null;
+        field.RequiredMarkStyleKey = "SmrFieldRequiredMark";
+
+        Assert.Equal(Colors.Red, Mark(field)!.TextColor);
+        Assert.Equal(FontAttributes.Bold, Mark(field)!.FontAttributes);
+    }
+
     // A screen reader reads the title with the mark as drawn, unless the application says what to
     // read in the mark's place, in its own language: the library writes no word of its own.
 
@@ -267,6 +434,17 @@ public class SmrFieldRequiredTests
         Assert.False(Title(field).IsSet(SemanticProperties.DescriptionProperty));
     }
 
+    // No style left on the mark: no colour of its own, and the font of a title made italic.
+    private static void AssertLooksLikeTheTitle(SmrField field)
+    {
+        Title(field).FontAttributes = FontAttributes.Italic;
+
+        var mark = Mark(field)!;
+        Assert.Null(mark.Style);
+        Assert.Null(mark.TextColor);
+        Assert.Equal(FontAttributes.Italic, mark.FontAttributes);
+    }
+
     private static ResourceDictionary Resources(string key, Color color) => new() { { key, MarkStyle(color) } };
 
     private static Style MarkStyle(Color color) => new(typeof(Span))
@@ -278,6 +456,21 @@ public class SmrFieldRequiredTests
         },
     };
 
+    // A style for the title's class that sets its font, as an application would write one.
+    private static ResourceDictionary TitleFont(string styleClass, FontAttributes attributes) => new()
+    {
+        new Style(typeof(Label))
+        {
+            Class = styleClass,
+            Setters =
+            {
+                new Setter { Property = Label.FontAttributesProperty, Value = attributes },
+                new Setter { Property = Label.FontFamilyProperty, Value = "Serif" },
+                new Setter { Property = Label.FontAutoScalingEnabledProperty, Value = false },
+            },
+        },
+    };
+
     private static Grid Root(SmrField field) =>
         Assert.IsType<Grid>(Assert.Single(((IVisualTreeElement)field).GetVisualChildren()), exactMatch: false);
 
@@ -286,6 +479,9 @@ public class SmrFieldRequiredTests
     // What the title shows, whether as plain text or as spans.
     private static string? Shown(Label label) =>
         label.FormattedText is { } formatted ? string.Concat(formatted.Spans.Select(span => span.Text)) : label.Text;
+
+    private static Span? TitleSpan(SmrField field) =>
+        Title(field).FormattedText is { Spans: [var title, _] } ? title : null;
 
     // The mark is a span of its own after the title's, so that a style can reach it alone.
     private static Span? Mark(SmrField field) =>
