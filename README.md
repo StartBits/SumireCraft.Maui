@@ -509,6 +509,54 @@ No public widget is sealed. Derive `AbcTapBehavior` from `SmrTapBehavior` and `A
 per type rather than one per page. The sample's
 [`Wrapping/`](samples/SumireCraft.Maui.Sample/Wrapping) folder shows how.
 
+A field can bring its input along, so that a page names neither `SmrField` nor the entry inside:
+
+```csharp
+public class AbcEntryField : SmrField
+{
+    public static readonly BindableProperty TextProperty = BindableProperty.Create(
+        nameof(Text), typeof(string), typeof(AbcEntryField), defaultBindingMode: BindingMode.TwoWay);
+
+    public AbcEntryField()
+    {
+        TitleStyleClass = "AbcEntryFieldTitle";
+        ErrorStyleClass = "AbcEntryFieldError";
+        RequiredMarkStyleKey = "AbcEntryFieldRequiredMark";
+
+        var entry = new Entry();
+        entry.SetBinding(Entry.TextProperty, static (AbcEntryField field) => field.Text,
+            BindingMode.TwoWay, source: this);
+        Content = entry;
+    }
+
+    public string? Text
+    {
+        get => (string?)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
+    }
+}
+```
+
+```xml
+<abc:AbcEntryField Title="Email" Text="{Binding Email}" ErrorText="{Binding EmailError}" />
+
+<!-- In App.xaml -->
+<Style TargetType="Label" Class="AbcEntryFieldTitle">
+    <Setter Property="FontAttributes" Value="Bold" />
+</Style>
+```
+
+The field's default template and look come along with it; only the class names and the mark's key
+your styles reach are yours. So a style for the class `SmrFieldTitle` does not reach it, its title
+having another class. Nor does an implicit style for `SmrField`, since it reaches a derived type
+only with `ApplyToDerivedTypes="True"`, as [SmrField](#smrfield) says.
+
+Everything public on `SmrField` -- `Title`, `IsRequired`, `Content` and the rest -- is public on
+`AbcEntryField` too, so a page can still write it, and replacing the library one day means writing
+again whatever of it your pages use. The entry is the field's, not the page's: what a page is to set
+on it, `Placeholder` or `Keyboard` say, is one more property on the field, passed on the way `Text`
+is. `AutomationId` is no exception; written on the field, it names the field, not the entry.
+
 ## Exceptions
 
 .NET MAUI catches nothing on an application's behalf. SumireCraft gives it one place to send the
