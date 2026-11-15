@@ -8,6 +8,7 @@ public sealed class FieldPageViewModel : INotifyPropertyChanged
 {
     private string? _name;
     private string? _note;
+    private string? _email;
     private bool _errorsShown;
 
     public FieldPageViewModel() => ToggleErrorsCommand = new Command(() => ErrorsShown = !ErrorsShown);
@@ -15,7 +16,7 @@ public sealed class FieldPageViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>
-    /// Shows both fields' errors, or takes them away. The errors are written out rather than
+    /// Shows the fields' errors, or takes them away. The errors are written out rather than
     /// worked out from what was typed, so that a test can bring them up the same way every time.
     /// </summary>
     public ICommand ToggleErrorsCommand { get; }
@@ -32,6 +33,12 @@ public sealed class FieldPageViewModel : INotifyPropertyChanged
         set => Set(ref _note, value);
     }
 
+    public string? Email
+    {
+        get => _email;
+        set => Set(ref _email, value);
+    }
+
     public bool ErrorsShown
     {
         get => _errorsShown;
@@ -40,6 +47,7 @@ public sealed class FieldPageViewModel : INotifyPropertyChanged
             Set(ref _errorsShown, value);
             OnPropertyChanged(nameof(NameError));
             OnPropertyChanged(nameof(NoteError));
+            OnPropertyChanged(nameof(EmailError));
             OnPropertyChanged(nameof(ErrorsState));
         }
     }
@@ -47,6 +55,8 @@ public sealed class FieldPageViewModel : INotifyPropertyChanged
     public string? NameError => ErrorsShown ? "Enter a name." : null;
 
     public string? NoteError => ErrorsShown ? "Keep it short." : null;
+
+    public string? EmailError => ErrorsShown ? "Enter an email address." : null;
 
     /// <summary>
     /// What a test reads to know where the toggle stands, so that it never flips it the wrong way.

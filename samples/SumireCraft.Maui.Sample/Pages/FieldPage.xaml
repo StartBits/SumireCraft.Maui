@@ -2,11 +2,13 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+             xmlns:abc="clr-namespace:SumireCraft.Maui.Sample.Wrapping"
              x:Class="SumireCraft.Maui.Sample.Pages.FieldPage"
              Title="SmrField">
 
-  <!-- Short enough to fit on a phone without scrolling: Android leaves whatever is below the screen
-       out of the tree, and the markers under the fields have to be found. -->
+  <!-- What the tests look for is near the top, on a phone's first screen without scrolling: Android
+       leaves whatever is below the screen out of the tree, and the markers under the fields have to
+       be found. The wrapped field at the bottom is for reading by hand. -->
   <ScrollView>
     <VerticalStackLayout
       Padding="24"
@@ -19,7 +21,7 @@
         HorizontalTextAlignment="Start" />
 
       <Label
-        Text="A title above the entry and an error below it. The titles here are indented by a style for the SmrFieldTitle class in App.xaml, which reaches every field. Name and Note are required, Note with a mark of its own." />
+        Text="A title above the entry and an error below it. The titles here are indented by a style for the SmrFieldTitle class in App.xaml, which reaches every SmrField that keeps that class. Name and Note are required, Note with a mark of its own. Email is a field wrapped in a type of the application's own, which names classes of its own: its bold, indented title comes from a style for AbcEntryFieldTitle instead." />
 
       <HorizontalStackLayout Spacing="8">
         <Button
@@ -78,6 +80,16 @@
           <Entry AutomationId="DistrictEntry" />
         </smr:SmrField>
       </Grid>
+
+      <!-- The field wrapped in a type the application owns, Wrapping/AbcEntryField: the page names
+           neither SmrField nor the entry, and the bold title comes from a style for the class
+           AbcEntryFieldTitle in App.xaml. Last on the page, below the markers the tests look for. -->
+      <abc:AbcEntryField
+        Title="Email"
+        Text="{Binding Email}"
+        ErrorText="{Binding EmailError}"
+        IsRequired="True"
+        RequiredMarkDescription="required" />
 
     </VerticalStackLayout>
   </ScrollView>
