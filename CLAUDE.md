@@ -104,14 +104,22 @@ start that writes for the maintainer.
 | --- | --- | --- | --- |
 | `src/SumireCraft.Maui.Controls` | `SumireCraft.Maui.Controls` | `SumireCraft.Maui.Controls` | The widgets. The main package. |
 | `src/SumireCraft.Maui.Core` | `SumireCraft.Maui.Core` | `SumireCraft.Maui` and one per feature (`.Badges`, `.Exceptions`, `.Gates`, `.Lifetime`, `.Taps`) | Exception reporting and the safety net, the busy gate, the logic behind the widgets, lifetime helpers. |
+| `src/SumireCraft.Core` | `SumireCraft.Core` | `SumireCraft` and one per feature (`.DateTimes`) | What depends on no UI framework: `DateTimeInput`. Plain `net10.0` alone. |
 
 `Controls` depends on `Core`. `Core` is published separately and must stay useful on its own:
 the safety mechanisms are valuable to someone who wants none of our widgets.
 
-`Core` is released only when it changes, so the two packages can carry different versions;
+"Core" in this file and in the build files is `SumireCraft.Maui.Core`. `SumireCraft.Core` is always
+written out in full. It holds what a view model's or a server's project can use without .NET MAUI,
+`Controls` depends on it, and it is numbered as `Core` is, on its own: released only when it
+changes (`build/Version.props`, `SumireCraftCoreVersion`). Nothing moves into it from `SumireCraft.Maui.Core` before 2.0.0: a type
+that changed assemblies would break applications holding the published packages.
+
+`Core` is released only when it changes, so it and `Controls` can carry different versions;
 `build/Version.props` explains the numbering. A change to `Core`, or to a build file it takes in
 (`global.json` and the root `Directory.*.props` included),
 means `Core` gets the next release's number too, and `release.yml` refuses to publish otherwise.
+The same holds for `SumireCraft.Core`, which takes in the same build files.
 
 **Rule of thumb:** `Controls` holds widgets — the pieces an app author reaches for when building a
 page. A behavior is a widget for this purpose: it is something you attach to a view and think
@@ -170,7 +178,8 @@ assets/                             the pictures in README.md, taken on Android 
 build/                              version numbers, pack settings and platform routing rules
 src/Directory.Build.props|targets   settings for the published libraries only (IsAotCompatible, trim analyzer)
 src/SumireCraft.Maui.Core/          Badges/ , Exceptions/ , Extensions/ , Gates/ , Hosting/ , Lifetime/ , Taps/
-src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , Fields/ , Taps/) , Templates/ , Hosting/
+src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , DateTimes/ , Fields/ , Taps/) , Templates/ , Hosting/
+src/SumireCraft.Core/               DateTimes/
 samples/Directory.Build.props       settings for applications only (Mac Catalyst runtime identifiers and minimum)
 samples/SumireCraft.Maui.Sample/    the application the UI tests drive, and examples (not packed)
 tests/SumireCraft.Maui.UnitTests/   xUnit v3, plain net10.0 (the libraries build for it too)

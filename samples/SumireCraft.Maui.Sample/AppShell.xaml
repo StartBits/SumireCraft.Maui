@@ -36,6 +36,12 @@
     ContentTemplate="{DataTemplate pages:FieldPage}" />
 
   <ShellContent
+    AutomationId="DateTimeInputMenuItem"
+    Title="DateTimeInput"
+    Route="datetimeinput"
+    ContentTemplate="{DataTemplate pages:DateTimeInputPage}" />
+
+  <ShellContent
     AutomationId="ExceptionMenuItem"
     Title="Exceptions"
     Route="exceptions"

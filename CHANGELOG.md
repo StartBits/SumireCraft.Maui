@@ -3,8 +3,10 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-A release that leaves `SumireCraft.Maui.Core` unchanged publishes `SumireCraft.Maui.Controls`
-alone, and says so in its heading; Core keeps the version of the last release that changed it.
+`SumireCraft.Maui.Controls` is published with every release. `SumireCraft.Maui.Core` and
+`SumireCraft.Core` are published only in a release that changes them, and otherwise keep the
+version of the last release that did; a release's heading says what it leaves out
+(*Controls only*, *without SumireCraft.Maui.Core* or *without SumireCraft.Core*).
 
 A release that raises the minimum version of .NET MAUI says so under *Changed*.
 
@@ -21,6 +23,16 @@ A release that raises the minimum version of .NET MAUI says so under *Changed*.
 - `SmrTemplatedView` in `SumireCraft.Maui.Controls`, a content view that brings a default control
   template which an application's styles replace like any other, including a style for every
   templated view at once. `SmrField` is built on it, and an application's own widgets can be too.
+- `SmrDatePicker` and `SmrTimePicker` in `SumireCraft.Maui.Controls`, .NET MAUI's `DatePicker` and
+  `TimePicker` with a `DateTimeInput` property. Bound to one input, the two take a date and a time,
+  either of which can stay empty -- but for a time on Windows with .NET MAUI 10.0.20, whose
+  `TimePicker` turns an empty time into midnight. A style for every `DatePicker` or `TimePicker`
+  reaches them too.
+- A new package, `SumireCraft.Core`, which depends on no UI framework and targets plain `net10.0`.
+  It holds `DateTimeInput` in the namespace `SumireCraft.DateTimes`: a date and a time that are
+  entered separately and can each be empty, read and written through `DateOnly`, `TimeOnly`,
+  `DateTime` or `TimeSpan`. `SumireCraft.Maui.Controls` depends on it, and like
+  `SumireCraft.Maui.Core` it is released only when it changes.
 
 ## [1.0.0] - 2026-11-03
 

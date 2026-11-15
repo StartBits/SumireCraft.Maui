@@ -10,9 +10,14 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 - **SmrField** -- a title above an input and its error below. The error's line is held so nothing
   below jumps, and both labels are restyled from App.xaml through two style classes.
 
+- **SmrDatePicker** and **SmrTimePicker** -- .NET MAUI's own pickers, bound to one `DateTimeInput`:
+  a value whose date and time are entered separately and can each stay empty.
+
 This package brings in [SumireCraft.Maui.Core](https://www.nuget.org/packages/SumireCraft.Maui.Core)
 as well: exception reporting, an opt-in safety net, and a busy gate. Core is released only when it
-changes, so its version can be lower than this package's.
+changes, so its version can be lower than this package's. It also brings in
+[SumireCraft.Core](https://www.nuget.org/packages/SumireCraft.Core), which holds `DateTimeInput`
+and depends on no UI framework.
 
 .NET 10 with .NET MAUI 10.0.20+ · Android 21+ · iOS 15+ · Mac Catalyst 15+ · Windows 10 1809+ · trimming and Native AOT compatible · MIT
 

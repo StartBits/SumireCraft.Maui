@@ -68,6 +68,8 @@ jobs:
       controls: ${{ steps.version.outputs.controls }}
       core: ${{ steps.version.outputs.core }}
       publish-core: ${{ steps.version.outputs.publish-core }}
+      shared: ${{ steps.version.outputs.shared }}
+      publish-shared: ${{ steps.version.outputs.publish-shared }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -153,12 +155,20 @@ jobs:
           CONTROLS: ${{ needs.build.outputs.controls }}
           CORE: ${{ needs.build.outputs.core }}
           PUBLISH_CORE: ${{ needs.build.outputs.publish-core }}
+          SHARED: ${{ needs.build.outputs.shared }}
+          PUBLISH_SHARED: ${{ needs.build.outputs.publish-shared }}
         run: |
-          # Each push takes the .snupkg beside its .nupkg along.
-          $packages = @("artifacts/SumireCraft.Maui.Controls.${env:CONTROLS}.nupkg")
-          if ($env:PUBLISH_CORE -eq 'true') {
-            $packages = @("artifacts/SumireCraft.Maui.Core.${env:CORE}.nupkg") + $packages
+          # Each push takes the .snupkg beside its .nupkg along. What Controls depends on goes
+          # first, so that Controls is never on nuget.org without it. SumireCraft.Core and
+          # SumireCraft.Maui.Core go out only in a release that changes them.
+          $packages = @()
+          if ($env:PUBLISH_SHARED -eq 'true') {
+            $packages += "artifacts/SumireCraft.Core.${env:SHARED}.nupkg"
           }
+          if ($env:PUBLISH_CORE -eq 'true') {
+            $packages += "artifacts/SumireCraft.Maui.Core.${env:CORE}.nupkg"
+          }
+          $packages += "artifacts/SumireCraft.Maui.Controls.${env:CONTROLS}.nupkg"
           foreach ($package in $packages) {
             dotnet nuget push $package --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

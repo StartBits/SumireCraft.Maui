@@ -21,7 +21,19 @@ $packagePaths = @('src', 'build', 'global.json', ':(glob)Directory.*.props')
 # What of that goes into Core: all but Controls, and but the numbers themselves, which change in every
 # release without Core changing. Everything else under src/ counts as Core, so a package added there
 # is excluded here as Controls is, or every change to it asks Core for a new number.
-$corePaths = $packagePaths + @(':(exclude)src/SumireCraft.Maui.Controls', ':(exclude)build/Version.props')
+# SumireCraft.Core, the package that depends on no UI framework, is such a package: "Core" in this
+# file is SumireCraft.Maui.Core alone.
+$corePaths = $packagePaths + @(
+    ':(exclude)src/SumireCraft.Maui.Controls',
+    ':(exclude)src/SumireCraft.Core',
+    ':(exclude)build/Version.props')
+
+# What goes into SumireCraft.Core, by the same reasoning: all but the other two packages and the
+# numbers. It is numbered as Core is, on its own.
+$sharedPaths = $packagePaths + @(
+    ':(exclude)src/SumireCraft.Maui.Controls',
+    ':(exclude)src/SumireCraft.Maui.Core',
+    ':(exclude)build/Version.props')
 
 function Fail([string] $message) {
     Write-Host "::error::$message"
@@ -61,13 +73,16 @@ function Get-Version([string] $project) {
 
 $controls = Get-Version 'src/SumireCraft.Maui.Controls/SumireCraft.Maui.Controls.csproj'
 $core = Get-Version 'src/SumireCraft.Maui.Core/SumireCraft.Maui.Core.csproj'
-Write-Host "Controls $controls, Core $core"
+$shared = Get-Version 'src/SumireCraft.Core/SumireCraft.Core.csproj'
+Write-Host "Controls $controls, Core $core, SumireCraft.Core $shared"
 
 # For the steps after this one in release.yml. They run only if every check below passes.
 if ($env:GITHUB_OUTPUT) {
     "controls=$controls" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
     "core=$core" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
     "publish-core=$(($core -eq $controls).ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+    "shared=$shared" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+    "publish-shared=$(($shared -eq $controls).ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 }
 
 if ($Base) {
@@ -97,22 +112,30 @@ if ($latest -and (Compare-Version $controls $latest) -le 0) {
     Fail "The release version $controls is not above the latest release, $latest."
 }
 
-# Core either takes this release's number or keeps the number of an earlier release, in which case
-# nothing that goes into it may have changed since that release's tag.
-if ($core -ne $controls) {
-    if ((Compare-Version $core $controls) -gt 0) {
-        Fail "Core $core is ahead of the release version $controls."
+# Each of Core and SumireCraft.Core either takes this release's number or keeps the number of an
+# earlier release, in which case nothing that goes into it may have changed since that release's
+# tag. A tag from before a package existed shows the whole package as changed, so a package cannot
+# keep a number it was never released under.
+function Test-Kept([string] $name, [string] $version, [string] $property, [string[]] $paths) {
+    if ($version -eq $controls) {
+        return
     }
-    if ($released -notcontains $core) {
-        Fail "Core stays at $core, but there is no tag v$core to compare it against."
+    if ((Compare-Version $version $controls) -gt 0) {
+        Fail "$name $version is ahead of the release version $controls."
     }
-    $changed = Invoke-Git diff --name-only "v$core" HEAD '--' @corePaths
+    if ($released -notcontains $version) {
+        Fail "$name stays at $version, but there is no tag v$version to compare it against."
+    }
+    $changed = Invoke-Git diff --name-only "v$version" HEAD '--' @paths
     if ($changed) {
-        Write-Host "::error::Core has changed since v$core, so it needs this release's number ($controls) in build/Version.props:"
+        Write-Host "::error::$name has changed since v$version, so it needs this release's number ($controls) as $property in build/Version.props:"
         $changed | ForEach-Object { Write-Host "  $_" }
         exit 1
     }
 }
+
+Test-Kept 'Core' $core 'SumireCoreVersion' $corePaths
+Test-Kept 'SumireCraft.Core' $shared 'SumireCraftCoreVersion' $sharedPaths
 
 if ($latest) {
     Write-Host "Versions are in order: $controls follows $latest."
