@@ -2,9 +2,9 @@
 <!--
   The look a SmrField's default template starts from, written as an application would write it in
   Styles.xaml but for the keys, which are only how the field finds these to add them to its own
-  resources. The labels carry these classes before the ones an application styles, SmrFieldTitle
-  and SmrFieldError, and of two class styles that set the same property the later class wins, so an
-  application's style replaces these wherever the two meet.
+  resources. The labels carry these classes before the ones an application styles (SmrFieldTitle
+  and SmrFieldError, unless the field names others), and of two class styles that set the same
+  property the later class wins, so an application's style replaces these wherever the two meet.
 
   The error's colour is two classes, one for each theme, which the field swaps when the theme
   changes. {AppThemeBinding} would be one style, but .NET MAUI ranks a binding above a plain value

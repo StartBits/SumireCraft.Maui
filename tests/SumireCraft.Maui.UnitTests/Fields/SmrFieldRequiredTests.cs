@@ -1,0 +1,293 @@
+using SumireCraft.Maui.Controls;
+
+namespace SumireCraft.Maui.UnitTests.Fields;
+
+// The mark a required field puts after its title: what it shows, how an application restyles it,
+// and what a screen reader reads in its place.
+public class SmrFieldRequiredTests
+{
+    [Fact]
+    public void IsRequired_IsOffByDefault()
+    {
+        Assert.False(new SmrField().IsRequired);
+    }
+
+    [Fact]
+    public void TheMark_IsAnAsteriskByDefault()
+    {
+        Assert.Equal("*", new SmrField().RequiredMark);
+    }
+
+    [Fact]
+    public void NothingIsReadInTheMarksPlace_ByDefault()
+    {
+        Assert.Null(new SmrField().RequiredMarkDescription);
+    }
+
+    [Fact]
+    public void TheMarksStyleKey_IsSmrFieldRequiredMarkByDefault()
+    {
+        Assert.Equal("SmrFieldRequiredMark", new SmrField().RequiredMarkStyleKey);
+    }
+
+    // The mark follows the title as it is, with nothing put between them, so that a title that
+    // wraps keeps the mark right after its last word.
+
+    [Fact]
+    public void ARequiredField_PutsTheMarkRightAfterItsTitle()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+
+        Assert.Equal("Name*", Shown(Title(field)));
+        Assert.Equal("*", Mark(field)?.Text);
+    }
+
+    [Fact]
+    public void AFieldNotRequired_ShowsItsTitleAlone()
+    {
+        var field = new SmrField { Title = "Name" };
+
+        Assert.Equal("Name", Shown(Title(field)));
+        Assert.Null(Mark(field));
+    }
+
+    [Fact]
+    public void AMarkOfTheApplicationsOwn_IsShownAsItIs()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMark = " (required)" };
+
+        Assert.Equal("Name (required)", Shown(Title(field)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void NoMark_ShowsTheTitleAlone(string? mark)
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMark = mark };
+
+        Assert.Equal("Name", Shown(Title(field)));
+        Assert.Null(Mark(field));
+    }
+
+    [Fact]
+    public void AFieldNoLongerRequired_DropsTheMark()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+
+        field.IsRequired = false;
+
+        Assert.Equal("Name", Shown(Title(field)));
+        Assert.Null(Mark(field));
+    }
+
+    [Fact]
+    public void ATitleChangedOnARequiredField_KeepsTheMark()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+
+        field.Title = "Full name";
+
+        Assert.Equal("Full name*", Shown(Title(field)));
+    }
+
+    [Fact]
+    public void AMarkChanged_IsShown()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+
+        field.RequiredMark = "!";
+
+        Assert.Equal("Name!", Shown(Title(field)));
+    }
+
+    // The mark belongs to the title: with no title there is nothing to mark.
+
+    [Fact]
+    public void ARequiredFieldWithoutATitle_ShowsNoMark()
+    {
+        var field = new SmrField { IsRequired = true };
+
+        Assert.False(Title(field).IsVisible);
+    }
+
+    [Fact]
+    public void ARequiredFieldWithoutATitleButWithReservedSpace_KeepsABlankLine()
+    {
+        var field = new SmrField { IsRequired = true, ReserveTitleSpace = true };
+
+        Assert.True(Title(field).IsVisible);
+        Assert.Equal(" ", Shown(Title(field)));
+        Assert.False(AutomationProperties.GetIsInAccessibleTree(Title(field)));
+    }
+
+    // By default the mark looks like the title it follows: it sets nothing of its own.
+
+    [Fact]
+    public void TheMarkByDefault_LooksLikeTheTitle()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        _ = new Grid { field };
+
+        var mark = Mark(field)!;
+        Assert.Null(mark.TextColor);
+        Assert.Equal(FontAttributes.None, mark.FontAttributes);
+        Assert.Null(mark.Style);
+    }
+
+    // A span takes no style class in .NET MAUI, so the mark's look is a style for spans under a key,
+    // found the way a dynamic resource is: the nearest one wins, in App.xaml or a page's resources.
+
+    [Fact]
+    public void AStyleUnderTheMarksKey_ReachesTheMark()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Red), Children = { field } };
+
+        Assert.Equal(Colors.Red, Mark(field)!.TextColor);
+        Assert.Equal(FontAttributes.Bold, Mark(field)!.FontAttributes);
+    }
+
+    [Fact]
+    public void AStyleUnderTheMarksKey_LeavesTheTitleAlone()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Red), Children = { field } };
+
+        Assert.Null(Title(field).FormattedText.Spans[0].TextColor);
+        Assert.Null(Title(field).TextColor);
+    }
+
+    [Fact]
+    public void AStyleUnderTheMarksKeyOnThePage_WinsOverOneFurtherOut()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        var page = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Purple), Children = { field } };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Teal), Children = { page } };
+
+        Assert.Equal(Colors.Purple, Mark(field)!.TextColor);
+    }
+
+    [Fact]
+    public void AStyleUnderTheMarksKeyFurtherOut_ReachesTheMark()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        var page = new Grid { field };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Teal), Children = { new Grid { page } } };
+
+        Assert.Equal(Colors.Teal, Mark(field)!.TextColor);
+    }
+
+    [Fact]
+    public void AFieldMadeRequiredOnThePage_StillTakesTheMarksStyle()
+    {
+        var field = new SmrField { Title = "Name" };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Red), Children = { field } };
+
+        field.IsRequired = true;
+
+        Assert.Equal(Colors.Red, Mark(field)!.TextColor);
+    }
+
+    [Fact]
+    public void AStyleKeyOfTheApplicationsOwn_ReachesTheMarkInsteadOfTheDefaultOne()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMarkStyleKey = "AppFieldRequiredMark" };
+        var resources = Resources("SmrFieldRequiredMark", Colors.Red);
+        resources.Add("AppFieldRequiredMark", MarkStyle(Colors.Teal));
+        _ = new Grid { Resources = resources, Children = { field } };
+
+        Assert.Equal(Colors.Teal, Mark(field)!.TextColor);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void NoStyleKey_LeavesTheMarkLookingLikeTheTitle(string? key)
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMarkStyleKey = key };
+        _ = new Grid { Resources = Resources("SmrFieldRequiredMark", Colors.Red), Children = { field } };
+
+        Assert.Null(Mark(field)!.TextColor);
+    }
+
+    // A screen reader reads the title with the mark as drawn, unless the application says what to
+    // read in the mark's place, in its own language: the library writes no word of its own.
+
+    [Fact]
+    public void ARequiredFieldByDefault_IsReadAsDrawn()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true };
+
+        Assert.False(Title(field).IsSet(SemanticProperties.DescriptionProperty));
+        Assert.True(AutomationProperties.GetIsInAccessibleTree(Title(field)));
+    }
+
+    [Fact]
+    public void ADescriptionOfTheMark_IsReadInItsPlace()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMarkDescription = "required" };
+
+        Assert.Equal("Name required", SemanticProperties.GetDescription(Title(field)));
+    }
+
+    [Fact]
+    public void ADescriptionOfTheMarkOnAFieldNotRequired_IsNotRead()
+    {
+        var field = new SmrField { Title = "Name", RequiredMarkDescription = "required" };
+
+        Assert.False(Title(field).IsSet(SemanticProperties.DescriptionProperty));
+    }
+
+    [Fact]
+    public void ADescriptionOfTheMark_FollowsTheTitle()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMarkDescription = "required" };
+
+        field.Title = "Full name";
+
+        Assert.Equal("Full name required", SemanticProperties.GetDescription(Title(field)));
+    }
+
+    [Fact]
+    public void AFieldNoLongerRequired_IsReadAsDrawnAgain()
+    {
+        var field = new SmrField { Title = "Name", IsRequired = true, RequiredMarkDescription = "required" };
+
+        field.IsRequired = false;
+
+        Assert.False(Title(field).IsSet(SemanticProperties.DescriptionProperty));
+    }
+
+    [Fact]
+    public void ADescriptionOfTheMarkWithoutATitle_IsNotRead()
+    {
+        var field = new SmrField { IsRequired = true, ReserveTitleSpace = true, RequiredMarkDescription = "required" };
+
+        Assert.False(Title(field).IsSet(SemanticProperties.DescriptionProperty));
+    }
+
+    private static ResourceDictionary Resources(string key, Color color) => new() { { key, MarkStyle(color) } };
+
+    private static Style MarkStyle(Color color) => new(typeof(Span))
+    {
+        Setters =
+        {
+            new Setter { Property = Span.TextColorProperty, Value = color },
+            new Setter { Property = Span.FontAttributesProperty, Value = FontAttributes.Bold },
+        },
+    };
+
+    private static Grid Root(SmrField field) =>
+        Assert.IsType<Grid>(Assert.Single(((IVisualTreeElement)field).GetVisualChildren()), exactMatch: false);
+
+    private static Label Title(SmrField field) => (Label)Root(field).Children[0];
+
+    // What the title shows, whether as plain text or as spans.
+    private static string? Shown(Label label) =>
+        label.FormattedText is { } formatted ? string.Concat(formatted.Spans.Select(span => span.Text)) : label.Text;
+
+    // The mark is a span of its own after the title's, so that a style can reach it alone.
+    private static Span? Mark(SmrField field) =>
+        Title(field).FormattedText is { Spans: [_, var mark] } ? mark : null;
+}
