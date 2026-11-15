@@ -14,12 +14,13 @@
   <PropertyGroup Label="Package">
     <PackageId>SumireCraft.Maui.Controls</PackageId>
     <Title>SumireCraft.Maui.Controls</Title>
-    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, SmrTapBehavior runs a different command for one tap, a double tap, or five, and SmrField puts a title and an error around an input.</Description>
-    <SumirePackageTags>controls;ui;badge;tap;gesture;form;field</SumirePackageTags>
+    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, SmrTapBehavior runs a different command for one tap, a double tap, or five, SmrField puts a title and an error around an input, and SmrDatePicker and SmrTimePicker take a date and a time that can each stay empty.</Description>
+    <SumirePackageTags>controls;ui;badge;tap;gesture;form;field;datepicker;timepicker</SumirePackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" />
+    <ProjectReference Include="..\SumireCraft.Core\SumireCraft.Core.csproj" />
     <ProjectReference Include="..\SumireCraft.Maui.Core\SumireCraft.Maui.Core.csproj" />
   </ItemGroup>
 
@@ -29,13 +30,13 @@
     <InternalsVisibleTo Include="SumireCraft.Maui.UnitTests" />
   </ItemGroup>
 
-  <!-- Bounds the dependency on Core below the next major version of Controls. Packing writes the
-       Core this was built with as the minimum and nothing as the maximum, so an application that
-       took Core 2.x directly would keep Controls 1.x on it without a word, and fail at run time
-       wherever 2.x broke something Controls calls. With the bound, NuGet warns (NU1608) instead.
-       The two share one sequence of numbers, so a Core of the next major comes with a Controls of
-       its own. A project reference has no setting for a range, so the version packing read is
-       rewritten after it has read it.
+  <!-- Bounds the dependencies on Core and on SumireCraft.Core below the next major version of
+       Controls. Packing writes the version each was built with as the minimum and nothing as the
+       maximum, so an application that took Core 2.x directly would keep Controls 1.x on it without
+       a word, and fail at run time wherever 2.x broke something Controls calls. With the bound,
+       NuGet warns (NU1608) instead. All three share one sequence of numbers, so a Core of the next
+       major comes with a Controls of its own. A project reference has no setting for a range, so
+       the version packing read is rewritten after it has read it.
 
        The bound follows Controls, not Core: a Controls 2.0.0 released while Core stays at 1.x
        accepts [1.x, 3.0.0). -->
@@ -46,11 +47,13 @@
       <_SumireNextMajor>$([MSBuild]::Add($(_SumireMajor), 1)).0.0</_SumireNextMajor>
     </PropertyGroup>
     <ItemGroup>
-      <_ProjectReferencesWithVersions Condition="'%(Filename)' == 'SumireCraft.Maui.Core'">
+      <_ProjectReferencesWithVersions Condition="'%(Filename)' == 'SumireCraft.Maui.Core' or '%(Filename)' == 'SumireCraft.Core'">
         <ProjectVersion>[%(ProjectVersion), $(_SumireNextMajor))</ProjectVersion>
       </_ProjectReferencesWithVersions>
       <_SumireBoundCore Include="@(_ProjectReferencesWithVersions)"
                         Condition="'%(Filename)' == 'SumireCraft.Maui.Core' and $([System.String]::Copy('%(ProjectVersion)').StartsWith('['))" />
+      <_SumireBoundSharedCore Include="@(_ProjectReferencesWithVersions)"
+                              Condition="'%(Filename)' == 'SumireCraft.Core' and $([System.String]::Copy('%(ProjectVersion)').StartsWith('['))" />
     </ItemGroup>
   </Target>
 
@@ -61,6 +64,8 @@
   <Target Name="CheckCoreDependencyBound" BeforeTargets="GenerateNuspec">
     <Error Condition="'@(_SumireBoundCore)' == ''"
            Text="The dependency on SumireCraft.Maui.Core was not given its upper bound. BoundCoreDependency relies on NuGet's _GetProjectReferenceVersions target and _ProjectReferencesWithVersions items; check whether the SDK renamed them." />
+    <Error Condition="'@(_SumireBoundSharedCore)' == ''"
+           Text="The dependency on SumireCraft.Core was not given its upper bound. BoundCoreDependency relies on NuGet's _GetProjectReferenceVersions target and _ProjectReferencesWithVersions items; check whether the SDK renamed them." />
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\build\Package.props" />

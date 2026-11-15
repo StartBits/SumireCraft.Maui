@@ -97,8 +97,8 @@ it:
 
 1. Cut `release/x.y` from `main`, and raise `build/Version.props` there in the first commit: the
    patch for fixes alone, the minor for a feature, the major only for a breaking change. Raise
-   `SumireCoreVersion` too if Core will change (*Packages* in `CLAUDE.md`, and the comment in
-   `build/Version.props`). In the same commit, open a `## [x.y.z]` section at the top of
+   `SumireCoreVersion` too if Core will change, and `SumireCraftCoreVersion` if SumireCraft.Core
+   will (*Packages* in `CLAUDE.md`, and the comment in `build/Version.props`). In the same commit, open a `## [x.y.z]` section at the top of
    `CHANGELOG.md`, with no date yet, and a link line for it at the bottom, above the existing ones,
    comparing with the last tag
    (`[1.1.0]: https://github.com/startbits/SumireCraft.Maui/compare/v1.0.0...v1.1.0`).
@@ -124,10 +124,11 @@ it:
    Android. iOS and Mac Catalyst run on the Mac only when the release holds a change that could
    behave differently there. Then date the section
    (`## [1.1.0] - 2027-04-15`), the day the pull request is opened: the merge day
-   is not known yet, and a day or two apart matters less than a section left undated. If Core
-   stays as it was, say so in the heading (`## [1.1.0] - 2027-04-15 (Controls only)`). Then open a
-   pull request from the release branch into `main`. Its checks fail unless the version has gone up
-   and Core is numbered right.
+   is not known yet, and a day or two apart matters less than a section left undated. If a Core
+   package stays as it was, say so in the heading: `(Controls only)` when both do, otherwise
+   `(without SumireCraft.Maui.Core)` or `(without SumireCraft.Core)`. Then open a pull request from
+   the release branch into `main`. Its checks fail unless the version has gone up and both Core
+   packages are numbered right.
 5. The maintainer merges, and the release workflow tags and publishes. The release branch stays,
    but it is no longer open: nothing more goes into it, and the tag is what that release is found
    by from then on. Release branches are kept because the ruleset that forbids deleting them also
@@ -185,6 +186,7 @@ Only when the next release cannot wait; a fix that can goes through the release 
      move it to the next one.
    - `SumireCoreVersion`: if the release branch has changed Core, the release's number. If it
      has not, the hotfix's Core number, since the merged Core is the hotfix's.
+     `SumireCraftCoreVersion` is settled the same way, for SumireCraft.Core.
 
    `CHANGELOG.md` conflicts too, because both added a section. Keep both sections, the release
    branch's above the hotfix's, and both link lines in the same order; the release's link now

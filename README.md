@@ -12,6 +12,7 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 | --- | --- | --- |
 | **UI** | [SmrBadgeView](#smrbadgeview) -- a count or a dot over the corner of any view | A badge that stays on the content's own corner, mirrors for right-to-left, and never pushes the layout around as the count grows. |
 | | [SmrField](#smrfield) -- a title above an input, and its error below | Every form repeats a title label, the input and an error label by hand, and their spacing drifts from page to page. This holds the error's line so nothing below jumps, and is restyled from App.xaml. |
+| | [SmrDatePicker and SmrTimePicker](#smrdatepicker-and-smrtimepicker) -- a date and a time that can each stay empty | One `DateTime` bound to a `DatePicker` and a `TimePicker` loses a part each time the other writes, and cannot say that only the date was entered. `DateTimeInput` holds the two apart, and each picker takes its own. |
 | **Input** | [SmrTapBehavior](#smrtapbehavior) -- a different command for one tap, a double tap, or five | A single-tap recognizer fires on the way to a double tap. This reads the whole burst once, is safe in a `Style`, and its bindings resolve. |
 | **Reliability** | [Exception reporting](#exceptions) -- one place to send every exception you catch | .NET MAUI catches nothing on an application's behalf. Log it, show it, or forward it to your crash reporter, from one place. |
 | | [Safety net](#the-safety-net) (opt-in) -- reports what nothing caught, as far as .NET hears of it | A throw on a background task can take the process down without a trace. |
@@ -30,6 +31,7 @@ weaver that writes `try`/`catch` for you -- because no two applications agree on
 | --- | --- |
 | `SumireCraft.Maui.Controls` | The widgets. This is the package you normally want. |
 | `SumireCraft.Maui.Core` | Exception reporting and the safety net, the busy gate, badge counting and lifetime helpers. Useful on its own, without any of the widgets. |
+| `SumireCraft.Core` | `DateTimeInput`, and nothing that depends on a UI framework: plain `net10.0`, for a view model's or a server's project as well. Controls brings it in. |
 
 Core is for .NET MAUI applications, and depends on .NET MAUI itself (`Microsoft.Maui.Controls`),
 since it plugs into `MauiAppBuilder`. A library that is not a .NET MAUI project -- a networking
@@ -49,6 +51,7 @@ dotnet add package SumireCraft.Maui.Core
 ```
 
 Both packages also target plain `net10.0`, so an application's unit test project can reference them.
+`SumireCraft.Core` targets plain `net10.0` and nothing else.
 
 ## Usage
 
@@ -86,6 +89,7 @@ extension method of your own or another library's.
 | --- | --- |
 | `SumireCraft.Maui.Core` | `SumireCraft.Maui`, plus one per feature: `.Badges`, `.Exceptions`, `.Gates`, `.Lifetime`, `.Taps` |
 | `SumireCraft.Maui.Controls` | `SumireCraft.Maui.Controls`, all of it, so one `xmlns` reaches every widget |
+| `SumireCraft.Core` | One per feature: `SumireCraft.DateTimes` |
 
 In XAML, that one `xmlns` is a URI:
 
@@ -357,6 +361,79 @@ moment it appears.
 A `ControlTemplate` of your own replaces the title, the error and their styles together; it shows
 `Title` and `ErrorText` through `{Binding Title, Source={RelativeSource TemplatedParent}}`, and the
 content through a `ContentPresenter`.
+
+### SmrDatePicker and SmrTimePicker
+
+.NET MAUI's own `DatePicker` and `TimePicker`, each with one property more: a `DateTimeInput`, a
+value whose date and time are entered separately and can each be empty.
+
+```xml
+<smr:SmrDatePicker DateTimeInput="{Binding Start}" />
+<smr:SmrTimePicker DateTimeInput="{Binding Start}" />
+```
+
+```csharp
+using SumireCraft.DateTimes;
+
+public DateTimeInput Start { get; set; } = new();   // raise PropertyChanged if you replace it later
+
+// Later, when saving:
+if (Start.IsComplete)
+{
+    DateTime start = Start.DateAndTime!.Value;
+}
+```
+
+The date picker takes the input's date and the time picker its time, and each leaves the other
+part alone. Bound to one input and placed wherever the page wants them, the two take a date and a
+time. Everything else is the picker it derives from: `Format`, `MinimumDate`, `TextColor` and the
+rest are written as on any `DatePicker` or `TimePicker`, and a style you wrote for every
+`DatePicker` or `TimePicker` -- the Styles.xaml of a new project has both -- reaches these too.
+
+An input without a date is shown empty, and so is a picker given no input at all, where a
+`DatePicker` starts at today and a `TimePicker` at midnight.
+
+**The input.** `DateTimeInput` holds a `DateOnly?` and a `TimeOnly?` and nothing else.
+`DateAsDateOnly`, `DateAsDateTime`, `TimeAsTimeOnly`, `TimeAsTimeSpan` and `TimeAsDateTime` read and
+write one part through the type a control wants; `DateAndTime` reads and writes both, and
+`IsComplete` says whether both were entered. It converts to `DateTime?` by itself, and
+`someDateTime.ToDateTimeInput()` makes one. It lives in the `SumireCraft.Core` package, which
+depends on no UI framework, so a view model's project can use it without .NET MAUI.
+
+An input raises no change notification. A picker shows what its input held when it was given, and
+what is picked afterwards; to show other values, give the picker another input -- from a property
+that does notify:
+
+```csharp
+Start = new DateTimeInput(DateTime.Now);   // raises PropertyChanged for Start
+```
+
+**A view model without an input.** `DateTimeInput` is never null. A picker bound to a property
+that is null makes an empty input and, as the binding is two-way by default, writes it back, so the
+view model can read what was entered.
+
+**What the platform's pickers do.** `Date` and the input's date are one value, and so are `Time`
+and the input's time, so what is shown and what the input holds never differ:
+
+- A `DatePicker` shows nothing outside `MinimumDate` and `MaximumDate`, 1900 to 2100 by default,
+  and moves a date outside them to the nearest end. The input takes the date shown. To keep such a
+  date, widen the range: `MinimumDate="1000-01-01"`.
+- On Windows, the `TimePicker` of .NET MAUI 10.0.20 cannot show an empty time. It shows midnight,
+  and the input takes that, so on Windows a time is never empty once a time picker has shown it,
+  and `IsComplete` is true as soon as there is a date. This is .NET MAUI's own `TimePicker` on
+  Windows, with or without this library. Its current source hands Windows the empty time instead;
+  which release that starts with has not been checked, and 10.0.20 is the only one tried here.
+  On Android an empty time stays empty, as an empty date does on both. iOS and Mac Catalyst have
+  not been tried yet.
+
+**A picker from another library.** A control that is not .NET MAUI's own binds to the part of the
+input in the type it wants, one of the `<part>As<type>` properties:
+
+```xml
+<vendor:TimePicker Time="{Binding Start.TimeAsDateTime}" />
+```
+
+That needs `Start` to hold an input from the beginning, since nothing makes one for it.
 
 ### A templated widget of your own
 
@@ -643,11 +720,13 @@ an older one, but it has not been tried there yet.
   [support for that .NET MAUI](https://dotnet.microsoft.com/platform/support/policy/maui) ends,
   and possibly longer. That support is shorter than the .NET it runs on: a .NET MAUI version's
   support ends six months or so after the next one ships, even on a long-term support .NET.
-- **Core is released only when it changes.** Both packages take their numbers from one sequence:
+- **Core is released only when it changes.** The packages take their numbers from one sequence:
   Controls takes every one, Core only those of releases that change it. So Core can skip numbers
   (1.0.1, then 1.0.3), Controls is never behind it, and each Controls release asks for the Core
   it was built with or later, up to the next major version of Controls: Controls 1.x takes
   Core 1.x only. Referencing a newer Core than that directly gets a warning (NU1608) from NuGet.
+  `SumireCraft.Core` is numbered the same way as `SumireCraft.Maui.Core`, on its own, and bounded
+  the same way: Controls 1.x takes `SumireCraft.Core` 1.x only.
 - **The .NET MAUI version is a minimum.** A minor release may raise it, and the
   [changelog](CHANGELOG.md) says so in that release's entry.
 - **Fixes go to the latest release only.** An earlier major version is not patched, so taking a
