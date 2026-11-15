@@ -39,6 +39,16 @@ internal abstract class SampleUi(AppiumDriver driver)
     public abstract By ByText(string text);
 
     /// <summary>
+    /// Finds a view by what a screen reader is given to read for it, its
+    /// <c>SemanticProperties.Description</c>.
+    /// </summary>
+    /// <remarks>
+    /// On Windows and Apple's platforms that takes the place of the text the view displays, so it is
+    /// found the way text is. Android keeps the two apart.
+    /// </remarks>
+    public virtual By ByDescription(string description) => ByText(description);
+
+    /// <summary>
     /// Finds a button on an alert by the text the application gave it.
     /// </summary>
     public virtual By ByAlertButton(string text) => ByText(text);
@@ -130,6 +140,9 @@ internal sealed class AndroidUi(AppiumDriver driver) : SampleUi(driver)
     // typed would match the box it was typed into as well.
     public override By ByText(string text) =>
         By.XPath($"//*[@text='{text}' and not(self::android.widget.EditText)]");
+
+    // A description is the view's content description, which TalkBack reads instead of its text.
+    public override By ByDescription(string description) => By.XPath($"//*[@content-desc='{description}']");
 
     // Compared without regard to case. A dialog button may be styled to draw its text in
     // capitals, and whether the driver then reports the text as written or as drawn depends on the

@@ -19,7 +19,10 @@ A release that raises the minimum version of .NET MAUI says so under *Changed*.
   comes and goes; `ReserveErrorSpace` turns that off. `ReserveTitleSpace` keeps a line for a missing
   title, so that a field without one lines up with a titled one beside it. The title and the error
   are restyled through the style classes `SmrFieldTitle` and `SmrFieldError`, from App.xaml or a
-  page's resources.
+  page's resources, names which `TitleStyleClass` and `ErrorStyleClass` change. `IsRequired` puts a
+  mark after the title, `*` unless `RequiredMark` says otherwise, restyled through a style for
+  `Span` under the key `SmrFieldRequiredMark`; `RequiredMarkDescription` gives a screen reader the
+  words to read in its place.
 - `SmrTemplatedView` in `SumireCraft.Maui.Controls`, a content view that brings a default control
   template which an application's styles replace like any other, including a style for every
   templated view at once. `SmrField` is built on it, and an application's own widgets can be too.

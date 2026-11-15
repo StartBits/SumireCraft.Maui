@@ -329,7 +329,40 @@ given a height of its own grows its content, an `Editor` say. A missing title le
 unless `ReserveTitleSpace="True"` keeps a line for it, so that a field without a title lines up
 with a titled one beside it. A missing error keeps its line by default, so that an error coming and
 going does not push what lies below the field up and down; `ReserveErrorSpace="False"` lets the
-field close up instead.
+field close up instead. A field with `ReserveErrorSpace="False"` also suits a value that is only
+shown, a `Label` under a title, which never has an error to keep a line for.
+
+**Required.** `IsRequired="True"` puts a mark after the title, `*` unless `RequiredMark` says
+otherwise. The mark follows the title as it is, so one that wants a space before it says so:
+`RequiredMark=" *"`, or `RequiredMark="&#x2009;*"` for a thin space in XAML. A span takes no
+margin, so a space is how the two are set apart. The mark only shows: whether something was
+entered is still yours to check, and to report through `ErrorText`.
+
+```xml
+<smr:SmrField Title="Name" IsRequired="True" RequiredMarkDescription="required">
+    <Entry Text="{Binding Name}" />
+</smr:SmrField>
+
+<smr:SmrField Title="Email" IsRequired="True" RequiredMark=" (required)">
+    <Entry Text="{Binding Email}" />
+</smr:SmrField>
+```
+
+The mark looks like the title by default. It is a `Span` after the title's text, so that it stays
+right after the last word of a title that wraps, and a span takes no style class in .NET MAUI; its
+look is a style for `Span` under the key `SmrFieldRequiredMark` instead, in App.xaml or a page's
+resources, found the way a dynamic resource is:
+
+```xml
+<Style x:Key="SmrFieldRequiredMark" TargetType="Span">
+    <Setter Property="TextColor" Value="#B3261E" />
+    <Setter Property="FontAttributes" Value="Bold" />
+</Style>
+```
+
+A screen reader reads the title as drawn, mark and all, and most read `*` as "star" or "asterisk".
+`RequiredMarkDescription` gives the words to read in its place, in your application's language:
+with `"required"`, the field above is read as "Name required".
 
 **Restyling.** The title and the error are labels with the style classes `SmrFieldTitle` and
 `SmrFieldError`. A style for either class in App.xaml restyles every field, and one in a page's
@@ -353,6 +386,13 @@ An application that stays in the light theme gets the light theme's red as long 
 it: set `UserAppTheme = AppTheme.Light` in your `App`. Or write the colour plainly in a
 `SmrFieldError` style, which then holds in either theme.
 
+The names are the field's to change: `TitleStyleClass`, `ErrorStyleClass` and
+`RequiredMarkStyleKey` hold them, and a type of your own derived from `SmrField` can set them in its
+constructor, so that your styles name your own classes (see
+[Wrapping a widget](#wrapping-a-widget-in-a-type-of-your-own)). An implicit style for `SmrField`
+that sets them reaches fields of that type alone, not those of a type derived from it, unless it
+says `ApplyToDerivedTypes="True"`.
+
 A screen reader reads the title, the content and the error in the order they are drawn, and does
 not stop on the blank line kept for an error. The field writes nothing on the content, so a name or
 a hint you give it stays yours. An error that appears is read when it is reached, not announced the
@@ -360,7 +400,9 @@ moment it appears.
 
 A `ControlTemplate` of your own replaces the title, the error and their styles together; it shows
 `Title` and `ErrorText` through `{Binding Title, Source={RelativeSource TemplatedParent}}`, and the
-content through a `ContentPresenter`.
+content through a `ContentPresenter`. It shows the mark for itself too, from `IsRequired` and
+`RequiredMark`: `RequiredMarkDescription`, `RequiredMarkStyleKey`, `TitleStyleClass` and
+`ErrorStyleClass` are for the default template alone.
 
 ### SmrDatePicker and SmrTimePicker
 

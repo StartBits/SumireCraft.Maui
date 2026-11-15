@@ -31,32 +31,31 @@ internal sealed class FieldLayout : Grid
     /// </summary>
     internal const string ErrorDarkClass = "SmrFieldErrorDarkDefault";
 
-    /// <summary>
-    /// The style class the title carries for an application to style.
-    /// </summary>
-    internal const string TitleClass = "SmrFieldTitle";
+    private readonly Span _titleSpan = new();
+    private readonly Span _markSpan = new();
+    private readonly FormattedString _markedTitle;
 
-    /// <summary>
-    /// The style class the error carries for an application to style.
-    /// </summary>
-    internal const string ErrorClass = "SmrFieldError";
+    private string? _markStyleKey;
+    private string? _titleClass;
+    private string? _errorClass;
+    private AppTheme _theme;
 
     public FieldLayout()
     {
         RowDefinitions = [new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto)];
         RowSpacing = 0;
 
-        // The default classes come first: of two class styles that set the same property, the later
-        // class wins, so the application's class replaces the field's own defaults.
-        TitleLabel = new Label { StyleClass = [TitleDefaultClass, TitleClass] };
+        TitleLabel = new Label();
         ErrorLabel = new Label();
+        _markedTitle = new FormattedString { Spans = { _titleSpan, _markSpan } };
 
         // The application raises this through a weak event manager, so a layout listening to it is
         // still let go of with its page.
         var application = Application.Current;
         application?.RequestedThemeChanged += OnThemeChanged;
 
-        ShowTheme(application?.RequestedTheme ?? AppTheme.Light);
+        _theme = application?.RequestedTheme ?? AppTheme.Light;
+        ShowClasses();
 
         var presenter = new ContentPresenter();
         SetRow((IView)presenter, 1);
@@ -77,8 +76,79 @@ internal sealed class FieldLayout : Grid
     /// </summary>
     public Label ErrorLabel { get; }
 
-    private void OnThemeChanged(object? sender, AppThemeChangedEventArgs e) => ShowTheme(e.RequestedTheme);
+    /// <summary>
+    /// Gives the labels the style classes an application styles them through, after the field's own
+    /// defaults. Null or empty gives a label none.
+    /// </summary>
+    public void UseClasses(string? titleClass, string? errorClass)
+    {
+        if (titleClass == _titleClass && errorClass == _errorClass)
+        {
+            return;
+        }
 
-    private void ShowTheme(AppTheme theme) =>
-        ErrorLabel.StyleClass = [ErrorDefaultClass, theme == AppTheme.Dark ? ErrorDarkClass : ErrorLightClass, ErrorClass];
+        _titleClass = titleClass;
+        _errorClass = errorClass;
+        ShowClasses();
+    }
+
+    /// <summary>
+    /// Shows the title, with a mark after it when one is given. The mark is a span of its own, so that
+    /// a style can reach it alone, and it follows the title's text so that it stays right after the
+    /// last word of a title that wraps.
+    /// </summary>
+    public void ShowTitle(string? text, string? mark)
+    {
+        if (string.IsNullOrEmpty(mark))
+        {
+            TitleLabel.FormattedText = null;
+            TitleLabel.Text = text;
+            return;
+        }
+
+        _titleSpan.Text = text;
+        _markSpan.Text = mark;
+        TitleLabel.FormattedText = _markedTitle;
+    }
+
+    /// <summary>
+    /// Has the mark take the style found under the key, the way a dynamic resource is found. Null or
+    /// empty leaves it looking like the title.
+    /// </summary>
+    public void UseMarkStyle(string? key)
+    {
+        if (key == _markStyleKey)
+        {
+            return;
+        }
+
+        _markStyleKey = key;
+
+        if (string.IsNullOrEmpty(key))
+        {
+            _markSpan.RemoveDynamicResource(Span.StyleProperty);
+            _markSpan.ClearValue(Span.StyleProperty);
+        }
+        else
+        {
+            _markSpan.SetDynamicResource(Span.StyleProperty, key);
+        }
+    }
+
+    private void OnThemeChanged(object? sender, AppThemeChangedEventArgs e)
+    {
+        _theme = e.RequestedTheme;
+        ShowClasses();
+    }
+
+    // The default classes come first: of two class styles that set the same property, the later
+    // class wins, so the application's class replaces the field's own defaults.
+    private void ShowClasses()
+    {
+        TitleLabel.StyleClass = With(_titleClass, TitleDefaultClass);
+        ErrorLabel.StyleClass = With(_errorClass, ErrorDefaultClass, _theme == AppTheme.Dark ? ErrorDarkClass : ErrorLightClass);
+    }
+
+    private static string[] With(string? last, params string[] defaults) =>
+        string.IsNullOrEmpty(last) ? defaults : [.. defaults, last];
 }

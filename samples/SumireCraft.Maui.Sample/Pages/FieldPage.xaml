@@ -19,7 +19,7 @@
         HorizontalTextAlignment="Start" />
 
       <Label
-        Text="A title above the entry and an error below it. The titles here are indented by a style for the SmrFieldTitle class in App.xaml, which reaches every field." />
+        Text="A title above the entry and an error below it. The titles here are indented by a style for the SmrFieldTitle class in App.xaml, which reaches every field. Name and Note are required, Note with a mark of its own." />
 
       <HorizontalStackLayout Spacing="8">
         <Button
@@ -36,7 +36,9 @@
       <VerticalStackLayout Spacing="0">
         <smr:SmrField
           Title="Name"
-          ErrorText="{Binding NameError}">
+          ErrorText="{Binding NameError}"
+          IsRequired="True"
+          RequiredMarkDescription="required">
           <Entry
             AutomationId="NameEntry"
             Text="{Binding Name}" />
@@ -51,7 +53,9 @@
         <smr:SmrField
           Title="Note"
           ErrorText="{Binding NoteError}"
-          ReserveErrorSpace="False">
+          ReserveErrorSpace="False"
+          IsRequired="True"
+          RequiredMark=" (required)">
           <Entry
             AutomationId="NoteEntry"
             Text="{Binding Note}" />

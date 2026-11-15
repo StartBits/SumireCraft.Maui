@@ -16,6 +16,13 @@
       <Style TargetType="Label" Class="SmrFieldTitle">
         <Setter Property="Margin" Value="4,0,0,4" />
       </Style>
+
+      <!-- The mark after a required field's title. A span takes no style class, so its style goes
+           under a key instead. -->
+      <Style x:Key="SmrFieldRequiredMark" TargetType="Span">
+        <Setter Property="TextColor" Value="#B3261E" />
+        <Setter Property="FontAttributes" Value="Bold" />
+      </Style>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

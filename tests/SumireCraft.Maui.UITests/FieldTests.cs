@@ -10,7 +10,8 @@ public abstract class FieldTests : SamplePageTests
     private const string NoteEntry = "NoteEntry";
     private const string CityEntry = "CityEntry";
     private const string DistrictEntry = "DistrictEntry";
-    private const string NameTitle = "Name";
+    private const string NameTitleDescription = "Name required";
+    private const string NoteTitle = "Note (required)";
     private const string NameError = "Enter a name.";
     private const string NoteError = "Keep it short.";
     private const string BelowReserved = "BelowReserved";
@@ -79,11 +80,33 @@ public abstract class FieldTests : SamplePageTests
         Open();
 
         var entry = Find(NameEntry);
-        var title = Ui.Driver.FindElement(Ui.ByText(NameTitle));
+        var title = Ui.Driver.FindElement(Ui.ByDescription(NameTitleDescription));
 
         Assert.True(
             title.Location.X > entry.Location.X,
             $"The title starts at x={title.Location.X} and the entry at x={entry.Location.X}: the application's style did not indent it.");
+    }
+
+    /// <remarks>
+    /// The unit tests show the mark as a span after the title's; only a screen shows that the platform
+    /// draws the two as one line of text.
+    /// </remarks>
+    [Fact]
+    public void ARequiredField_ShowsItsMarkAfterItsTitle()
+    {
+        Open();
+
+        Assert.True(IsShowing(Ui.ByText(NoteTitle)), $"No title read \"{NoteTitle}\".");
+    }
+
+    [Fact]
+    public void ADescriptionOfTheMark_IsWhatAScreenReaderIsGiven()
+    {
+        Open();
+
+        Assert.True(
+            IsShowing(Ui.ByDescription(NameTitleDescription)),
+            $"No title was described as \"{NameTitleDescription}\".");
     }
 
     // How far below a field's entry the marker under that field sits.

@@ -61,6 +61,42 @@ public sealed class SmrFieldThemeTests : IDisposable
         Assert.Equal(Colors.Teal, Error(field).TextColor);
     }
 
+    [Fact]
+    public void TheThemeChanging_KeepsTheApplicationsErrorClass()
+    {
+        var application = new Application { UserAppTheme = AppTheme.Light };
+        application.Resources.Add(new Style(typeof(Label))
+        {
+            Class = "AppFieldError",
+            Setters = { new Setter { Property = Label.TextColorProperty, Value = Colors.Teal } },
+        });
+        var field = new SmrField { ErrorText = "Required", ErrorStyleClass = "AppFieldError" };
+        var page = new ContentPage { Content = field };
+        page.Parent = application;
+
+        application.UserAppTheme = AppTheme.Dark;
+
+        Assert.Equal(Colors.Teal, Error(field).TextColor);
+        Assert.DoesNotContain("SmrFieldError", Error(field).StyleClass);
+    }
+
+    // The mark's style is found the way a dynamic resource is, as far out as App.xaml.
+    [Fact]
+    public void AStyleUnderTheMarksKeyInTheApplication_ReachesTheMark()
+    {
+        var application = new Application();
+        application.Resources.Add("SmrFieldRequiredMark", new Style(typeof(Span))
+        {
+            Setters = { new Setter { Property = Span.TextColorProperty, Value = Colors.Red } },
+        });
+        var field = new SmrField { Title = "Name", IsRequired = true };
+        var page = new ContentPage { Content = field };
+        page.Parent = application;
+
+        var root = Assert.IsType<Grid>(Assert.Single(((IVisualTreeElement)field).GetVisualChildren()), exactMatch: false);
+        Assert.Equal(Colors.Red, ((Label)root.Children[0]).FormattedText.Spans[1].TextColor);
+    }
+
     // Written in XAML, the way an application writes a colour for each theme.
     [Fact]
     public void AnErrorStyleThatFollowsTheTheme_ReplacesTheDefaultInBoth()

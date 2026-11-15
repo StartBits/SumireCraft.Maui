@@ -33,9 +33,37 @@ public class SmrFieldXamlTests
         Assert.Equal("OpenSansRegular", Error(field).FontFamily);
     }
 
-    private static Label Error(SmrField field)
+    // A required field and the style for its mark, the way an application writes them: a mark with a
+    // space before it keeps the space.
+    [Fact]
+    public void ARequiredFieldWrittenInXaml_TakesTheMarksStyle()
     {
-        var root = Assert.IsType<Grid>(Assert.Single(((IVisualTreeElement)field).GetVisualChildren()), exactMatch: false);
-        return (Label)root.Children[2];
+        const string Xaml = """
+            <Grid xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                  xmlns:smr="https://github.com/startbits/SumireCraft.Maui">
+              <Grid.Resources>
+                <Style x:Key="SmrFieldRequiredMark" TargetType="Span"
+                       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                  <Setter Property="TextColor" Value="Red" />
+                  <Setter Property="FontAttributes" Value="Bold" />
+                </Style>
+              </Grid.Resources>
+              <smr:SmrField Title="Name" IsRequired="True" RequiredMark=" (required)" />
+            </Grid>
+            """;
+        var page = new Grid().LoadFromXaml(Xaml);
+        var field = Assert.IsType<SmrField>(Assert.Single(page.Children));
+
+        var spans = Title(field).FormattedText.Spans;
+        Assert.Equal(["Name", " (required)"], spans.Select(span => span.Text));
+        Assert.Equal(Colors.Red, spans[1].TextColor);
+        Assert.Equal(FontAttributes.Bold, spans[1].FontAttributes);
     }
+
+    private static Grid Root(SmrField field) =>
+        Assert.IsType<Grid>(Assert.Single(((IVisualTreeElement)field).GetVisualChildren()), exactMatch: false);
+
+    private static Label Title(SmrField field) => (Label)Root(field).Children[0];
+
+    private static Label Error(SmrField field) => (Label)Root(field).Children[2];
 }
