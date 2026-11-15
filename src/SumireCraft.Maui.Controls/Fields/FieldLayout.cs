@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace SumireCraft.Maui.Controls;
 
 /// <summary>
@@ -31,9 +33,17 @@ internal sealed class FieldLayout : Grid
     /// </summary>
     internal const string ErrorDarkClass = "SmrFieldErrorDarkDefault";
 
+    // What a span does not take from its label by itself. .NET MAUI hands a span its label's whole
+    // font only when the span's own font is unset, and it never is, since the label's size always
+    // fills it in; so a span keeps the label's size and colour but loses its family and attributes.
+    // A label and a span share these properties, both taking them from FontElement.
+    private static readonly BindableProperty[] Font =
+        [Label.FontFamilyProperty, Label.FontAttributesProperty, Label.FontAutoScalingEnabledProperty];
+
     private readonly Span _titleSpan = new();
-    private readonly Span _markSpan = new();
     private readonly FormattedString _markedTitle;
+
+    private Span _markSpan = new();
 
     private string? _markStyleKey;
     private string? _titleClass;
@@ -48,6 +58,11 @@ internal sealed class FieldLayout : Grid
         TitleLabel = new Label();
         ErrorLabel = new Label();
         _markedTitle = new FormattedString { Spans = { _titleSpan, _markSpan } };
+
+        // Both live and die with this layout, so listening to them holds nothing longer than it lives.
+        TitleLabel.PropertyChanged += OnTitlePropertyChanged;
+        _markSpan.PropertyChanged += OnMarkPropertyChanged;
+        ShowTitleFont();
 
         // The application raises this through a weak event manager, so a layout listening to it is
         // still let go of with its page.
@@ -124,14 +139,75 @@ internal sealed class FieldLayout : Grid
 
         _markStyleKey = key;
 
-        if (string.IsNullOrEmpty(key))
+        // A style found through a dynamic resource stays on a span after the resource is let go of,
+        // and nothing public takes it off again without hiding the next one found. So each key gets
+        // a mark of its own, which has never held another key's style.
+        _markSpan.PropertyChanged -= OnMarkPropertyChanged;
+        var mark = new Span { Text = _markSpan.Text };
+        mark.PropertyChanged += OnMarkPropertyChanged;
+        _markedTitle.Spans[1] = mark;
+        _markSpan = mark;
+
+        if (!string.IsNullOrEmpty(key))
         {
-            _markSpan.RemoveDynamicResource(Span.StyleProperty);
-            _markSpan.ClearValue(Span.StyleProperty);
+            mark.SetDynamicResource(Span.StyleProperty, key);
         }
-        else
+
+        ShowTitleFont();
+    }
+
+    // What a style and the styles it is based on set.
+    private static HashSet<BindableProperty> SetBy(Style? style)
+    {
+        var set = new HashSet<BindableProperty>();
+        for (; style is not null; style = style.BasedOn)
         {
-            _markSpan.SetDynamicResource(Span.StyleProperty, key);
+            foreach (var setter in style.Setters)
+            {
+                if (setter.Property is { } property)
+                {
+                    set.Add(property);
+                }
+            }
+        }
+
+        return set;
+    }
+
+    private void OnTitlePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (Array.Exists(Font, property => property.PropertyName == e.PropertyName))
+        {
+            ShowTitleFont();
+        }
+    }
+
+    private void OnMarkPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == Span.StyleProperty.PropertyName)
+        {
+            ShowTitleFont();
+        }
+    }
+
+    // Hands the title's font to the title's span, and to the mark wherever the mark's style says
+    // nothing of it. Where the style does say, the mark's own value is cleared, so the style shows.
+    private void ShowTitleFont()
+    {
+        var styled = SetBy(_markSpan.Style);
+        foreach (var property in Font)
+        {
+            var value = TitleLabel.GetValue(property);
+            _titleSpan.SetValue(property, value);
+
+            if (styled.Contains(property))
+            {
+                _markSpan.ClearValue(property);
+            }
+            else
+            {
+                _markSpan.SetValue(property, value);
+            }
         }
     }
 
