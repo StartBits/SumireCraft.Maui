@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  The styles for the types an application called Abc wraps the widgets in, kept beside the types.
+  They name the classes and keys the types name, so no Smr name is left in them. App.xaml merges
+  this dictionary after Resources/Styles/SmrStyles.xaml.
+-->
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+  <!-- The title of AbcEntryField, which names this class in place of SmrFieldTitle. The style for
+       SmrFieldTitle does not reach it, so this one says the indent again. -->
+  <Style TargetType="Label" Class="AbcEntryFieldTitle">
+    <Setter Property="Margin" Value="4,0,0,4" />
+    <Setter Property="FontAttributes" Value="Bold" />
+  </Style>
+
+  <!-- The mark after AbcEntryField's title, under the key it names in place of
+       SmrFieldRequiredMark. -->
+  <Style x:Key="AbcEntryFieldRequiredMark" TargetType="Span">
+    <Setter Property="TextColor" Value="#B3261E" />
+    <Setter Property="FontAttributes" Value="Bold" />
+  </Style>
+
+</ResourceDictionary>

@@ -21,7 +21,7 @@
         HorizontalTextAlignment="Start" />
 
       <Label
-        Text="A title above the entry and an error below it. The titles here are indented by a style for the SmrFieldTitle class in App.xaml, which reaches every SmrField that keeps that class. Name and Note are required, Note with a mark of its own. Email is a field wrapped in a type of the application's own, which names classes of its own: its bold, indented title comes from a style for AbcEntryFieldTitle instead." />
+        Text="A title above the entry and an error below it. The titles here are indented by a style for the SmrFieldTitle class in SmrStyles.xaml, which reaches every SmrField that keeps that class. Name and Note are required, Note with a mark of its own. Email is a field wrapped in a type of the application's own, which names classes of its own: its bold, indented title comes from a style for AbcEntryFieldTitle instead." />
 
       <HorizontalStackLayout Spacing="8">
         <Button
@@ -83,7 +83,8 @@
 
       <!-- The field wrapped in a type the application owns, Wrapping/AbcEntryField: the page names
            neither SmrField nor the entry, and the bold title comes from a style for the class
-           AbcEntryFieldTitle in App.xaml. Last on the page, below the markers the tests look for. -->
+           AbcEntryFieldTitle in Wrapping/AbcStyles.xaml. Last on the page, below the markers the
+           tests look for. -->
       <abc:AbcEntryField
         Title="Email"
         Text="{Binding Email}"
