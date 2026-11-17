@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using SumireCraft.DateTimes;
 
 namespace SumireCraft.Maui.Controls;
@@ -38,62 +37,12 @@ namespace SumireCraft.Maui.Controls;
 /// <smr:SmrTimePicker DateTimeInput="{Binding Start}" />
 /// ]]></code>
 /// </example>
-public class SmrTimePicker : TimePickerDefaults
-{
-    /// <summary>
-    /// Backs the <see cref="DateTimeInput"/> property.
-    /// </summary>
-    public static readonly BindableProperty DateTimeInputProperty = BindableProperty.Create(
-        nameof(DateTimeInput),
-        typeof(DateTimeInput),
-        typeof(SmrTimePicker),
-        defaultBindingMode: BindingMode.TwoWay,
-        propertyChanged: OnDateTimeInputChanged,
-        defaultValueCreator: _ => new DateTimeInput());
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SmrTimePicker"/> class.
-    /// </summary>
-    public SmrTimePicker()
-    {
-        // A time picker starts at midnight, and this one at its input, which starts empty.
-        Time = null;
-    }
-
-    /// <summary>
-    /// Gets or sets the input whose time the picker reads and writes. Never <see langword="null"/>:
-    /// writing <see langword="null"/> gives the picker a new, empty input.
-    /// </summary>
-    public DateTimeInput DateTimeInput
-    {
-        get => (DateTimeInput)GetValue(DateTimeInputProperty);
-        set => SetValue(DateTimeInputProperty, value);
-    }
-
-    /// <inheritdoc/>
-    protected override void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        base.OnPropertyChanged(propertyName);
-
-        if (propertyName == nameof(Time))
-        {
-            DateTimeInput.TimeAsTimeSpan = Time;
-        }
-    }
-
-    private static void OnDateTimeInputChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        var picker = (SmrTimePicker)bindable;
-        if (newValue is not DateTimeInput input)
-        {
-            // Set as any other value is, so that a binding carries the new input back to its source.
-            picker.DateTimeInput = new DateTimeInput();
-            return;
-        }
-
-        picker.Time = input.TimeAsTimeSpan;
-    }
-}
+// DateTimeInput, its bindable property, the OnPropertyChanged that writes into it and the constructor
+// that starts the picker empty, where a TimePicker starts at midnight, are written by the source
+// generator in SumireCraft.Maui.Controls.Generators, as they are for an application's own picker with
+// the same attribute.
+[DateTimeInputTime(nameof(Time))]
+public partial class SmrTimePicker : TimePickerDefaults;
 
 /// <summary>
 /// Brings the style an application wrote for every <see cref="TimePicker"/> to a

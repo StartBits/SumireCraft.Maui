@@ -477,6 +477,50 @@ input in the type it wants, one of the `<part>As<type>` properties:
 
 That needs `Start` to hold an input from the beginning, since nothing makes one for it.
 
+Or give that picker a `DateTimeInput` of its own, the one `SmrDatePicker` and `SmrTimePicker` have.
+Derive a `partial` class from it and name its date or time property in an attribute:
+
+```csharp
+using SumireCraft.Maui.Controls;
+
+[DateTimeInputDate(nameof(SelectedDate))]
+public partial class AbcVendorDatePicker : VendorDatePicker
+{
+    // Optional: what every picker of this kind starts with.
+    partial void OnCreated()
+    {
+        DisplayFormat = "yyyy-MM-dd";
+    }
+}
+
+[DateTimeInputTime(nameof(SelectedTime))]
+public partial class AbcVendorTimePicker : VendorTimePicker;
+```
+
+```xml
+<abc:AbcVendorDatePicker DateTimeInput="{Binding Start}" />
+```
+
+A source generator that comes with the package writes the rest when the application is built, as
+it writes `SmrDatePicker`: the `DateTimeInput` property, binding both ways and never null, and a
+constructor that starts the picker empty, as its input is, rather than at today. The constructor then
+calls `OnCreated`, which is yours to implement or leave out; a constructor of your own that takes
+arguments calls `this()`. The property you name is one the picker raises a change for, as any
+bindable property does, and its type picks the part of the input it is joined to -- a date as
+`DateTime?` or `DateOnly?`, a time as `TimeSpan?`, `TimeOnly?` or `DateTime?`. A class the generator
+cannot write for, one that is not `partial` or whose property is of another type, fails to build
+with an error that starts with `SMR` and says why.
+
+XAML that .NET MAUI turns into C# while the application is built (`MauiXamlInflator` set to
+`SourceGen`) cannot see the property, because one source generator does not see what another
+writes: it fails to build with `MAUIX2002`. Put the derived pickers in a class library of your own,
+or have the pages that use them compiled by XamlC
+(`<MauiXaml Update="Pages\StartPage.xaml" Inflator="XamlC" />`). .NET MAUI's defaults, XamlC in
+Release and reading at run time in Debug, see it as they are.
+
+A style you wrote for `VendorDatePicker` reaches the derived picker only with
+`ApplyToDerivedTypes="True"`, as with any derived control.
+
 ### A templated widget of your own
 
 `SmrField` is built on `SmrTemplatedView`, a `ContentView` that brings a control template of its

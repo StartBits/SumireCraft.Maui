@@ -31,6 +31,14 @@ A release that raises the minimum version of .NET MAUI says so under *Changed*.
   either of which can stay empty -- but for a time on Windows with .NET MAUI 10.0.20, whose
   `TimePicker` turns an empty time into midnight. A style for every `DatePicker` or `TimePicker`
   reaches them too.
+- `DateTimeInputDate` and `DateTimeInputTime` in `SumireCraft.Maui.Controls`, attributes that give
+  a `partial` class derived from a picker of another library the same `DateTimeInput` property,
+  written by a source generator that comes inside the package, with a constructor that starts the
+  picker empty and then calls `partial void OnCreated()`, for settings every picker of the kind
+  shares. `SmrDatePicker` and `SmrTimePicker` are written by it too. A class it cannot write for
+  fails to build with an `SMR` error. XAML that .NET MAUI turns into C# while building
+  (`MauiXamlInflator` set to `SourceGen`) cannot see the property and fails with `MAUIX2002`; a
+  picker in a class library of its own, or a page compiled by XamlC, can.
 - A new package, `SumireCraft.Core`, which depends on no UI framework and targets plain `net10.0`.
   It holds `DateTimeInput` in the namespace `SumireCraft.DateTimes`: a date and a time that are
   entered separately and can each be empty, read and written through `DateOnly`, `TimeOnly`,

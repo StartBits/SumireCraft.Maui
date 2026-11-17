@@ -25,6 +25,16 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
   </ItemGroup>
 
+  <ItemGroup Label="Roslyn">
+    <!-- What the source generator inside the Controls package is built against, and what the tests
+         drive it with. Old on purpose, and not to be raised to keep up: a generator runs inside the
+         compiler of whoever builds an application, and fails to load in one older than what it was
+         built against. 5.0.0 is the compiler of the first .NET 10 SDK, 10.0.100, so every .NET 10
+         SDK can run it. Raise it only when the oldest SDK an application may build with moves on,
+         as the .NET MAUI minimum above is raised. -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+  </ItemGroup>
+
   <ItemGroup Label="SumireCraft" Condition="'$(SumireConsumerBuild)' == 'true'">
     <!-- Only a Consumer build references these. Everything else reaches the projects directly. -->
     <PackageVersion Include="SumireCraft.Maui.Controls" Version="$(SumireVersion)" />

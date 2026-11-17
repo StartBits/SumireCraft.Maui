@@ -24,6 +24,20 @@
     <ProjectReference Include="..\SumireCraft.Maui.Core\SumireCraft.Maui.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup Label="Source generator">
+    <!-- Run on this project's own pickers, and packed beside the library for applications'. Not a
+         reference: nothing of the generator is called at run time, and it is no dependency of the
+         package. -->
+    <ProjectReference Include="..\SumireCraft.Maui.Controls.Generators\SumireCraft.Maui.Controls.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+    <None Include="..\SumireCraft.Maui.Controls.Generators\bin\$(Configuration)\netstandard2.0\SumireCraft.Maui.Controls.Generators.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- SmrTapBehavior measures with TimeProvider.System and offers no way to say otherwise,
          because an application has no reason to. The tests still have to hand it a clock. -->
