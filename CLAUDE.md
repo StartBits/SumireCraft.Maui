@@ -207,7 +207,10 @@ widget it derives from, not on a page of its own.
 
 The sample's look stops at its icon and splash screen, in the violet `#8467E0` the package icon
 shares. `Resources/Styles/Colors.xaml` stays as .NET MAUI's template left it, but for its
-indentation, which is two spaces like every XAML file here.
+indentation, which is two spaces like every XAML file here. The styles the sample gives the widgets
+go in `Resources/Styles/SmrStyles.xaml`, and those for `Wrapping/`'s types in
+`Wrapping/AbcStyles.xaml`, both merged by `App.xaml`; not in `App.xaml` itself, and not in the
+template's `Styles.xaml`.
 
 The library ships no aspect or weaver for exception handling, and the sample does not use one
 either: its `try`/`catch` is written out. Metalama replaces the compiler and Fody rewrites the

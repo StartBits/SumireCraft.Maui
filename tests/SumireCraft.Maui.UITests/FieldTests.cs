@@ -71,7 +71,8 @@ public abstract class FieldTests : SamplePageTests
     }
 
     /// <remarks>
-    /// The sample's App.xaml indents every field's title through the <c>SmrFieldTitle</c> class.
+    /// The sample indents every field's title through the <c>SmrFieldTitle</c> class, in
+    /// <c>Resources/Styles/SmrStyles.xaml</c>, which App.xaml merges.
     /// Without that style the title starts where the entry does; with it, a little after.
     /// </remarks>
     [Fact]

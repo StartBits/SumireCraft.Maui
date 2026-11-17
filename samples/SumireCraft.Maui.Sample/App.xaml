@@ -8,36 +8,11 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
         <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+        <!-- The styles for SumireCraft's widgets, and for the application's own types wrapped
+             around them, each in a dictionary of its own. -->
+        <ResourceDictionary Source="Resources/Styles/SmrStyles.xaml" />
+        <ResourceDictionary Source="Wrapping/AbcStyles.xaml" />
       </ResourceDictionary.MergedDictionaries>
-
-      <!-- The title of every field that keeps the class SmrFieldTitle, restyled once for the whole
-           application without writing a template. Indented a little, to line up with the text
-           inside an entry. A UI test reads the indent to see that a style here reaches the label
-           inside a field's template. -->
-      <Style TargetType="Label" Class="SmrFieldTitle">
-        <Setter Property="Margin" Value="4,0,0,4" />
-      </Style>
-
-      <!-- The title of the field wrapped in Wrapping/AbcEntryField, which names this class in place
-           of SmrFieldTitle. The style above does not reach it, so it says the indent again. -->
-      <Style TargetType="Label" Class="AbcEntryFieldTitle">
-        <Setter Property="Margin" Value="4,0,0,4" />
-        <Setter Property="FontAttributes" Value="Bold" />
-      </Style>
-
-      <!-- The mark after a required field's title. A span takes no style class, so its style goes
-           under a key instead. -->
-      <Style x:Key="SmrFieldRequiredMark" TargetType="Span">
-        <Setter Property="TextColor" Value="#B3261E" />
-        <Setter Property="FontAttributes" Value="Bold" />
-      </Style>
-
-      <!-- The same mark for Wrapping/AbcEntryField, under the key it names in place of
-           SmrFieldRequiredMark. -->
-      <Style x:Key="AbcEntryFieldRequiredMark" TargetType="Span">
-        <Setter Property="TextColor" Value="#B3261E" />
-        <Setter Property="FontAttributes" Value="Bold" />
-      </Style>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

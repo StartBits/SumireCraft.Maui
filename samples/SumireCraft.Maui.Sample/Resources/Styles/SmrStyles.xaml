@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  The styles this application gives SumireCraft's widgets, apart from Colors.xaml and Styles.xaml,
+  which stay as the .NET MAUI template left them. App.xaml merges this dictionary after them, so
+  what is here reaches every page. The styles for the application's own wrapped types are in
+  Wrapping/AbcStyles.xaml, beside the types.
+-->
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+  <!-- The title of every field that keeps the class SmrFieldTitle, restyled once for the whole
+       application without writing a template. Indented a little, to line up with the text inside
+       an entry. A UI test reads the indent to see that a style here reaches the label inside a
+       field's template. -->
+  <Style TargetType="Label" Class="SmrFieldTitle">
+    <Setter Property="Margin" Value="4,0,0,4" />
+  </Style>
+
+  <!-- The mark after a required field's title. A span takes no style class, so its style goes
+       under a key instead. -->
+  <Style x:Key="SmrFieldRequiredMark" TargetType="Span">
+    <Setter Property="TextColor" Value="#B3261E" />
+    <Setter Property="FontAttributes" Value="Bold" />
+  </Style>
+
+</ResourceDictionary>
