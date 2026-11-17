@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The source generator that ships inside the Controls package, under analyzers/dotnet/cs, and is
+       not a package of its own: what it writes uses the types of Controls, so it is of no use without
+       them. It runs inside the compiler of whoever builds an application, which loads it as
+       netstandard2.0, and which is no newer than the Microsoft.CodeAnalysis.CSharp it is built
+       against at the least (the comment in Directory.Packages.props). -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!-- netstandard2.0 would pick C# 7.3, without the file-scoped namespaces and nullable references
+         the rest of the repository is written in. The number the SDK picks for net10.0, written out
+         rather than `latest`, for the reason the root Directory.Build.props gives. -->
+    <LangVersion>14</LangVersion>
+
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <!-- Holds the generator to the code it is given: it runs inside the compiler of every build of
+         every application that installs the package, and these rules (RS1035 among them) refuse
+         files, environment variables and the network there. It stays on (Security in CLAUDE.md). -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+    <!-- The settings src/ gives the published libraries do not apply to a generator: it is never
+         trimmed or compiled ahead of time, and the analyzers for that refuse netstandard2.0.
+         src/Directory.Build.targets leaves the trim analyzer off for a Roslyn component too. -->
+    <IsAotCompatible>false</IsAotCompatible>
+    <IsPackable>false</IsPackable>
+
+    <RootNamespace>SumireCraft.Maui.Controls.Generators</RootNamespace>
+    <AssemblyName>SumireCraft.Maui.Controls.Generators</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The compiler that runs the generator brings its own copy, so nothing of it goes anywhere. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Which error codes have shipped in which release, as Roslyn asks of anything that reports
+         them (RS2008). A new code goes into Unshipped; a release moves what is there into Shipped,
+         under its version (the releasing skill). -->
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+</Project>

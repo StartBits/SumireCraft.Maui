@@ -164,6 +164,14 @@ a package of its own only when it brings a native dependency -- an AndroidX or P
 package, an iOS binding -- that applications not using it should not carry, the way
 CommunityToolkit.Maui ships MediaElement and Maps apart.
 
+A source generator goes in `Controls` too, packed under `analyzers/dotnet/cs` rather than published
+on its own: what it writes uses `Controls`' types, and an application gets it with the widgets.
+`src/SumireCraft.Maui.Controls.Generators` is `netstandard2.0`, built against an old
+`Microsoft.CodeAnalysis.CSharp` on purpose (its comment in `Directory.Packages.props`), and counts
+as `Controls` wherever paths are sorted into packages (`.github/scripts/check-versions.ps1`). The
+widgets it writes for are written by it in the library too, so that their unit tests are its tests.
+What it reports goes under `SMR` codes, recorded in its `AnalyzerReleases.*.md`.
+
 Each package carries its own short `PACKAGE-README.md`, packed as `README.md` by
 `build/Package.props`: what it is, how to start, and a link to the README on GitHub. The
 repository's `README.md` is for GitHub alone, so its links and images use relative paths. A
@@ -179,6 +187,8 @@ build/                              version numbers, pack settings and platform 
 src/Directory.Build.props|targets   settings for the published libraries only (IsAotCompatible, trim analyzer)
 src/SumireCraft.Maui.Core/          Badges/ , Exceptions/ , Extensions/ , Gates/ , Hosting/ , Lifetime/ , Taps/
 src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , DateTimes/ , Fields/ , Taps/) , Templates/ , Hosting/
+src/SumireCraft.Maui.Controls.Generators/
+                                    DateTimes/ ; the source generator packed inside Controls (netstandard2.0)
 src/SumireCraft.Core/               DateTimes/
 samples/Directory.Build.props       settings for applications only (Mac Catalyst runtime identifiers and minimum)
 samples/SumireCraft.Maui.Sample/    the application the UI tests drive, and examples (not packed)
@@ -365,14 +375,18 @@ These are the paths that matter:
   `Directory.Build.rsp`, `nuget.config`, `global.json` and `.editorconfig`, wherever it sits: a
   copy in a subfolder takes effect there. And `.github/`, `build/`, `.gitattributes`.
 - `src/`, for what it ships: code there runs in every application that installs the packages.
+  `src/SumireCraft.Maui.Controls.Generators/` above all, which runs earlier still: inside the
+  compiler, on every build of every such application, on its developers' machines and in their CI.
+  It reads the code it is given and nothing else -- no file, environment variable or network --
+  which `EnforceExtendedAnalyzerRules` in its project holds it to, and which stays on.
 - `tests/`, because the commit check and CI run the tests by themselves.
 
 Two lists cover them, for two kinds of writer. `permissions.ask` in `.claude/settings.json` makes
-Claude ask before it edits one, even where an allow rule would let the edit through; `src/` and
-`tests/` are left out of it,
-being the everyday work, and read in review instead. `.github/CODEOWNERS` holds every pull request
-that touches one for the maintainer, whoever wrote it. A path added here goes into both, or into
-`CODEOWNERS` alone with the reason.
+Claude ask before it edits one, even where an allow rule would let the edit through. `src/` and
+`tests/` are left out of it, being the everyday work, and are read in review instead; the source
+generator alone is in it. `.github/CODEOWNERS` holds every pull request that touches one for the
+maintainer, whoever wrote it. A path added here goes into both, or into `CODEOWNERS` alone with the
+reason.
 
 The ask rules cover Claude's own editing tools only. A file written by a shell command passes them
 by, which is one more reason to write files with Write and Edit.
@@ -410,7 +424,10 @@ the maintainer says so, since `global.json` rolls forward to it. Raising a versi
 `global.json` or `Directory.Packages.props` names is a release, so it waits for the next release
 branch, unless the advisory reaches what the packages ship or the workflow that publishes them,
 which makes it a hotfix. The minimum .NET MAUI version the packages ask for is a promise to app
-authors, not a tool, and is not raised for this (its comment in `Directory.Packages.props`). Tools
+authors, not a tool, and is not raised for this (its comment in `Directory.Packages.props`). Nor is
+the `Microsoft.CodeAnalysis.CSharp` the source generator is built against, which stays as old as the
+compiler of the oldest SDK an application may build with (its comment there): a newer one would ship
+nothing that runs, since an application's own compiler runs the generator. Tools
 used only on the maintainer's machine -- Appium and its drivers, the JDK, the Android SDK -- are
 updated when something needs them, not to keep up. Appium comes from npm with many dependencies of
 its own, and a week's wait on Appium does not reach them; `npm install --before=<a date a week ago>`

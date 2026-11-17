@@ -1,6 +1,8 @@
 ﻿<Project>
 
-  <PropertyGroup Label="AOT">
+  <!-- Not for the source generator, which is netstandard2.0, is never trimmed, and for which the
+       analyzer is not supported. -->
+  <PropertyGroup Label="AOT" Condition="'$(IsRoslynComponent)' != 'true'">
     <!-- Takes the trim analyzer back from .NET MAUI. Unless an application publishes with Native AOT
          or full trimming, Microsoft.Maui.Controls switches the analyzer off and suppresses its
          warnings, and it does so unconditionally, after Directory.Build.props has been read. Left

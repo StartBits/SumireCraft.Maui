@@ -11,7 +11,9 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
   below jumps, and both labels are restyled from App.xaml through two style classes.
 
 - **SmrDatePicker** and **SmrTimePicker** -- .NET MAUI's own pickers, bound to one `DateTimeInput`:
-  a value whose date and time are entered separately and can each stay empty.
+  a value whose date and time are entered separately and can each stay empty. A picker from
+  another library takes the same `DateTimeInput` through an attribute on a class derived from it,
+  written out by a source generator that comes with this package.
 
 This package brings in [SumireCraft.Maui.Core](https://www.nuget.org/packages/SumireCraft.Maui.Core)
 as well: exception reporting, an opt-in safety net, and a busy gate. Core is released only when it

@@ -126,7 +126,9 @@ it:
    (`## [1.1.0] - 2027-04-15`), the day the pull request is opened: the merge day
    is not known yet, and a day or two apart matters less than a section left undated. If a Core
    package stays as it was, say so in the heading: `(Controls only)` when both do, otherwise
-   `(without SumireCraft.Maui.Core)` or `(without SumireCraft.Core)`. Then open a pull request from
+   `(without SumireCraft.Maui.Core)` or `(without SumireCraft.Core)`. If the source generator's
+   `AnalyzerReleases.Unshipped.md` lists rules, move them into `AnalyzerReleases.Shipped.md` under
+   a `## Release x.y.z` heading, leaving Unshipped with its header alone. Then open a pull request from
    the release branch into `main`. Its checks fail unless the version has gone up and both Core
    packages are numbered right.
 5. The maintainer merges, and the release workflow tags and publishes. The release branch stays,

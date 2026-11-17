@@ -20,6 +20,7 @@
       "Edit(**/global.json)",
       "Edit(**/.editorconfig)",
       "Edit(/.gitattributes)",
+      "Edit(/src/SumireCraft.Maui.Controls.Generators/**)",
       "Bash(git push)",
       "Bash(git push *)",
       "Bash(git -C * push*)",
