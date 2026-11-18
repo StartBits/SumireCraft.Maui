@@ -14,6 +14,8 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
   a value whose date and time are entered separately and can each stay empty. A picker from
   another library takes the same `DateTimeInput` through an attribute on a class derived from it,
   written out by a source generator that comes with this package.
+- **SmrUnderline** -- an input or a picker drawn on a line instead of the platform's box, in the
+  text's colour and thicker while focused, from one attached property or a style.
 
 This package brings in [SumireCraft.Maui.Core](https://www.nuget.org/packages/SumireCraft.Maui.Core)
 as well: exception reporting, an opt-in safety net, and a busy gate. Core is released only when it

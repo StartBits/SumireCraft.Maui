@@ -39,6 +39,10 @@ A release that raises the minimum version of .NET MAUI says so under *Changed*.
   fails to build with an `SMR` error. XAML that .NET MAUI turns into C# while building
   (`MauiXamlInflator` set to `SourceGen`) cannot see the property and fails with `MAUIX2002`; a
   picker in a class library of its own, or a page compiled by XamlC, can.
+- `SmrUnderline` in `SumireCraft.Maui.Controls`, attached properties that draw an `Entry`,
+  `Editor`, `Picker`, `DatePicker` or `TimePicker` on a line under its text instead of the
+  platform's box: `IsEnabled`, `Color` (the text's colour unless set), `Thickness` and
+  `FocusedThickness`. A style, a binding or a visual state sets them.
 - A new package, `SumireCraft.Core`, which depends on no UI framework and targets plain `net10.0`.
   It holds `DateTimeInput` in the namespace `SumireCraft.DateTimes`: a date and a time that are
   entered separately and can each be empty, read and written through `DateOnly`, `TimeOnly`,
