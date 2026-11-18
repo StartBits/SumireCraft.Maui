@@ -27,16 +27,6 @@
     <ProjectReference Include="..\..\src\SumireCraft.Maui.Core\SumireCraft.Maui.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="Source generator">
-    <!-- As an analyzer, so that the pickers the tests derive are generated as an application's are,
-         and as a reference too, so that the tests can run the generator on code of their own and
-         read what it reports. -->
-    <ProjectReference Include="..\..\src\SumireCraft.Maui.Controls.Generators\SumireCraft.Maui.Controls.Generators.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="true" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-  </ItemGroup>
-
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>

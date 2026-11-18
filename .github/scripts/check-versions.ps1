@@ -22,11 +22,9 @@ $packagePaths = @('src', 'build', 'global.json', ':(glob)Directory.*.props')
 # release without Core changing. Everything else under src/ counts as Core, so a package added there
 # is excluded here as Controls is, or every change to it asks Core for a new number.
 # SumireCraft.Core, the package that depends on no UI framework, is such a package: "Core" in this
-# file is SumireCraft.Maui.Core alone. The source generator is packed inside Controls, so it is
-# Controls too; a pathspec matches whole path segments, so the line for Controls does not cover it.
+# file is SumireCraft.Maui.Core alone.
 $corePaths = $packagePaths + @(
     ':(exclude)src/SumireCraft.Maui.Controls',
-    ':(exclude)src/SumireCraft.Maui.Controls.Generators',
     ':(exclude)src/SumireCraft.Core',
     ':(exclude)build/Version.props')
 
@@ -34,7 +32,6 @@ $corePaths = $packagePaths + @(
 # numbers. It is numbered as Core is, on its own.
 $sharedPaths = $packagePaths + @(
     ':(exclude)src/SumireCraft.Maui.Controls',
-    ':(exclude)src/SumireCraft.Maui.Controls.Generators',
     ':(exclude)src/SumireCraft.Maui.Core',
     ':(exclude)build/Version.props')
 

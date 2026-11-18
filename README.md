@@ -12,7 +12,7 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 | --- | --- | --- |
 | **UI** | [SmrBadgeView](#smrbadgeview) -- a count or a dot over the corner of any view | A badge that stays on the content's own corner, mirrors for right-to-left, and never pushes the layout around as the count grows. |
 | | [SmrField](#smrfield) -- a title above an input, and its error below | Every form repeats a title label, the input and an error label by hand, and their spacing drifts from page to page. This holds the error's line so nothing below jumps, and is restyled from App.xaml. |
-| | [SmrDatePicker and SmrTimePicker](#smrdatepicker-and-smrtimepicker) -- a date and a time that can each stay empty | One `DateTime` bound to a `DatePicker` and a `TimePicker` loses a part each time the other writes, and cannot say that only the date was entered. `DateTimeInput` holds the two apart, and each picker takes its own. |
+| | [SmrDateTimeInput](#smrdatetimeinput) -- a date and a time that can each stay empty | One `DateTime` bound to a `DatePicker` and a `TimePicker` loses a part each time the other writes, and cannot say that only the date was entered. `DateTimeInput` holds the two apart, and each picker takes its own. |
 | | [SmrUnderline](#smrunderline) -- an input on a line instead of a box | An `Entry` is a rounded box on iOS, a box with an accent on Windows and a line on Android. One attached property draws every input and picker on a line, in the text's colour, thicker while focused. |
 | **Input** | [SmrTapBehavior](#smrtapbehavior) -- a different command for one tap, a double tap, or five | A single-tap recognizer fires on the way to a double tap. This reads the whole burst once, is safe in a `Style`, and its bindings resolve. |
 | **Reliability** | [Exception reporting](#exceptions) -- one place to send every exception you catch | .NET MAUI catches nothing on an application's behalf. Log it, show it, or forward it to your crash reporter, from one place. |
@@ -405,14 +405,14 @@ content through a `ContentPresenter`. It shows the mark for itself too, from `Is
 `RequiredMark`: `RequiredMarkDescription`, `RequiredMarkStyleKey`, `TitleStyleClass` and
 `ErrorStyleClass` are for the default template alone.
 
-### SmrDatePicker and SmrTimePicker
+### SmrDateTimeInput
 
-.NET MAUI's own `DatePicker` and `TimePicker`, each with one property more: a `DateTimeInput`, a
+Attached properties that bind .NET MAUI's own `DatePicker` and `TimePicker` to a `DateTimeInput`, a
 value whose date and time are entered separately and can each be empty.
 
 ```xml
-<smr:SmrDatePicker DateTimeInput="{Binding Start}" />
-<smr:SmrTimePicker DateTimeInput="{Binding Start}" />
+<DatePicker smr:SmrDateTimeInput.Date="{Binding Start}" />
+<TimePicker smr:SmrDateTimeInput.Time="{Binding Start}" />
 ```
 
 ```csharp
@@ -429,12 +429,11 @@ if (Start.IsComplete)
 
 The date picker takes the input's date and the time picker its time, and each leaves the other
 part alone. Bound to one input and placed wherever the page wants them, the two take a date and a
-time. Everything else is the picker it derives from: `Format`, `MinimumDate`, `TextColor` and the
-rest are written as on any `DatePicker` or `TimePicker`, and a style you wrote for every
-`DatePicker` or `TimePicker` -- the Styles.xaml of a new project has both -- reaches these too.
+time. The pickers stay .NET MAUI's own: `Format`, `MinimumDate`, `TextColor`, your styles for them
+and everything else are as they were.
 
-An input without a date is shown empty, and so is a picker given no input at all, where a
-`DatePicker` starts at today and a `TimePicker` at midnight.
+An input without a date or a time is shown empty. A picker given no input is not joined to one,
+and shows what a `DatePicker` or `TimePicker` shows by itself.
 
 **The input.** `DateTimeInput` holds a `DateOnly?` and a `TimeOnly?` and nothing else.
 `DateAsDateOnly`, `DateAsDateTime`, `TimeAsTimeOnly`, `TimeAsTimeSpan` and `TimeAsDateTime` read and
@@ -451,12 +450,13 @@ that does notify:
 Start = new DateTimeInput(DateTime.Now);   // raises PropertyChanged for Start
 ```
 
-**A view model without an input.** `DateTimeInput` is never null. A picker bound to a property
+**A view model without an input.** A joined picker always has an input. One bound to a property
 that is null makes an empty input and, as the binding is two-way by default, writes it back, so the
 view model can read what was entered.
 
-**What the platform's pickers do.** `Date` and the input's date are one value, and so are `Time`
-and the input's time, so what is shown and what the input holds never differ:
+**What the platform's pickers do.** A `DatePicker`'s own `Date` and the input's date are one value,
+and so are a `TimePicker`'s own `Time` and the input's time, so what is shown and what the input
+holds never differ:
 
 - A `DatePicker` shows nothing outside `MinimumDate` and `MaximumDate`, 1900 to 2100 by default,
   and moves a date outside them to the nearest end. The input takes the date shown. To keep such a
@@ -469,58 +469,30 @@ and the input's time, so what is shown and what the input holds never differ:
   On Android an empty time stays empty, as an empty date does on both. iOS and Mac Catalyst have
   not been tried yet.
 
-**A picker from another library.** A control that is not .NET MAUI's own binds to the part of the
-input in the type it wants, one of the `<part>As<type>` properties:
+**A picker from another library.** Tell `DateTarget` or `TimeTarget` which of the picker's
+bindable properties holds its date or its time, handed over with `x:Static`. A style for the
+picker's type says it once for every page:
 
 ```xml
-<vendor:TimePicker Time="{Binding Start.TimeAsDateTime}" />
-```
-
-That needs `Start` to hold an input from the beginning, since nothing makes one for it.
-
-Or give that picker a `DateTimeInput` of its own, the one `SmrDatePicker` and `SmrTimePicker` have.
-Derive a `partial` class from it and name its date or time property in an attribute:
-
-```csharp
-using SumireCraft.Maui.Controls;
-
-[DateTimeInputDate(nameof(SelectedDate))]
-public partial class AbcVendorDatePicker : VendorDatePicker
-{
-    // Optional: what every picker of this kind starts with.
-    partial void OnCreated()
-    {
-        DisplayFormat = "yyyy-MM-dd";
-    }
-}
-
-[DateTimeInputTime(nameof(SelectedTime))]
-public partial class AbcVendorTimePicker : VendorTimePicker;
+<Style TargetType="vendor:VendorDatePicker">
+  <Setter Property="smr:SmrDateTimeInput.DateTarget"
+          Value="{x:Static vendor:VendorDatePicker.SelectedDateProperty}" />
+</Style>
+<Style TargetType="vendor:VendorTimePicker">
+  <Setter Property="smr:SmrDateTimeInput.TimeTarget"
+          Value="{x:Static vendor:VendorTimePicker.SelectedTimeProperty}" />
+</Style>
 ```
 
 ```xml
-<abc:AbcVendorDatePicker DateTimeInput="{Binding Start}" />
+<vendor:VendorDatePicker smr:SmrDateTimeInput.Date="{Binding Start}" />
+<vendor:VendorTimePicker smr:SmrDateTimeInput.Time="{Binding Start}" />
 ```
 
-A source generator that comes with the package writes the rest when the application is built, as
-it writes `SmrDatePicker`: the `DateTimeInput` property, binding both ways and never null, and a
-constructor that starts the picker empty, as its input is, rather than at today. The constructor then
-calls `OnCreated`, which is yours to implement or leave out; a constructor of your own that takes
-arguments calls `this()`. The property you name is one the picker raises a change for, as any
-bindable property does, and its type picks the part of the input it is joined to -- a date as
-`DateTime?` or `DateOnly?`, a time as `TimeSpan?`, `TimeOnly?` or `DateTime?`. A class the generator
-cannot write for, one that is not `partial` or whose property is of another type, fails to build
-with an error that starts with `SMR` and says why.
-
-XAML that .NET MAUI turns into C# while the application is built (`MauiXamlInflator` set to
-`SourceGen`) cannot see the property, because one source generator does not see what another
-writes: it fails to build with `MAUIX2002`. Put the derived pickers in a class library of your own,
-or have the pages that use them compiled by XamlC
-(`<MauiXaml Update="Pages\StartPage.xaml" Inflator="XamlC" />`). .NET MAUI's defaults, XamlC in
-Release and reading at run time in Debug, see it as they are.
-
-A style you wrote for `VendorDatePicker` reaches the derived picker only with
-`ApplyToDerivedTypes="True"`, as with any derived control.
+The property's type picks how the part is held: a date as `DateTime?` or `DateOnly?`, a time as
+`TimeSpan?`, `TimeOnly?` or `DateTime?`. A property that cannot be empty, a plain `DateTime` among
+them, cannot show an empty input, and the picker is left alone. A property holds one part: one given
+as both `DateTarget` and `TimeTarget` holds the date alone, and the input's time is left as it is.
 
 ### SmrUnderline
 
