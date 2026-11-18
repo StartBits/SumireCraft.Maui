@@ -10,7 +10,6 @@
   <Folder Name="/src/">
     <Project Path="src/SumireCraft.Core/SumireCraft.Core.csproj" />
     <Project Path="src/SumireCraft.Maui.Controls/SumireCraft.Maui.Controls.csproj" />
-    <Project Path="src/SumireCraft.Maui.Controls.Generators/SumireCraft.Maui.Controls.Generators.csproj" />
     <Project Path="src/SumireCraft.Maui.Core/SumireCraft.Maui.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">

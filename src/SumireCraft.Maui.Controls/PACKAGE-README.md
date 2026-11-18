@@ -10,10 +10,10 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 - **SmrField** -- a title above an input and its error below. The error's line is held so nothing
   below jumps, and both labels are restyled from App.xaml through two style classes.
 
-- **SmrDatePicker** and **SmrTimePicker** -- .NET MAUI's own pickers, bound to one `DateTimeInput`:
-  a value whose date and time are entered separately and can each stay empty. A picker from
-  another library takes the same `DateTimeInput` through an attribute on a class derived from it,
-  written out by a source generator that comes with this package.
+- **SmrDateTimeInput** -- attached properties that bind a `DatePicker` and a `TimePicker` to one
+  `DateTimeInput`: a value whose date and time are entered separately and can each stay empty. A
+  picker from another library is joined the same way, told once in a style which of its properties
+  holds the date or the time.
 - **SmrUnderline** -- an input or a picker drawn on a line instead of the platform's box, in the
   text's colour and thicker while focused, from one attached property or a style.
 

@@ -14,7 +14,7 @@
   <PropertyGroup Label="Package">
     <PackageId>SumireCraft.Maui.Controls</PackageId>
     <Title>SumireCraft.Maui.Controls</Title>
-    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, SmrTapBehavior runs a different command for one tap, a double tap, or five, SmrField puts a title and an error around an input, SmrDatePicker and SmrTimePicker take a date and a time that can each stay empty, and SmrUnderline draws an input on a line instead of a box.</Description>
+    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, SmrTapBehavior runs a different command for one tap, a double tap, or five, SmrField puts a title and an error around an input, SmrDateTimeInput binds a date picker and a time picker to a date and a time that can each stay empty, and SmrUnderline draws an input on a line instead of a box.</Description>
     <SumirePackageTags>controls;ui;badge;tap;gesture;form;field;datepicker;timepicker;underline;entry</SumirePackageTags>
   </PropertyGroup>
 
@@ -22,20 +22,6 @@
     <PackageReference Include="Microsoft.Maui.Controls" />
     <ProjectReference Include="..\SumireCraft.Core\SumireCraft.Core.csproj" />
     <ProjectReference Include="..\SumireCraft.Maui.Core\SumireCraft.Maui.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Label="Source generator">
-    <!-- Run on this project's own pickers, and packed beside the library for applications'. Not a
-         reference: nothing of the generator is called at run time, and it is no dependency of the
-         package. -->
-    <ProjectReference Include="..\SumireCraft.Maui.Controls.Generators\SumireCraft.Maui.Controls.Generators.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"
-                      PrivateAssets="all" />
-    <None Include="..\SumireCraft.Maui.Controls.Generators\bin\$(Configuration)\netstandard2.0\SumireCraft.Maui.Controls.Generators.dll"
-          Pack="true"
-          PackagePath="analyzers/dotnet/cs"
-          Visible="false" />
   </ItemGroup>
 
   <ItemGroup>

@@ -26,19 +26,12 @@ A release that raises the minimum version of .NET MAUI says so under *Changed*.
 - `SmrTemplatedView` in `SumireCraft.Maui.Controls`, a content view that brings a default control
   template which an application's styles replace like any other, including a style for every
   templated view at once. `SmrField` is built on it, and an application's own widgets can be too.
-- `SmrDatePicker` and `SmrTimePicker` in `SumireCraft.Maui.Controls`, .NET MAUI's `DatePicker` and
-  `TimePicker` with a `DateTimeInput` property. Bound to one input, the two take a date and a time,
-  either of which can stay empty -- but for a time on Windows with .NET MAUI 10.0.20, whose
-  `TimePicker` turns an empty time into midnight. A style for every `DatePicker` or `TimePicker`
-  reaches them too.
-- `DateTimeInputDate` and `DateTimeInputTime` in `SumireCraft.Maui.Controls`, attributes that give
-  a `partial` class derived from a picker of another library the same `DateTimeInput` property,
-  written by a source generator that comes inside the package, with a constructor that starts the
-  picker empty and then calls `partial void OnCreated()`, for settings every picker of the kind
-  shares. `SmrDatePicker` and `SmrTimePicker` are written by it too. A class it cannot write for
-  fails to build with an `SMR` error. XAML that .NET MAUI turns into C# while building
-  (`MauiXamlInflator` set to `SourceGen`) cannot see the property and fails with `MAUIX2002`; a
-  picker in a class library of its own, or a page compiled by XamlC, can.
+- `SmrDateTimeInput` in `SumireCraft.Maui.Controls`, attached properties that bind a `DatePicker`
+  (`Date`) and a `TimePicker` (`Time`) to a `DateTimeInput`, two-way by default. Bound to one input,
+  the two take a date and a time, either of which can stay empty -- but for a time on Windows with
+  .NET MAUI 10.0.20, whose `TimePicker` turns an empty time into midnight. A picker from another
+  library is joined the same way once `DateTarget` or `TimeTarget` names the bindable property it
+  holds its date or time in, which a style for its type can do for every page.
 - `SmrUnderline` in `SumireCraft.Maui.Controls`, attached properties that draw an `Entry`,
   `Editor`, `Picker`, `DatePicker` or `TimePicker` on a line under its text instead of the
   platform's box: `IsEnabled`, `Color` (the text's colour unless set), `Thickness` and
