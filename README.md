@@ -13,6 +13,7 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 | **UI** | [SmrBadgeView](#smrbadgeview) -- a count or a dot over the corner of any view | A badge that stays on the content's own corner, mirrors for right-to-left, and never pushes the layout around as the count grows. |
 | | [SmrField](#smrfield) -- a title above an input, and its error below | Every form repeats a title label, the input and an error label by hand, and their spacing drifts from page to page. This holds the error's line so nothing below jumps, and is restyled from App.xaml. |
 | | [SmrDatePicker and SmrTimePicker](#smrdatepicker-and-smrtimepicker) -- a date and a time that can each stay empty | One `DateTime` bound to a `DatePicker` and a `TimePicker` loses a part each time the other writes, and cannot say that only the date was entered. `DateTimeInput` holds the two apart, and each picker takes its own. |
+| | [SmrUnderline](#smrunderline) -- an input on a line instead of a box | An `Entry` is a rounded box on iOS, a box with an accent on Windows and a line on Android. One attached property draws every input and picker on a line, in the text's colour, thicker while focused. |
 | **Input** | [SmrTapBehavior](#smrtapbehavior) -- a different command for one tap, a double tap, or five | A single-tap recognizer fires on the way to a double tap. This reads the whole burst once, is safe in a `Style`, and its bindings resolve. |
 | **Reliability** | [Exception reporting](#exceptions) -- one place to send every exception you catch | .NET MAUI catches nothing on an application's behalf. Log it, show it, or forward it to your crash reporter, from one place. |
 | | [Safety net](#the-safety-net) (opt-in) -- reports what nothing caught, as far as .NET hears of it | A throw on a background task can take the process down without a trace. |
@@ -520,6 +521,53 @@ Release and reading at run time in Debug, see it as they are.
 
 A style you wrote for `VendorDatePicker` reaches the derived picker only with
 `ApplyToDerivedTypes="True"`, as with any derived control.
+
+### SmrUnderline
+
+Draws an input on a line under its text instead of the platform's box: an `Entry`, `Editor`,
+`Picker`, `DatePicker` or `TimePicker`.
+
+```xml
+<Entry Text="{Binding Name}" smr:SmrUnderline.IsEnabled="True" />
+```
+
+Or every entry in the application, from a style:
+
+```xml
+<Style TargetType="Entry">
+    <Setter Property="smr:SmrUnderline.IsEnabled" Value="True" />
+</Style>
+```
+
+| Attached property | Default | What it does |
+| --- | --- | --- |
+| `IsEnabled` | `false` | Draws the input on a line. Set back to `false`, the input has the platform's box again. |
+| `Color` | `null` | The line's colour. `null` takes the text's, `TextColor`, and with no `TextColor` the platform's own text colour. |
+| `Thickness` | `1` | The line's thickness. |
+| `FocusedThickness` | `2` | The line's thickness while the input has the focus. |
+
+They are properties of the input itself, so a style, a binding or a visual state sets them, and
+each input keeps its own. A visual state for `Focused` that sets `Color` gives the focus a colour of
+its own; the focused thickness is `FocusedThickness`, wherever it is set.
+
+```xml
+<VisualState Name="Focused">
+    <VisualState.Setters>
+        <Setter Property="smr:SmrUnderline.Color" Value="{StaticResource Primary}" />
+    </VisualState.Setters>
+</VisualState>
+```
+
+An `Editor` has its line across the bottom of the whole box, however many lines of text it holds.
+A background colour of the input's own stays, with the line drawn on it. A view that is not one of
+the five is left alone, and so are a `DatePicker` and a `TimePicker` on Mac Catalyst, where .NET
+MAUI shows the system's date picker, a compact pill whose look is the system's own.
+
+Each platform's input is a native control with a box of its own, and nothing in .NET MAUI takes
+that box away, so this is one of the few places the library reaches the platform: on Android the
+line takes the place of the Material line under the text, on iOS and Mac Catalyst a text field's
+box is taken away and a layer drawn under it, and on Windows the border keeps its bottom edge alone
+in every state the control has.
 
 ### A templated widget of your own
 

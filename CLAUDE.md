@@ -186,7 +186,7 @@ assets/                             the pictures in README.md, taken on Android 
 build/                              version numbers, pack settings and platform routing rules
 src/Directory.Build.props|targets   settings for the published libraries only (IsAotCompatible, trim analyzer)
 src/SumireCraft.Maui.Core/          Badges/ , Exceptions/ , Extensions/ , Gates/ , Hosting/ , Lifetime/ , Taps/
-src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , DateTimes/ , Fields/ , Taps/) , Templates/ , Hosting/
+src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , DateTimes/ , Fields/ , Taps/ , Underlines/) , Templates/ , Hosting/
 src/SumireCraft.Maui.Controls.Generators/
                                     DateTimes/ ; the source generator packed inside Controls (netstandard2.0)
 src/SumireCraft.Core/               DateTimes/
