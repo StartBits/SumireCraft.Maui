@@ -1,8 +1,8 @@
 namespace SumireCraft.Maui.Sample.Pages;
 
-public partial class UnderlinePage : ContentPage
+public partial class InputsPage : ContentPage
 {
-    public UnderlinePage()
+    public InputsPage()
     {
         InitializeComponent();
     }

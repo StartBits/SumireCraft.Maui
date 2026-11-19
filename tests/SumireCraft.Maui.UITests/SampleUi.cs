@@ -92,18 +92,26 @@ internal sealed class WindowsUi(AppiumDriver driver) : SampleUi(driver)
 
     // The tree holds what is off screen as well, but with nowhere for it: a zero size and a
     // position that means nothing. So the wheel is turned over the scroll view until the target
-    // has a size. The driver turns no wheel through its own actions; this extension is the way.
+    // has a size and sits in the upper two thirds of the scroll view, or will scroll no further. A
+    // window can reach below the screen's working area, where the taskbar covers it, and a picture
+    // of an element there shows the taskbar or whatever window lies below. The driver turns no wheel
+    // through its own actions; this extension is the way.
     public override AppiumElement BringIntoView(By target, By scroller)
     {
+        int? last = null;
         for (var turn = 0; turn < 20; turn++)
         {
             var element = Driver.FindElement(target);
+            var view = Driver.FindElement(scroller);
+            var shown = element.Size.Width > 0 && element.Size.Height > 0;
 
-            if (element.Size.Width > 0 && element.Size.Height > 0)
+            if (shown && (element.Location.Y + element.Size.Height <= view.Location.Y + (view.Size.Height * 2 / 3)
+                || element.Location.Y == last))
             {
                 return element;
             }
 
+            last = shown ? element.Location.Y : null;
             TurnWheel(scroller, -3);
         }
 

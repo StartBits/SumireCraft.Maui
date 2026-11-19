@@ -22,15 +22,15 @@
         Text="A date picker and a time picker bound to one DateTimeInput: one takes its date, the other its time, and either can stay empty." />
 
       <smr:SmrField Title="Date" ReserveErrorSpace="False">
-        <DatePicker
+        <smr:SmrDatePicker
           AutomationId="StartDate"
-          smr:SmrDateTimeInput.Date="{Binding Start}" />
+          DateTimeInput="{Binding Start}" />
       </smr:SmrField>
 
       <smr:SmrField Title="Time" ReserveErrorSpace="False">
-        <TimePicker
+        <smr:SmrTimePicker
           AutomationId="StartTime"
-          smr:SmrDateTimeInput.Time="{Binding Start}" />
+          DateTimeInput="{Binding Start}" />
       </smr:SmrField>
 
       <!-- An input says nothing when it changes, so the page reads it when asked. -->

@@ -1,26 +1,26 @@
 namespace SumireCraft.Maui.Controls;
 
 /// <summary>
-/// One underlined input: works out its line as its text colour, its focus and the attached
+/// One input whose box is the library's: works out its border as its text colour and border
 /// properties change, and hands it to the platform view the input has now.
 /// </summary>
 /// <remarks>
-/// How a platform draws the line is in this type's other part for that platform. Each platform's
-/// input is a native control with a box of its own, and nothing in .NET MAUI takes that box away
-/// or draws under the text instead, so this is one of the few places the library reaches the
-/// platform (Platform-specific code in CLAUDE.md). The plain net10.0 build has no platform, and only
-/// works the line out.
+/// How a platform draws the border is in this type's other part for that platform. Each platform's
+/// input is a native control with a box of its own, and nothing in .NET MAUI takes that box away or
+/// draws another, so this is one of the few places the library reaches the platform
+/// (Platform-specific code in CLAUDE.md). The plain net10.0 build has no platform, and only works the
+/// border out.
 /// </remarks>
-internal sealed partial class UnderlineAttachment
+internal sealed partial class BorderAttachment
 {
     private readonly View _view;
 
     private object? _platformView;
 
     /// <summary>
-    /// Starts underlining the input, on the platform view it has now if it has one.
+    /// Starts drawing the input's border, on the platform view it has now if it has one.
     /// </summary>
-    public UnderlineAttachment(View view)
+    public BorderAttachment(View view)
     {
         _view = view;
         _view.PropertyChanged += OnPropertyChanged;
@@ -34,7 +34,7 @@ internal sealed partial class UnderlineAttachment
             application.RequestedThemeChanged += OnThemeChanged;
         }
 
-        Look = Compute();
+        Look = InputBorder.LookOf(_view) ?? default;
         _platformView = _view.Handler?.PlatformView;
         if (_platformView is not null)
         {
@@ -43,12 +43,12 @@ internal sealed partial class UnderlineAttachment
     }
 
     /// <summary>
-    /// Gets the line the input is drawn with now.
+    /// Gets the border the input is drawn with now.
     /// </summary>
-    public UnderlineLook Look { get; private set; }
+    public BorderLook Look { get; private set; }
 
     /// <summary>
-    /// Stops underlining the input, and gives its platform view its own look back.
+    /// Stops drawing the border, and gives the platform view its own box back.
     /// </summary>
     public void Detach()
     {
@@ -68,14 +68,11 @@ internal sealed partial class UnderlineAttachment
     }
 
     /// <summary>
-    /// Works the line out again, and draws it if it changed, or whatever it is when told to: a
-    /// platform may use an attached property the line itself does not carry, such as the thickness
-    /// it will take on focus.
+    /// Works the border out again, and draws it if it changed.
     /// </summary>
-    public void Refresh(bool always = false)
+    public void Refresh()
     {
-        var look = Compute();
-        if (look == Look && !always)
+        if (InputBorder.LookOf(_view) is not { } look || look == Look)
         {
             return;
         }
@@ -87,24 +84,18 @@ internal sealed partial class UnderlineAttachment
         }
     }
 
-    // The colour of its own or the text's, and the thickness for whether the input has the focus.
-    private UnderlineLook Compute() => new(
-        SmrUnderline.GetColor(_view) ?? (_view as ITextStyle)?.TextColor,
-        _view.IsFocused ? SmrUnderline.GetFocusedThickness(_view) : SmrUnderline.GetThickness(_view));
-
     private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
             case nameof(ITextStyle.TextColor):
-            case nameof(VisualElement.IsFocused):
                 Refresh();
                 break;
             case nameof(VisualElement.Width):
             case nameof(VisualElement.Height):
             case nameof(VisualElement.Background):
             case nameof(VisualElement.BackgroundColor):
-                // What a platform draws the line from may have changed under it.
+                // What a platform draws the border from may have changed under it.
                 if (_platformView is not null)
                 {
                     Redraw(_platformView, Look);
@@ -114,7 +105,7 @@ internal sealed partial class UnderlineAttachment
         }
     }
 
-    // A line in the platform's own text colour is that colour in the theme it was drawn in: draw it
+    // A border in the platform's own text colour is that colour in the theme it was drawn in: draw it
     // again in the new one, once the platform has taken the new theme on.
     private void OnThemeChanged(object? sender, AppThemeChangedEventArgs e)
     {
@@ -148,16 +139,16 @@ internal sealed partial class UnderlineAttachment
         }
     }
 
-    // Each of these is implemented by a platform's part of this type, and left out on plain net10.0,
-    // where there is no platform: C# allows that only in a partial method's original form, which
-    // takes no accessibility modifier.
+    // Each of these is implemented by a platform's part of this type where the platform needs it, and
+    // left out on plain net10.0, where there is no platform: C# allows that only in a partial method's
+    // original form, which takes no accessibility modifier.
 
-    // Draws the line on the platform view, the first time or after it changed.
-    partial void Apply(object platformView, UnderlineLook look);
+    // Draws the border on the platform view, the first time or after it changed.
+    partial void Apply(object platformView, BorderLook look);
 
-    // Draws the line again after the input changed size or background, as the platform needs.
-    partial void Redraw(object platformView, UnderlineLook look);
+    // Draws the border again after the input changed size or background, as the platform needs.
+    partial void Redraw(object platformView, BorderLook look);
 
-    // Gives the platform view back the look it had before it was underlined.
+    // Gives the platform view back the box it had before the border was drawn.
     partial void Restore(object platformView);
 }
