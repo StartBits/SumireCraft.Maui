@@ -45,8 +45,11 @@ Two problems drive the library:
 - **Not a platform-handler library.** Do not write handlers or `Platforms/` code unless there is
   no cross-platform way to achieve the behaviour. When it is genuinely unavoidable the mechanism
   is in place (see *Platform-specific code* below), but reach for it last and say why.
-- **Not comprehensive.** Prefer one well-behaved widget over five half-finished ones. Prefer a
-  narrow, obvious API over a configurable one.
+- **Not comprehensive.** Prefer one well-behaved widget over five half-finished ones. Prefer what is
+  obvious to the app author over what is minimal, and never add an option for its own sake. A
+  shortcut for the common case is welcome beside the general mechanism, as
+  `SmrDatePicker.DateTimeInput` sits beside the attached `SmrDateTimeInput.Date`, when both run on
+  one implementation and so cannot drift apart.
 
 ## Settled decisions
 
@@ -178,7 +181,7 @@ assets/                             the pictures in README.md, taken on Android 
 build/                              version numbers, pack settings and platform routing rules
 src/Directory.Build.props|targets   settings for the published libraries only (IsAotCompatible, trim analyzer)
 src/SumireCraft.Maui.Core/          Badges/ , Exceptions/ , Extensions/ , Gates/ , Hosting/ , Lifetime/ , Taps/
-src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , DateTimes/ , Fields/ , Taps/ , Underlines/) , Templates/ , Hosting/
+src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , DateTimes/ , Fields/ , Inputs/ , Taps/) , Templates/ , Hosting/
 src/SumireCraft.Core/               DateTimes/
 samples/Directory.Build.props       settings for applications only (Mac Catalyst runtime identifiers and minimum)
 samples/SumireCraft.Maui.Sample/    the application the UI tests drive, and examples (not packed)

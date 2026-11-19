@@ -42,10 +42,10 @@
     ContentTemplate="{DataTemplate pages:DateTimeInputPage}" />
 
   <ShellContent
-    AutomationId="UnderlineMenuItem"
-    Title="SmrUnderline"
-    Route="underline"
-    ContentTemplate="{DataTemplate pages:UnderlinePage}" />
+    AutomationId="InputsMenuItem"
+    Title="Inputs"
+    Route="inputs"
+    ContentTemplate="{DataTemplate pages:InputsPage}" />
 
   <ShellContent
     AutomationId="ExceptionMenuItem"

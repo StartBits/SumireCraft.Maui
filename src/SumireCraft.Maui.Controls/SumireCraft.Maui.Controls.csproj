@@ -14,8 +14,8 @@
   <PropertyGroup Label="Package">
     <PackageId>SumireCraft.Maui.Controls</PackageId>
     <Title>SumireCraft.Maui.Controls</Title>
-    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, SmrTapBehavior runs a different command for one tap, a double tap, or five, SmrField puts a title and an error around an input, SmrDateTimeInput binds a date picker and a time picker to a date and a time that can each stay empty, and SmrUnderline draws an input on a line instead of a box.</Description>
-    <SumirePackageTags>controls;ui;badge;tap;gesture;form;field;datepicker;timepicker;underline;entry</SumirePackageTags>
+    <Description>Widgets that fill the gaps .NET MAUI leaves: SmrBadgeView puts a count or a dot over any view, SmrTapBehavior runs a different command for one tap, a double tap, or five, SmrField puts a title and an error around an input, SmrEntry and four more inputs draw their box alike on every platform, as a line under the text or a border with rounded corners, and SmrDatePicker and SmrTimePicker take a date and a time that can each stay empty.</Description>
+    <SumirePackageTags>controls;ui;badge;tap;gesture;form;field;entry;picker;datepicker;timepicker;border;underline</SumirePackageTags>
   </PropertyGroup>
 
   <ItemGroup>

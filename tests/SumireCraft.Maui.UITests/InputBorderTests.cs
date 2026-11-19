@@ -3,21 +3,24 @@ using OpenQA.Selenium.Appium;
 namespace SumireCraft.Maui.UITests;
 
 /// <summary>
-/// What the sample application should show of an underlined input on a real screen.
+/// What the sample application should show of the library's inputs drawn with a border of their
+/// own, on a real screen.
 /// </summary>
 /// <remarks>
-/// The unit tests show what line each input is handed; only a screen shows that the platform draws
+/// The unit tests show what border each input is handed; only a screen shows that the platform draws
 /// it. Each test reads the pixels of a picture of the input itself, along a column through its
-/// middle, from the bottom up: the line is a band of its colour at the bottom of the input.
+/// middle: a line under the text is a band of its colour at the bottom of the input.
 /// </remarks>
-public abstract class UnderlineTests : SamplePageTests
+public abstract class InputBorderTests : SamplePageTests
 {
-    private const string PageTitle = "SmrUnderline";
-    private const string PageScroll = "UnderlinePageScroll";
+    private const string PageTitle = "Inputs";
+    private const string PageScroll = "InputsPageScroll";
     private const string ColouredEntry = "ColouredEntry";
+    private const string AbcEntry = "AbcEntry";
     private const string ToggledEntry = "ToggledEntry";
+    private const string BoxedEntry = "BoxedEntry";
 
-    private protected UnderlineTests(SampleAppFixture app)
+    private protected InputBorderTests(SampleAppFixture app)
         : base(app)
     {
     }
@@ -26,7 +29,7 @@ public abstract class UnderlineTests : SamplePageTests
     /// The entry's line is purple and its text teal, so a band of purple is the line and nothing else.
     /// </remarks>
     [Fact]
-    public void AnUnderlinedEntry_StandsOnALineOfItsColour()
+    public void AnEntryWithALineUnderItsText_StandsOnALineOfItsColour()
     {
         Open();
 
@@ -40,23 +43,26 @@ public abstract class UnderlineTests : SamplePageTests
     [Theory]
     [InlineData("UnderlinedEditor", 255, 140, 0)]
     [InlineData("UnderlinedPicker", 0, 128, 0)]
-    public void AnUnderlinedInput_StandsOnALineOfItsColour(string input, int red, int green, int blue)
+    public void AnInputWithALineUnderItsText_StandsOnALineOfItsColour(string input, int red, int green, int blue)
     {
         Open();
 
         Assert.True(BandOnScreen(input, Near(red, green, blue)) > 0, $"{input} has no line of ({red}, {green}, {blue}) at its bottom.");
     }
 
+    /// <remarks>
+    /// AbcEntry's style in the sample gives the focus a visual state of twice the thickness.
+    /// </remarks>
     [Fact]
-    public void TheLine_ThickensWhileTheEntryHasTheFocus()
+    public void AVisualStateForTheFocus_ThickensTheLine()
     {
         Open();
-        var entry = Find(ColouredEntry);
-        var before = Band(entry, IsPurple);
+        var entry = Find(AbcEntry);
+        var before = Band(entry, IsViolet);
 
         entry.Click();
 
-        var after = Settled(() => Band(Find(ColouredEntry), IsPurple), changedFrom: before);
+        var after = Settled(() => Band(Find(AbcEntry), IsViolet), changedFrom: before);
         Assert.True(after > before, $"The line was {before} pixels thick before the entry had the focus, and {after} with it.");
     }
 
@@ -65,36 +71,36 @@ public abstract class UnderlineTests : SamplePageTests
     /// the box back.
     /// </remarks>
     [Fact]
-    public void AnUnderlineTurnedOff_GivesTheBoxBackAndTurnedOnAgain_TheLine()
+    public void ABorderTakenAway_GivesTheBoxBackAndGivenAgain_TheLine()
     {
         Open();
-        SetUnderlined(true);
-        Assert.True(Band(Find(ToggledEntry), IsRed) > 0, "The entry has no red line before the underline is turned off.");
+        SetBordered(true);
+        Assert.True(Band(Find(ToggledEntry), IsRed) > 0, "The entry has no red line before its border is taken away.");
 
         try
         {
-            var underlined = Band(Find(ToggledEntry), IsRed);
-            SetUnderlined(false);
-            Assert.Equal(0, Settled(() => Band(Find(ToggledEntry), IsRed), changedFrom: underlined));
+            var bordered = Band(Find(ToggledEntry), IsRed);
+            SetBordered(false);
+            Assert.Equal(0, Settled(() => Band(Find(ToggledEntry), IsRed), changedFrom: bordered));
 
-            SetUnderlined(true);
+            SetBordered(true);
             Assert.True(Settled(() => Band(Find(ToggledEntry), IsRed), changedFrom: 0) > 0, "The red line did not come back.");
         }
         finally
         {
-            SetUnderlined(true);
+            SetBordered(true);
         }
     }
 
     /// <remarks>
     /// On Android, .NET MAUI draws an input's background itself once it is given one, over its own
-    /// line; the underline has to be drawn again after that.
+    /// line; the border has to be drawn again after that.
     /// </remarks>
     [Fact]
     public void ABackgroundGivenLater_KeepsTheLine()
     {
         Open();
-        SetUnderlined(true);
+        SetBordered(true);
 
         try
         {
@@ -108,9 +114,37 @@ public abstract class UnderlineTests : SamplePageTests
         }
     }
 
+    /// <remarks>
+    /// The entry's border is magenta all round, with corners rounded by more than its thickness: its
+    /// top has the border too, and its very corner is outside it.
+    /// </remarks>
+    [Fact]
+    public void ABorderAllRoundWithRoundedCorners_IsDrawnAtTheTopAndNotInTheCorner()
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+
+        try
+        {
+            var picture = Png.Read(Ui.BringIntoView(Ui.ByAutomationId(BoxedEntry), scroller).GetScreenshot().AsByteArray);
+
+            Assert.True(TopBand(picture, IsMagenta) > 0, "The entry has no magenta border at its top.");
+            Assert.False(IsMagenta(picture.ColourAt(0, 0)), "The entry's top left corner is not rounded.");
+        }
+        finally
+        {
+            Ui.ScrollToTop(scroller);
+        }
+    }
+
     private static bool IsPurple((byte Red, byte Green, byte Blue) c) => c.Red - c.Green > 60 && c.Blue - c.Green > 60;
 
     private static bool IsRed((byte Red, byte Green, byte Blue) c) => c.Red - c.Green > 80 && c.Red - c.Blue > 80;
+
+    private static bool IsMagenta((byte Red, byte Green, byte Blue) c) => c.Red > 180 && c.Blue > 180 && c.Green < 100;
+
+    // The sample's violet, #8467E0.
+    private static bool IsViolet((byte, byte, byte) c) => Near(132, 103, 224)(c);
 
     // A colour close to the one given: the line's colour drawn, blended a little at its edges.
     private protected static Func<(byte, byte, byte), bool> Near(int red, int green, int blue) =>
@@ -136,6 +170,28 @@ public abstract class UnderlineTests : SamplePageTests
         {
             rows++;
             y--;
+        }
+
+        return rows;
+    }
+
+    // The same from the top down, in the top third.
+    private static int TopBand(Png picture, Func<(byte, byte, byte), bool> isLine)
+    {
+        var x = picture.Width / 2;
+        var y = 0;
+        var bottom = picture.Height / 3;
+
+        while (y < bottom && !isLine(picture.ColourAt(x, y)))
+        {
+            y++;
+        }
+
+        var rows = 0;
+        while (y < picture.Height && isLine(picture.ColourAt(x, y)))
+        {
+            rows++;
+            y++;
         }
 
         return rows;
@@ -185,7 +241,7 @@ public abstract class UnderlineTests : SamplePageTests
         Find(ColouredEntry);
     }
 
-    private void SetUnderlined(bool on) => Set("UnderlineSwitch", "UnderlineState", on ? "Underlined" : "Not underlined");
+    private void SetBordered(bool on) => Set("BorderSwitch", "BorderState", on ? "Bordered" : "Not bordered");
 
     private void SetBackground(bool on) => Set("BackgroundSwitch", "BackgroundState", on ? "On a background" : "On the page");
 
@@ -204,9 +260,9 @@ public abstract class UnderlineTests : SamplePageTests
 /// The date and time pickers' lines, where they are drawn: not on Mac Catalyst, where .NET MAUI
 /// shows the system's date picker, a pill the library leaves as it is.
 /// </summary>
-public abstract class UnderlinedPickerTests : UnderlineTests
+public abstract class PickerBorderTests : InputBorderTests
 {
-    private protected UnderlinedPickerTests(SampleAppFixture app)
+    private protected PickerBorderTests(SampleAppFixture app)
         : base(app)
     {
     }
@@ -214,7 +270,7 @@ public abstract class UnderlinedPickerTests : UnderlineTests
     [Theory]
     [InlineData("UnderlinedDatePicker", 0, 0, 255)]
     [InlineData("UnderlinedTimePicker", 0, 128, 128)]
-    public void AnUnderlinedPicker_StandsOnALineOfItsColour(string picker, int red, int green, int blue)
+    public void APickerWithALineUnderItsText_StandsOnALineOfItsColour(string picker, int red, int green, int blue)
     {
         Open();
 
@@ -223,13 +279,13 @@ public abstract class UnderlinedPickerTests : UnderlineTests
 }
 
 [Collection(WindowsSampleApp.Collection)]
-public sealed class WindowsUnderlineTests(WindowsSampleApp app) : UnderlinedPickerTests(app);
+public sealed class WindowsInputBorderTests(WindowsSampleApp app) : PickerBorderTests(app);
 
 [Collection(AndroidSampleApp.Collection)]
-public sealed class AndroidUnderlineTests(AndroidSampleApp app) : UnderlinedPickerTests(app);
+public sealed class AndroidInputBorderTests(AndroidSampleApp app) : PickerBorderTests(app);
 
 [Collection(IosSampleApp.Collection)]
-public sealed class IosUnderlineTests(IosSampleApp app) : UnderlinedPickerTests(app);
+public sealed class IosInputBorderTests(IosSampleApp app) : PickerBorderTests(app);
 
 [Collection(MacCatalystSampleApp.Collection)]
-public sealed class MacCatalystUnderlineTests(MacCatalystSampleApp app) : UnderlineTests(app);
+public sealed class MacCatalystInputBorderTests(MacCatalystSampleApp app) : InputBorderTests(app);

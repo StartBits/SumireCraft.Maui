@@ -32,10 +32,13 @@ A release that raises the minimum version of .NET MAUI says so under *Changed*.
   .NET MAUI 10.0.20, whose `TimePicker` turns an empty time into midnight. A picker from another
   library is joined the same way once `DateTarget` or `TimeTarget` names the bindable property it
   holds its date or time in, which a style for its type can do for every page.
-- `SmrUnderline` in `SumireCraft.Maui.Controls`, attached properties that draw an `Entry`,
-  `Editor`, `Picker`, `DatePicker` or `TimePicker` on a line under its text instead of the
-  platform's box: `IsEnabled`, `Color` (the text's colour unless set), `Thickness` and
-  `FocusedThickness`. A style, a binding or a visual state sets them.
+- `SmrEntry`, `SmrEditor`, `SmrPicker`, `SmrDatePicker` and `SmrTimePicker` in
+  `SumireCraft.Maui.Controls`, .NET MAUI's five inputs with `BorderThickness`, `CornerRadius` and
+  `BorderColor` (the text's colour unless set), which draw their box alike on every platform -- a
+  line under the text, or a border all round with rounded corners -- in place of the platform's own
+  once either of the first two is given. A style for every input of the kind reaches them too.
+  `SmrDatePicker` and `SmrTimePicker` take a `DateTimeInput` in a property of their own, the
+  attached one under a shorter name, and start empty.
 - A new package, `SumireCraft.Core`, which depends on no UI framework and targets plain `net10.0`.
   It holds `DateTimeInput` in the namespace `SumireCraft.DateTimes`: a date and a time that are
   entered separately and can each be empty, read and written through `DateOnly`, `TimeOnly`,

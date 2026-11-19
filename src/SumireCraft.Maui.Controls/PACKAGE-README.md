@@ -9,13 +9,13 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
   for a `Button`.
 - **SmrField** -- a title above an input and its error below. The error's line is held so nothing
   below jumps, and both labels are restyled from App.xaml through two style classes.
-
-- **SmrDateTimeInput** -- attached properties that bind a `DatePicker` and a `TimePicker` to one
-  `DateTimeInput`: a value whose date and time are entered separately and can each stay empty. A
-  picker from another library is joined the same way, told once in a style which of its properties
-  holds the date or the time.
-- **SmrUnderline** -- an input or a picker drawn on a line instead of the platform's box, in the
-  text's colour and thicker while focused, from one attached property or a style.
+- **SmrEntry**, **SmrEditor**, **SmrPicker**, **SmrDatePicker** and **SmrTimePicker** -- .NET
+  MAUI's inputs with a box you draw, alike on every platform: a line under the text, or a border all
+  round with rounded corners, in the text's colour unless given one.
+- **SmrDateTimeInput** -- binds a date picker and a time picker to one `DateTimeInput`: a value whose
+  date and time are entered separately and can each stay empty. `SmrDatePicker` and `SmrTimePicker`
+  take it in a property of their own; a picker from another library is told once in a style which
+  of its properties holds the date or the time.
 
 This package brings in [SumireCraft.Maui.Core](https://www.nuget.org/packages/SumireCraft.Maui.Core)
 as well: exception reporting, an opt-in safety net, and a busy gate. Core is released only when it

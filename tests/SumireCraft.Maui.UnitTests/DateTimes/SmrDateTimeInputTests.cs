@@ -7,6 +7,7 @@ namespace SumireCraft.Maui.UnitTests.DateTimes;
 // input that is missing: .NET MAUI's own pickers, and one from another library, which VendorPicker
 // below stands in for. What the platform's picker then draws for an empty date or time is the UI
 // tests'.
+[Collection(XamlLoadingCollection.Name)]
 public class SmrDateTimeInputTests
 {
     private static readonly DateOnly SomeDate = new(2026, 11, 13);

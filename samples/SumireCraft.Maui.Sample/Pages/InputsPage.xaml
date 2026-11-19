@@ -3,52 +3,53 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
              xmlns:abc="clr-namespace:SumireCraft.Maui.Sample.Wrapping"
-             x:Class="SumireCraft.Maui.Sample.Pages.UnderlinePage"
-             Title="SmrUnderline">
+             x:Class="SumireCraft.Maui.Sample.Pages.InputsPage"
+             Title="Inputs">
 
   <!-- What the tests look for is at the top, on a phone's first screen without scrolling: Android
        leaves whatever is below the screen out of the tree. The rest is for reading by hand. -->
-  <ScrollView AutomationId="UnderlinePageScroll">
+  <ScrollView AutomationId="InputsPageScroll">
     <VerticalStackLayout
       Padding="24"
       Spacing="16">
 
       <Label
-        AutomationId="UnderlinePageTitle"
-        Text="SmrUnderline"
+        AutomationId="InputsPageTitle"
+        Text="Inputs"
         Style="{StaticResource Headline}"
         HorizontalTextAlignment="Start" />
 
       <Label
-        Text="Each input stands on a line instead of the platform's box, in the text's colour unless given one, thicker while it has the focus." />
+        Text="SmrEntry and the other four draw their box as told: a line under the text, a border all round, corners rounded or square, in the text's colour unless given one." />
 
-      <Entry
-        AutomationId="UnderlinedEntry"
-        Placeholder="Entry"
-        smr:SmrUnderline.IsEnabled="True" />
-
-      <Entry
+      <smr:SmrEntry
         AutomationId="ColouredEntry"
         Placeholder="Teal text on a purple line"
         TextColor="Teal"
-        smr:SmrUnderline.IsEnabled="True"
-        smr:SmrUnderline.Color="Purple" />
+        BorderThickness="0,0,0,1"
+        BorderColor="Purple" />
+
+      <!-- An entry of the application's own, underlined by its style in Wrapping/AbcStyles.xaml,
+           whose visual state for the focus thickens the line. -->
+      <abc:AbcEntry
+        AutomationId="AbcEntry"
+        Placeholder="AbcEntry, thicker while focused" />
 
       <!-- Turned off, the entry has the platform's box back; given a background, it keeps its line. -->
       <HorizontalStackLayout Spacing="8">
         <Switch
-          x:Name="UnderlineSwitch"
-          AutomationId="UnderlineSwitch"
+          x:Name="BorderSwitch"
+          AutomationId="BorderSwitch"
           IsToggled="True" />
         <Label
-          AutomationId="UnderlineState"
+          AutomationId="BorderState"
           VerticalTextAlignment="Center">
           <Label.Triggers>
-            <DataTrigger TargetType="Label" Binding="{Binding IsToggled, Source={x:Reference UnderlineSwitch}}" Value="True">
-              <Setter Property="Text" Value="Underlined" />
+            <DataTrigger TargetType="Label" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="True">
+              <Setter Property="Text" Value="Bordered" />
             </DataTrigger>
-            <DataTrigger TargetType="Label" Binding="{Binding IsToggled, Source={x:Reference UnderlineSwitch}}" Value="False">
-              <Setter Property="Text" Value="Not underlined" />
+            <DataTrigger TargetType="Label" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="False">
+              <Setter Property="Text" Value="Not bordered" />
             </DataTrigger>
           </Label.Triggers>
         </Label>
@@ -69,64 +70,71 @@
         </Label>
       </HorizontalStackLayout>
 
-      <Entry
+      <smr:SmrEntry
         AutomationId="ToggledEntry"
         Placeholder="On a red line, while the switch is on"
-        smr:SmrUnderline.IsEnabled="{Binding IsToggled, Source={x:Reference UnderlineSwitch}}"
-        smr:SmrUnderline.Color="Red">
-        <Entry.Triggers>
-          <DataTrigger TargetType="Entry" Binding="{Binding IsToggled, Source={x:Reference BackgroundSwitch}}" Value="True">
+        BorderColor="Red">
+        <smr:SmrEntry.Triggers>
+          <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="True">
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+          </DataTrigger>
+          <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BackgroundSwitch}}" Value="True">
             <Setter Property="BackgroundColor" Value="#EADDFF" />
           </DataTrigger>
-        </Entry.Triggers>
-      </Entry>
+        </smr:SmrEntry.Triggers>
+      </smr:SmrEntry>
+
+      <!-- A border all round with rounded corners, on a background of its own that fills the same
+           shape. -->
+      <smr:SmrEntry
+        AutomationId="BoxedEntry"
+        Placeholder="A magenta box, rounded"
+        BorderThickness="2"
+        CornerRadius="8"
+        BorderColor="Magenta"
+        BackgroundColor="#F3EDF7" />
 
       <!-- Each of the other inputs on a line of a colour of its own, for a test to tell them apart. -->
-      <Editor
+      <smr:SmrEditor
         AutomationId="UnderlinedEditor"
-        Placeholder="Editor, on an orange line"
+        Placeholder="SmrEditor, on an orange line"
         HeightRequest="64"
-        smr:SmrUnderline.IsEnabled="True"
-        smr:SmrUnderline.Color="DarkOrange" />
+        BorderThickness="0,0,0,1"
+        BorderColor="DarkOrange" />
 
-      <Picker
+      <smr:SmrPicker
         AutomationId="UnderlinedPicker"
-        Title="Picker, on a green line"
-        smr:SmrUnderline.IsEnabled="True"
-        smr:SmrUnderline.Color="Green">
-        <Picker.ItemsSource>
+        Title="SmrPicker, on a green line"
+        BorderThickness="0,0,0,1"
+        BorderColor="Green">
+        <smr:SmrPicker.ItemsSource>
           <x:Array Type="{x:Type x:String}">
             <x:String>One</x:String>
             <x:String>Two</x:String>
             <x:String>Three</x:String>
           </x:Array>
-        </Picker.ItemsSource>
-      </Picker>
+        </smr:SmrPicker.ItemsSource>
+      </smr:SmrPicker>
 
       <!-- Side by side, to stay on a phone's first screen. On Mac Catalyst these two are the
            system's date picker, a pill, and are left as they are. -->
       <Grid
         ColumnDefinitions="*,*"
         ColumnSpacing="12">
-        <DatePicker
+        <smr:SmrDatePicker
           AutomationId="UnderlinedDatePicker"
-          smr:SmrUnderline.IsEnabled="True"
-          smr:SmrUnderline.Color="Blue" />
-        <TimePicker
+          BorderThickness="0,0,0,1"
+          BorderColor="Blue" />
+        <smr:SmrTimePicker
           Grid.Column="1"
           AutomationId="UnderlinedTimePicker"
-          smr:SmrUnderline.IsEnabled="True"
-          smr:SmrUnderline.Color="Teal" />
+          BorderThickness="0,0,0,1"
+          BorderColor="Teal" />
       </Grid>
 
-      <Entry
+      <smr:SmrEntry
         AutomationId="PlainEntry"
-        Placeholder="Not underlined, for comparison" />
-
-      <!-- An entry of the application's own that is always underlined: Wrapping/AbcUnderlineEntry. -->
-      <abc:AbcUnderlineEntry
-        AutomationId="AbcUnderlineEntry"
-        Placeholder="AbcUnderlineEntry, underlined by itself" />
+        Placeholder="Given no border: the platform's box" />
 
     </VerticalStackLayout>
   </ScrollView>

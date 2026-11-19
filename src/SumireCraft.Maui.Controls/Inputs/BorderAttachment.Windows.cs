@@ -8,17 +8,19 @@ using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 using TimePicker = Microsoft.UI.Xaml.Controls.TimePicker;
 using VisualTreeHelper = Microsoft.UI.Xaml.Media.VisualTreeHelper;
+using WinCornerRadius = Microsoft.UI.Xaml.CornerRadius;
 using WinThickness = Microsoft.UI.Xaml.Thickness;
 
 namespace SumireCraft.Maui.Controls;
 
-// WinUI draws each input's box with a border in its template, from the control's BorderBrush and
-// BorderThickness, and swaps the brush (and for a TextBox the thickness) for theme resources as the
-// pointer moves over it, it is pressed, focused or disabled. The line is drawn here by setting the
-// border to the bottom edge alone, and pointing every one of those resources, in the control's own
-// resources, at one brush whose colour is the line's. The keys differ by control; they are WinUI's
-// own, from its theme resources.
-internal sealed partial class UnderlineAttachment
+// WinUI draws each input's box with a border in its template, from the control's BorderBrush,
+// BorderThickness and CornerRadius, and swaps the brush (and for a TextBox the thickness) for theme
+// resources as the pointer moves over it, it is pressed, focused or disabled. The border is drawn
+// here by setting the three, and pointing every one of those resources, in the control's own
+// resources, at one brush whose colour is the border's: a change of state is the application's to
+// draw, through a visual state. The keys differ by control; they are WinUI's own, from its theme
+// resources.
+internal sealed partial class BorderAttachment
 {
     private static readonly string[] TextBoxBrushes =
         ["TextControlBorderBrush", "TextControlBorderBrushPointerOver", "TextControlBorderBrushFocused", "TextControlBorderBrushDisabled"];
@@ -47,10 +49,10 @@ internal sealed partial class UnderlineAttachment
     // The resource keys set on the control, to take them away again.
     private string[] _keys = [];
 
-    // The ComboBox's focus ring, hidden while the box is underlined.
+    // The ComboBox's focus ring, hidden while the border is the library's.
     private Border? _ring;
 
-    partial void Apply(object platformView, UnderlineLook look)
+    partial void Apply(object platformView, BorderLook look)
     {
         if (platformView is not Control control || Brushes(control) is not { } brushes)
         {
@@ -62,6 +64,7 @@ internal sealed partial class UnderlineAttachment
         _brush ??= new SolidColorBrush(color);
         _brush.Color = color;
 
+        var thickness = new WinThickness(look.Thickness.Left, look.Thickness.Top, look.Thickness.Right, look.Thickness.Bottom);
         var resources = new Dictionary<string, object>();
         foreach (var key in brushes)
         {
@@ -70,7 +73,7 @@ internal sealed partial class UnderlineAttachment
 
         if (control is TextBox)
         {
-            resources[TextBoxFocusedThickness] = Bottom(SmrUnderline.GetFocusedThickness(_view));
+            resources[TextBoxFocusedThickness] = thickness;
         }
 
         // A template reads its theme resources when it is applied. Ones changed after that are read
@@ -88,9 +91,10 @@ internal sealed partial class UnderlineAttachment
 
         _keys = [.. resources.Keys];
 
+        var radius = look.CornerRadius;
         control.BorderBrush = _brush;
-        control.BorderThickness = Bottom(look.Thickness);
-        control.CornerRadius = new Microsoft.UI.Xaml.CornerRadius(0);
+        control.BorderThickness = thickness;
+        control.CornerRadius = new WinCornerRadius(radius.TopLeft, radius.TopRight, radius.BottomRight, radius.BottomLeft);
 
         if (control is ComboBox box && first)
         {
@@ -103,10 +107,7 @@ internal sealed partial class UnderlineAttachment
         }
     }
 
-    partial void Redraw(object platformView, UnderlineLook look)
-    {
-        // WinUI draws the border at any size and over any background: nothing to do.
-    }
+    // Redraw is left out here: WinUI draws the border at any size and over any background.
 
     partial void Restore(object platformView)
     {
@@ -143,8 +144,6 @@ internal sealed partial class UnderlineAttachment
         TimePicker => TimePickerBrushes,
         _ => null,
     };
-
-    private static WinThickness Bottom(double thickness) => new(0, 0, 0, thickness);
 
     private static void ReadThemeAgain(FrameworkElement element)
     {
