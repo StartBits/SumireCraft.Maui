@@ -38,7 +38,10 @@ weaver that writes `try`/`catch` for you -- because no two applications agree on
 Core is for .NET MAUI applications, and depends on .NET MAUI itself (`Microsoft.Maui.Controls`),
 since it plugs into `MauiAppBuilder`. A library that is not a .NET MAUI project -- a networking
 layer shared with an ASP.NET Core server, say -- takes .NET MAUI along with it if it references
-Core for the busy gate. A package of the parts that need no .NET MAUI is not planned for now.
+Core for the busy gate. `SumireCraft.Core`, which needs no .NET MAUI, holds `DateTimeInput` alone
+for now. The busy gate and the rest of `SumireCraft.Maui.Core` stay where they are for every 1.x
+release: a type moved to another package would break applications built against the ones already
+published.
 
 ## Install
 
@@ -750,6 +753,13 @@ records: it never marks an exception handled, and it never keeps alive an applic
 about to die. It is off by default all the same, because those events belong to the whole process.
 What it hears goes to your handlers like any other report, so with no handler registered it
 records nothing.
+
+On Android with .NET 10, an exception that escapes on the UI thread reaches
+`AppDomain.UnhandledException` too, once Android has given up on it, with the exception as it was
+thrown. So you need not subscribe to `AndroidEnvironment.UnhandledExceptionRaiser`, as Xamarin
+applications did, for the net to hear it. A subscription carried over that sets `e.Handled = true`
+swallows the exception there: the application keeps running, `AppDomain.UnhandledException` is
+never raised, and the net reports nothing, so report to the sink from it yourself if you keep it.
 
 It hears only what those events carry, so not every failure is caught. A crash in native code, or
 the operating system stopping the application, ends it without raising any of them, and nothing is
