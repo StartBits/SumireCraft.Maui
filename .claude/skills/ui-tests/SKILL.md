@@ -75,6 +75,10 @@ command line contains `appium`. On a Mac, the Mac2 driver's agent can outlive it
 and holds port 10100 so that the next session fails at once with "port #10100 is busy" or
 `ECONNREFUSED 127.0.0.1:10100`: `pkill -f WebDriverAgentRunner`. A session started straight after
 that can fail once or twice with the agent's xcodebuild exiting with code 65; the next one starts.
+An agent left over from an earlier run can also accept the next session and never answer it: the
+run sits for four minutes per session ("timeout of 240000ms exceeded" in Appium's log) and every
+test fails. So stop it, and any sample still open, before each Mac Catalyst run
+(`pkill -f WebDriverAgentRunner; pkill -f SumireCraft.Maui.Sample`; macOS 27.2, Mac2 4.5.1).
 
 Start the emulator before Appium. Close the sample before building, or its running executable
 fails the build.
@@ -165,6 +169,10 @@ as `ExceptionTests.WaitFor` does. A search by `AutomationId` does wait.
   click normally.
 - Mac Catalyst: an alert is an AppKit sheet. Its title and message are a static text's `value`, its
   buttons' text their `title`.
+- Mac Catalyst: a page pushed onto another leaves the one underneath in the tree, and a search finds
+  its element first, so a test presses a button nobody can see. A page that can be pushed onto
+  itself numbers its identifiers by depth (`ObservedPage`). Give them in code, not in XAML: an
+  `AutomationId` can be set only once, and a second setting throws.
 - Built with Xcode 27 or later, an iOS or Mac Catalyst application that does not adopt the UIScene
   lifecycle stops at launch with `EXC_BREAKPOINT` in
   `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`. The sample's `SceneDelegate` and
