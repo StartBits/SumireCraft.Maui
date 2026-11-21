@@ -247,6 +247,12 @@ A type of your own can derive from `SmrBadgeView`. Set properties in its constru
 defaults, set `BadgeTemplate` there to change the look, or override `CreateDefaultBadge()` to
 change the look while leaving `BadgeTemplate` free for whoever uses your type.
 
+What it marks sits three levels down -- the badge view, its layout and the `ContentPresenter` .NET
+MAUI's templating needs -- two more than a `Grid` holding a view and a badge by hand. Each level is
+a native view to measure and arrange; on an Android emulator, a page of fifty took about a
+millisecond more per badge than the same page written by hand. Worth knowing for a long list with a
+badge on every row.
+
 ### SmrTapBehavior
 
 Runs a different command depending on how many times a view was tapped.
@@ -405,6 +411,12 @@ A `ControlTemplate` of your own replaces the title, the error and their styles t
 content through a `ContentPresenter`. It shows the mark for itself too, from `IsRequired` and
 `RequiredMark`: `RequiredMarkDescription`, `RequiredMarkStyleKey`, `TitleStyleClass` and
 `ErrorStyleClass` are for the default template alone.
+
+What a field holds sits three levels down -- the field, the root of its template and the
+`ContentPresenter` .NET MAUI's templating needs -- two more than a `VerticalStackLayout` holding a
+title, an input and an error by hand. Each level is a native view to measure and arrange; on an
+Android emulator, a page of fifty fields took about a millisecond more per field than the same page
+written by hand.
 
 ### SmrDateTimeInput
 
