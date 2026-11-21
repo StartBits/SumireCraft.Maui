@@ -19,6 +19,7 @@ public abstract class InputBorderTests : SamplePageTests
     private const string AbcEntry = "AbcEntry";
     private const string ToggledEntry = "ToggledEntry";
     private const string BoxedEntry = "BoxedEntry";
+    private const string Editor = "UnderlinedEditor";
 
     private protected InputBorderTests(SampleAppFixture app)
         : base(app)
@@ -48,6 +49,33 @@ public abstract class InputBorderTests : SamplePageTests
         Open();
 
         Assert.True(BandOnScreen(input, Near(red, green, blue)) > 0, $"{input} has no line of ({red}, {green}, {blue}) at its bottom.");
+    }
+
+    /// <remarks>
+    /// An editor holding more lines than it shows scrolls to its last; on iOS and Mac Catalyst a text
+    /// view scrolls its layers with its text, the border's included, unless the border is put back.
+    /// </remarks>
+    [Fact]
+    public void AnEditorScrolledThroughItsText_KeepsItsLineAtTheBottom()
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+        var orange = Near(255, 140, 0);
+
+        try
+        {
+            var editor = Ui.BringIntoView(Ui.ByAutomationId(Editor), scroller);
+            editor.SendKeys(string.Join("\n", Enumerable.Range(1, 12)));
+            Ui.DismissKeyboard();
+
+            Assert.True(Band(Find(Editor), orange) > 0, "The editor's line went with its text as it scrolled.");
+        }
+        finally
+        {
+            Find(Editor).Clear();
+            Ui.DismissKeyboard();
+            Ui.ScrollToTop(scroller);
+        }
     }
 
     /// <remarks>
