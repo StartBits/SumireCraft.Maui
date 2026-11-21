@@ -8,6 +8,9 @@ The building blocks of SumireCraft.Maui, useful on their own without any of the 
   hears of it, before the process goes down.
 - **Busy gate** -- is anything in flight, anywhere in the app? Keeps a second tap from starting
   the same work twice.
+- **ObserveHandler** -- calls back when a page or a view is connected and when it is disconnected,
+  as .NET MAUI does to a page popped from a `Shell` or dismissed as a modal, so a page lets go of a
+  long-lived service it subscribed to.
 
 .NET 10 with .NET MAUI 10.0.20+ · Android 21+ · iOS 15+ · Mac Catalyst 15+ · Windows 10 1809+ · trimming and Native AOT compatible · MIT
 

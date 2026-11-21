@@ -39,6 +39,11 @@ A release that raises the minimum version of .NET MAUI says so under *Changed*.
   once either of the first two is given. A style for every input of the kind reaches them too.
   `SmrDatePicker` and `SmrTimePicker` take a `DateTimeInput` in a property of their own, the
   attached one under a shorter name, and start empty.
+- `ObserveHandler()` in `SumireCraft.Maui.Core`, namespace `SumireCraft.Maui.Lifetime`, an extension
+  method that calls back when an element is connected to the platform and when it is disconnected,
+  as .NET MAUI does to a page popped from a `Shell` or dismissed as a modal, and to every view on
+  it: the moments for a page or a control to take hold of a long-lived service or a resource, and
+  to let go of it.
 - A new package, `SumireCraft.Core`, which depends on no UI framework and targets plain `net10.0`.
   It holds `DateTimeInput` in the namespace `SumireCraft.DateTimes`: a date and a time that are
   entered separately and can each be empty, read and written through `DateOnly`, `TimeOnly`,
