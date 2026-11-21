@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SumireCraft.Maui.Controls;
 using SumireCraft.Maui.Exceptions;
+using SumireCraft.Maui.Gates;
 using SumireCraft.Maui.Sample.Exceptions;
 using SumireCraft.Maui.Sample.Pages;
 
@@ -13,10 +14,16 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         // The safety net is off unless asked for. The sample asks, so that what nothing caught still
-        // reaches the log on the way down.
+        // reaches the log on the way down. The busy timeout is off unless asked for too; the sample's
+        // five seconds is short enough for the BusyGate page to show the watchdog at work, and
+        // longer than anything the sample keeps its gate busy for on purpose.
         builder
             .UseMauiApp<App>()
-            .UseSumireCraft(options => options.InstallSafetyNet = true)
+            .UseSumireCraft(options =>
+            {
+                options.InstallSafetyNet = true;
+                options.BusyTimeout = TimeSpan.FromSeconds(5);
+            })
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -30,6 +37,12 @@ public static class MauiProgram
 
         builder.Services.AddTransient<ExceptionPage>();
         builder.Services.AddTransient<ExceptionPageViewModel>();
+
+        // A gate of the uploads' own, under a key, so that an upload holds back nothing that asks the
+        // application's gate. It has no watchdog: an upload is allowed to take as long as it takes.
+        builder.Services.AddKeyedSingleton<IBusyGate>(GatePageViewModel.UploadsKey, (_, _) => new BusyGate());
+        builder.Services.AddTransient<GatePage>();
+        builder.Services.AddTransient<GatePageViewModel>();
 
 #if DEBUG
         builder.Logging.AddDebug();
