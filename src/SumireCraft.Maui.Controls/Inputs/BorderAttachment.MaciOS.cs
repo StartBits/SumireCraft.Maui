@@ -12,8 +12,9 @@ namespace SumireCraft.Maui.Controls;
 // which .NET MAUI draws there as a UIDatePicker, a compact pill whose look is the system's: those two
 // are left alone on Mac Catalyst. The border is a layer of the library's own over the view, and a
 // text field's box is taken away while it is there. Rounded corners clip the view, background
-// included, to its outline. A text view scrolls its layers with its text, so there the border and the
-// clip are put back in place as it scrolls.
+// included, to its outline. Both are put back in place whenever the view's layer changes its bounds:
+// .NET MAUI tells the input its new size before it gives the platform view its new frame, and a text
+// view scrolls its layers with its text by moving its bounds.
 internal sealed partial class BorderAttachment
 {
     private CAShapeLayer? _border;
@@ -24,8 +25,8 @@ internal sealed partial class BorderAttachment
     // The box the text field had before its border was drawn, given back when it no longer is.
     private UITextBorderStyle? _originalBorder;
 
-    // Watches a text view's scrolling, to keep the border in place.
-    private IDisposable? _scrolling;
+    // Watches the bounds of the view's layer, to keep the border in place.
+    private IDisposable? _bounds;
 
     partial void Apply(object platformView, BorderLook look)
     {
@@ -43,13 +44,10 @@ internal sealed partial class BorderAttachment
         if (_border is null || !ReferenceEquals(_border.SuperLayer, view.Layer))
         {
             _border?.RemoveFromSuperLayer();
+            _bounds?.Dispose();
             _border = new CAShapeLayer { FillRule = CAShapeLayer.FillRuleEvenOdd };
             view.Layer.AddSublayer(_border);
-
-            if (view is UITextView text)
-            {
-                _scrolling = text.AddObserver("contentOffset", NSKeyValueObservingOptions.New, _ => Place(text));
-            }
+            _bounds = view.Layer.AddObserver("bounds", NSKeyValueObservingOptions.New, _ => Place(view));
         }
 
         var color = look.Color?.ToPlatform() ?? TextColor(view) ?? UIColor.Label;
@@ -67,8 +65,8 @@ internal sealed partial class BorderAttachment
 
     partial void Restore(object platformView)
     {
-        _scrolling?.Dispose();
-        _scrolling = null;
+        _bounds?.Dispose();
+        _bounds = null;
         _border?.RemoveFromSuperLayer();
         _border = null;
 

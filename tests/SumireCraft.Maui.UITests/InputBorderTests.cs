@@ -137,7 +137,9 @@ public abstract class InputBorderTests : SamplePageTests
         }
     }
 
-    private static bool IsPurple((byte Red, byte Green, byte Blue) c) => c.Red - c.Green > 60 && c.Blue - c.Green > 60;
+    // Mac Catalyst scales an iPad's points to 77% of the Mac's, so a line one point thick falls across
+    // pixels and is blended with the white around it: purple there reads as (158, 108, 158).
+    private static bool IsPurple((byte Red, byte Green, byte Blue) c) => c.Red - c.Green > 40 && c.Blue - c.Green > 40;
 
     private static bool IsRed((byte Red, byte Green, byte Blue) c) => c.Red - c.Green > 80 && c.Red - c.Blue > 80;
 
