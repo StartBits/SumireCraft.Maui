@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SumireCraft.Maui.Sample.Pages.GatePage"
+             Title="BusyGate">
+
+  <!-- What the tests look for fits on a phone's first screen: Android leaves whatever is off the
+       screen out of the tree, and the tests have to find the buttons and the counts. -->
+  <ScrollView>
+    <VerticalStackLayout
+      Padding="24"
+      Spacing="12">
+
+      <Label
+        AutomationId="GatePageTitle"
+        Text="BusyGate"
+        Style="{StaticResource Headline}"
+        HorizontalTextAlignment="Start" />
+
+      <Label AutomationId="AppGateState" Text="{Binding AppGateState}" FontAttributes="Bold" />
+      <Label AutomationId="UploadGateState" Text="{Binding UploadGateState}" FontAttributes="Bold" />
+
+      <HorizontalStackLayout Spacing="8">
+        <Button
+          AutomationId="GateLoadButton"
+          Text="Load (3 s)"
+          Command="{Binding LoadCommand}" />
+        <Button
+          AutomationId="GateRefreshButton"
+          Text="Refresh (1 s)"
+          Command="{Binding RefreshCommand}" />
+      </HorizontalStackLayout>
+
+      <HorizontalStackLayout Spacing="8">
+        <Button
+          AutomationId="GateUploadButton"
+          Text="Upload (4 s)"
+          Command="{Binding UploadCommand}" />
+        <Button
+          AutomationId="GateForgetButton"
+          Text="Forget to exit"
+          Command="{Binding ForgetToExitCommand}" />
+      </HorizontalStackLayout>
+
+      <Label AutomationId="LoadCount" Text="{Binding LoadCount}" />
+      <Label AutomationId="RefreshCount" Text="{Binding RefreshCount}" />
+      <Label AutomationId="UploadCount" Text="{Binding UploadCount}" />
+
+      <Button
+        AutomationId="GateResetButton"
+        Text="Reset the counts"
+        Command="{Binding ResetCommand}"
+        HorizontalOptions="Start" />
+
+      <!-- Below what the tests look for, which has to stay on a phone's first screen. -->
+      <Label
+        Text="Load and Refresh ask the application's one gate, so either holds the other back. Upload asks a gate of its own. Forget leaves the gate busy until the watchdog clears it, five seconds later, and reports a BusyTimeoutException to the log." />
+
+    </VerticalStackLayout>
+  </ScrollView>
+
+</ContentPage>

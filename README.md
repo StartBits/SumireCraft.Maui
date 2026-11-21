@@ -846,6 +846,10 @@ public sealed class UploadViewModel([FromKeyedServices("uploads")] IBusyGate upl
 `UseSumireCraft()` registers the application's gate without a key, so the two can be registered in
 either order.
 
+The sample's BusyGate page shows all of this at work: a second tap ignored, two commands that hold
+each other back through the application's gate, an upload in a gate of its own, and a gate left
+busy on purpose, cleared by the watchdog five seconds later.
+
 ## ObserveHandler
 
 A page that subscribes to something that lives longer than it does -- a service, a static event, a

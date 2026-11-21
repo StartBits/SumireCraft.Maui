@@ -48,6 +48,12 @@
     ContentTemplate="{DataTemplate pages:InputsPage}" />
 
   <ShellContent
+    AutomationId="GateMenuItem"
+    Title="BusyGate"
+    Route="gate"
+    ContentTemplate="{DataTemplate pages:GatePage}" />
+
+  <ShellContent
     AutomationId="ObserveHandlerMenuItem"
     Title="ObserveHandler"
     Route="observehandler"
