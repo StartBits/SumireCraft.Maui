@@ -18,6 +18,7 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 | **Reliability** | [Exception reporting](#exceptions) -- one place to send every exception you catch | .NET MAUI catches nothing on an application's behalf. Log it, show it, or forward it to your crash reporter, from one place. |
 | | [Safety net](#the-safety-net) (opt-in) -- reports what nothing caught, as far as .NET hears of it | A throw on a background task can take the process down without a trace. |
 | | [Busy gate](#busy-gate) -- is anything in flight, anywhere in the app? | `AsyncRelayCommand` guards one command. The gate spans commands, pages and layers. |
+| | [ObserveHandler](#observehandler) -- when a page or a view comes in, and when it goes | A page that subscribes to a long-lived service is held by it after it closes. Which of .NET MAUI's events means "closed" -- two handler events, a null to check, an order to get right -- is easy to get wrong. |
 
 ### What gets in, and what stays out
 
@@ -844,6 +845,47 @@ public sealed class UploadViewModel([FromKeyedServices("uploads")] IBusyGate upl
 
 `UseSumireCraft()` registers the application's gate without a key, so the two can be registered in
 either order.
+
+## ObserveHandler
+
+A page that subscribes to something that lives longer than it does -- a service, a static event, a
+message hub -- is held by it after it closes, together with everything on it, and nothing says so.
+`ObserveHandler`, in `SumireCraft.Maui.Lifetime`, calls back when a page or a view is connected to
+the platform and when it is disconnected, which .NET MAUI does to a page as it closes:
+
+```csharp
+using SumireCraft.Maui.Lifetime;
+
+public OrderPage(OrderService orders)
+{
+    InitializeComponent();
+    this.ObserveHandler(
+        onConnected: () => orders.Changed += OnOrdersChanged,
+        onDisconnected: () => orders.Changed -= OnOrdersChanged);
+}
+```
+
+A page popped from a `Shell` or dismissed as a modal is disconnected, and so is every view on it,
+so a control of your own can take and give back what it needs the same way. Whether a page closed
+another way is disconnected is .NET MAUI's to decide; where it matters, look. The callbacks
+alternate, connected first; a page that already has a handler when you call it is connected at
+once, and one given a handler again, such as a page kept and pushed again, is connected again.
+
+- **Connected means alive, not shown.** A page under another pushed on a `Shell`, or on a flyout
+  item that is not shown, stays connected. What should stop while a page is hidden belongs in
+  `Appearing` and `Disappearing`, and whether a connect comes before or after `Appearing` is the
+  platform's.
+- **A view taken out of a layout while its page stays is not disconnected.** Disconnect it, and
+  whatever is inside it, with .NET MAUI's `view.DisconnectHandlers()`. Nothing is disconnected on
+  its own where `HandlerProperties.DisconnectPolicy` is `Manual`.
+- **Do not touch `PlatformView` in `onDisconnected`.** It may already be gone, depending on the
+  platform and on how the page closed; let go of what your own code took.
+- **An exception in a callback is let out**, as from any event handler, on the UI thread where the
+  page is opening or closing. A callback that can fail catches for itself.
+
+Observing subscribes to the element's own events alone, so it keeps nothing alive and there is
+nothing to unsubscribe. The sample's ObserveHandler page counts the pages open on a long-lived
+service, in and out.
 
 ## Building blocks
 
