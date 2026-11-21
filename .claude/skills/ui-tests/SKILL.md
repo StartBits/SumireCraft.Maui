@@ -78,7 +78,8 @@ that can fail once or twice with the agent's xcodebuild exiting with code 65; th
 An agent left over from an earlier run can also accept the next session and never answer it: the
 run sits for four minutes per session ("timeout of 240000ms exceeded" in Appium's log) and every
 test fails. So stop it, and any sample still open, before each Mac Catalyst run
-(`pkill -f WebDriverAgentRunner; pkill -f SumireCraft.Maui.Sample`; macOS 27.2, Mac2 4.5.1).
+(`pkill -f WebDriverAgentRunner; pkill -f 'SumireCraft.Maui.Sample.app/'`; macOS 27.2, Mac2
+4.5.1). The second matches the application alone, not a `dotnet build` of the sample's project.
 
 Start the emulator before Appium. Close the sample before building, or its running executable
 fails the build.
