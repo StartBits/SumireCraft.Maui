@@ -47,6 +47,10 @@ public abstract class ObserveHandlerTests : SamplePageTests
         Expect(Count, "Open pages: 0");
     }
 
+    /// <remarks>
+    /// The page underneath stays in the tree on Mac Catalyst, so the page on top is reached by the
+    /// identifiers the sample numbers by how deep it is.
+    /// </remarks>
     [Fact]
     public void TwoPagesOneOnAnother_AreBothConnectedAndDisconnectedAsEachCloses()
     {
@@ -57,10 +61,10 @@ public abstract class ObserveHandlerTests : SamplePageTests
 
         LetThePageSettle();
         Find("PushAnotherObservedPage").Click();
-        Expect(ObservedCount, "Open pages: 2");
+        Expect(ObservedCount + "2", "Open pages: 2");
 
         LetThePageSettle();
-        Find(Back).Click();
+        Find(Back + "2").Click();
         Expect(ObservedCount, "Open pages: 1");
 
         LetThePageSettle();
