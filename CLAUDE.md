@@ -61,9 +61,10 @@ seems to need it, stop and say so.
   than one of its own. A departure is a decision of its own, argued out and written down where app
   authors read it, as `SmrBadgeView.TextFlowDirection` is. Laid out right to left, an input's
   `BorderThickness` puts its left at the right, as .NET MAUI lays out a `Margin` or a `Padding`, and
-  its corners go where .NET MAUI's `Border` puts them: mirrored on Windows, in place on Android.
-  Measured on .NET MAUI 10, on Windows and Android; iOS and Mac Catalyst are taken to be Android's
-  until measured on the Mac. A new version of .NET MAUI is measured again rather than assumed.
+  its corners go where .NET MAUI's `Border` puts them: mirrored on Windows, in place on Android, iOS
+  and Mac Catalyst. Measured on .NET MAUI 10 on all four: on iOS and Mac Catalyst, as on Android, a
+  `Margin` and a layout's or a `Border`'s `Padding` are mirrored, while a `Label`'s `Padding` and a
+  `Border`'s corners stay in place. A new version of .NET MAUI is measured again rather than assumed.
 - `SmrTapBehavior` reads a burst once, when it ends, and never early -- not even a lone tap. Firing early
   opened the debug room halfway through a burst. A view that only needs one tap wants `TapGestureRecognizer`.
 - A line whose command cannot execute does not hand the burst to a lower line, and a burst still fires

@@ -543,10 +543,10 @@ Until `BorderThickness` or `CornerRadius` is given, an input is drawn in the pla
 fills the same shape. Clearing both gives the platform's box back. Laid out right to left, the
 thickness given for the left is at the right, the side the text starts from, as a `Margin` or a
 `Padding` is. The corners move to the other side on Windows and stay where they are elsewhere, as
-.NET MAUI's own `Border` does on Windows and Android: a `CornerRadius` of `8,0,0,0` rounds the top
-right on Windows and the top left on the other platforms. Everything else is the input it derives
-from, and a style you wrote for every `Entry` -- the Styles.xaml of a new project has one for each
-of the five -- reaches `SmrEntry` too.
+.NET MAUI's own `Border` does: a `CornerRadius` of `8,0,0,0` rounds the top right on Windows and the
+top left on the other platforms. Everything else is the input it derives from, and a style you wrote
+for every `Entry` -- the Styles.xaml of a new project has one for each of the five -- reaches
+`SmrEntry` too.
 
 A style says it once for every page, and a visual state changes it while the input has the focus:
 
