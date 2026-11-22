@@ -19,7 +19,12 @@ public abstract class InputBorderTests : SamplePageTests
     private const string AbcEntry = "AbcEntry";
     private const string ToggledEntry = "ToggledEntry";
     private const string BoxedEntry = "BoxedEntry";
+    private const string RightToLeftBoxedEntry = "RightToLeftBoxedEntry";
     private const string Editor = "UnderlinedEditor";
+
+    // The least room, in points, kept between a border down a side and the text: less than any
+    // platform's own box keeps, more than a text run onto the border would leave.
+    private const double LeastGap = 3;
 
     private protected InputBorderTests(SampleAppFixture app)
         : base(app)
@@ -167,48 +172,68 @@ public abstract class InputBorderTests : SamplePageTests
 
     /// <remarks>
     /// The box iOS takes away from a text field is what held its text off the edge. Across the middle
-    /// of the boxed entry, what lies inside its left border, for twice the border's width, is the
-    /// entry's background and not its placeholder.
+    /// of each boxed entry, the entry's background lies between the text and the border down the side
+    /// the text starts from, for at least <see cref="LeastGap"/> points: from the left of the boxed
+    /// entry, and from the right of one laid out right to left and thicker there. A picture's pixels
+    /// to the point are read off the left border, two points thick in both.
     /// </remarks>
-    [Fact]
-    public void ABorderDownTheSide_KeepsTheTextOffIt()
+    [Theory]
+    [InlineData(BoxedEntry, false)]
+    [InlineData(RightToLeftBoxedEntry, true)]
+    public void ABorderDownTheSideTheTextStartsFrom_KeepsTheTextOffIt(string entry, bool fromTheRight)
     {
         Open();
         var scroller = Ui.ByAutomationId(PageScroll);
 
         try
         {
-            var picture = Png.Read(Ui.BringIntoView(Ui.ByAutomationId(BoxedEntry), scroller).GetScreenshot().AsByteArray);
+            var picture = Png.Read(Ui.BringIntoView(Ui.ByAutomationId(entry), scroller).GetScreenshot().AsByteArray);
+            var gap = double.MaxValue;
 
             for (var y = picture.Height / 3; y < picture.Height * 2 / 3; y++)
             {
-                var x = 0;
-                while (x < picture.Width / 3 && !IsMagenta(picture.ColourAt(x, y)))
+                var pixelsToThePoint = BorderFrom(picture, y, fromTheRight: false).Width / 2.0;
+                var (inside, width) = BorderFrom(picture, y, fromTheRight);
+                Assert.True(width > 0 && pixelsToThePoint > 0, $"{entry} has no magenta border down its sides, {y} pixels down.");
+
+                // The pixel next to the border is blended with it, and is counted without being read.
+                var step = fromTheRight ? -1 : 1;
+                var background = 1;
+                for (var x = inside + step; x > 0 && x < picture.Width - 1 && IsBoxBackground(picture.ColourAt(x, y)); x += step)
                 {
-                    x++;
+                    background++;
                 }
 
-                var border = 0;
-                while (IsMagenta(picture.ColourAt(x + border, y)))
-                {
-                    border++;
-                }
-
-                Assert.True(border > 0, $"The entry has no magenta border at its left, {y} pixels down.");
-
-                // The pixel next to the border is blended with it, and is passed over.
-                for (var inside = x + border + 1; inside < x + (border * 3); inside++)
-                {
-                    Assert.True(
-                        IsBoxBackground(picture.ColourAt(inside, y)),
-                        $"The entry's text reaches its left border, {y} pixels down: {picture.ColourAt(inside, y)}.");
-                }
+                gap = Math.Min(gap, background / pixelsToThePoint);
             }
+
+            Assert.True(gap >= LeastGap, $"{entry}'s text comes within {gap:F1} points of the border it starts from.");
         }
         finally
         {
             Ui.ScrollToTop(scroller);
         }
+    }
+
+    // Where the magenta border met first from one end of a row ends, and how many pixels wide it is.
+    private static (int Inside, int Width) BorderFrom(Png picture, int y, bool fromTheRight)
+    {
+        var step = fromTheRight ? -1 : 1;
+        var x = fromTheRight ? picture.Width - 1 : 0;
+
+        for (var moved = 0; moved < picture.Width / 3 && !IsMagenta(picture.ColourAt(x, y)); moved++)
+        {
+            x += step;
+        }
+
+        var width = 0;
+        while (x >= 0 && x < picture.Width && IsMagenta(picture.ColourAt(x, y)))
+        {
+            width++;
+            x += step;
+        }
+
+        return (x, width);
     }
 
     // The boxed entry's own background, #F3EDF7.

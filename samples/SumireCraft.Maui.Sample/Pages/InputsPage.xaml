@@ -94,6 +94,17 @@
         BorderColor="Magenta"
         BackgroundColor="#F3EDF7" />
 
+      <!-- The same box laid out right to left, its text starting from the right, where the border is
+           thicker: the text keeps off the side it starts from. -->
+      <smr:SmrEntry
+        AutomationId="RightToLeftBoxedEntry"
+        FlowDirection="RightToLeft"
+        Placeholder="Right to left, thick at its start"
+        BorderThickness="2,2,8,2"
+        CornerRadius="8"
+        BorderColor="Magenta"
+        BackgroundColor="#F3EDF7" />
+
       <!-- Each of the other inputs on a line of a colour of its own, for a test to tell them apart. -->
       <smr:SmrEditor
         AutomationId="UnderlinedEditor"

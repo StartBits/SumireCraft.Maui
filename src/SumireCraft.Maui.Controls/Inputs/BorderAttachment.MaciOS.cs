@@ -72,6 +72,11 @@ internal sealed partial class BorderAttachment
     {
         if (platformView is UIView view)
         {
+            if (view is UITextField field && _originalBorder is not null)
+            {
+                KeepTextOffTheSides(field, look.Thickness);
+            }
+
             Place(view);
         }
     }
@@ -102,12 +107,19 @@ internal sealed partial class BorderAttachment
 
     // Taking the text field's box away also takes away the room it kept between its edge and the
     // text, which a line under the text does not miss but a border down a side does: the text would
-    // run onto it. An empty view at each such side keeps the text off by the border and a gap.
+    // run onto it. An empty view at each such side keeps the text off by the border and a gap. UIKit
+    // shows the left view at the side the text starts from, which is the right of a field laid out
+    // right to left, while the border is drawn where its thickness says.
     private void KeepTextOffTheSides(UITextField field, Thickness thickness)
     {
-        if (thickness.Left > 0)
+        var flow = ((IVisualElementController)_view).EffectiveFlowDirection;
+        var (start, end) = (flow & EffectiveFlowDirection.RightToLeft) != 0
+            ? (thickness.Right, thickness.Left)
+            : (thickness.Left, thickness.Right);
+
+        if (start > 0)
         {
-            field.LeftView = new UIView(new CoreGraphics.CGRect(0, 0, thickness.Left + SideGap, 1));
+            field.LeftView = new UIView(new CoreGraphics.CGRect(0, 0, start + SideGap, 1));
             field.LeftViewMode = UITextFieldViewMode.Always;
         }
         else
@@ -115,9 +127,9 @@ internal sealed partial class BorderAttachment
             (field.LeftView, field.LeftViewMode) = (_originalSides.Left, _originalSides.LeftMode);
         }
 
-        if (thickness.Right > 0)
+        if (end > 0)
         {
-            field.RightView = new UIView(new CoreGraphics.CGRect(0, 0, thickness.Right + SideGap, 1));
+            field.RightView = new UIView(new CoreGraphics.CGRect(0, 0, end + SideGap, 1));
             field.RightViewMode = UITextFieldViewMode.Always;
         }
         else
