@@ -1020,7 +1020,7 @@ release that needs a newer .NET.
 | Platform | Run on |
 | --- | --- |
 | Android | An emulator (Android 16, API 36) |
-| iOS | iPhone simulators (iOS 26.5 and 27.0) |
+| iOS | An iPhone simulator (iOS 27.2) |
 | Mac Catalyst | A Mac (macOS 27.2) |
 | Windows | A Windows 11 PC |
 
