@@ -11,20 +11,19 @@
     <Label
       Text="This page is counted in while it is connected, and out as it closes." />
 
+    <!-- The automation identifiers of these three are given in code, numbered by the page's depth. -->
     <Label
       x:Name="CountLabel"
-      AutomationId="ObservedPageCount"
       FontAttributes="Bold" />
 
     <Button
       x:Name="AnotherButton"
-      AutomationId="PushAnotherObservedPage"
       Text="Push another"
       Clicked="OnAnotherClicked" />
 
     <!-- Not "Close", which Windows already shows as the window's own button. -->
     <Button
-      AutomationId="ObservedPageBack"
+      x:Name="BackButton"
       Text="Back"
       Clicked="OnBackClicked" />
 
