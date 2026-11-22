@@ -116,7 +116,7 @@ public class InputStyleTests
         page.Add(plain);
         page.Add(view);
 
-        page.Resources.Remove(typeof(Entry).FullName!);
+        page.Resources.Remove(typeof(Entry).FullName);
 
         Assert.Equal(plain.TextColor, view.TextColor);
     }

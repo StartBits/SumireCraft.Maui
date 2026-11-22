@@ -51,7 +51,7 @@ public class HandlerLifecycleExtensionsTests
         var view = new Label { Handler = new FakeHandler() };
         Observe(view, "label");
 
-        view.Handler!.DisconnectHandler();
+        view.Handler.DisconnectHandler();
 
         Assert.Equal(["label connected", "label disconnected"], _calls);
     }
