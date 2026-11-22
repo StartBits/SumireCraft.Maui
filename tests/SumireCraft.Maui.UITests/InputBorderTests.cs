@@ -20,11 +20,13 @@ public abstract class InputBorderTests : SamplePageTests
     private const string ToggledEntry = "ToggledEntry";
     private const string BoxedEntry = "BoxedEntry";
     private const string RightToLeftBoxedEntry = "RightToLeftBoxedEntry";
+    private const string PlainEntry = "PlainEntry";
     private const string Editor = "UnderlinedEditor";
 
     // The least room, in points, kept between a border down a side and the text: less than any
-    // platform's own box keeps, more than a text run onto the border would leave.
-    private const double LeastGap = 3;
+    // platform's own box keeps, more than a text run onto the border would leave. Android keeps the
+    // least, 3.8 points to the edge of the text's room, which a letter's own edge reads as 2.7.
+    private const double LeastGap = 2;
 
     private protected InputBorderTests(SampleAppFixture app)
         : base(app)
@@ -148,6 +150,59 @@ public abstract class InputBorderTests : SamplePageTests
     }
 
     /// <remarks>
+    /// A border down the sides moves the text in, by its thickness on Android and by the room iOS
+    /// keeps in place of its box. Taken away, the text goes back to where the platform keeps it: where
+    /// it is in the entry given no border, the same width on the page. Both placeholders start with a
+    /// round letter, read the same to a pixel.
+    /// </remarks>
+    [Fact]
+    public void ABorderTakenAway_PutsTheTextBackWhereThePlatformKeepsIt()
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+
+        try
+        {
+            SetBordered(false);
+            var toggled = TextStart(Png.Read(Find(ToggledEntry).GetScreenshot().AsByteArray));
+            var plain = TextStart(Png.Read(Ui.BringIntoView(Ui.ByAutomationId(PlainEntry), scroller).GetScreenshot().AsByteArray));
+
+            Assert.True(Math.Abs(toggled - plain) <= 2, $"With its border taken away, the entry's text starts {toggled} pixels in, and the plain entry's {plain}.");
+        }
+        finally
+        {
+            Ui.ScrollToTop(scroller);
+            SetBordered(true);
+        }
+    }
+
+    // How many pixels in from the left the text starts, across the middle of an input: past the edge
+    // of the platform's box, if it draws one there, and the light room inside it.
+    private static int TextStart(Png picture)
+    {
+        static bool IsLight((byte Red, byte Green, byte Blue) c) => c.Red > 230 && c.Green > 230 && c.Blue > 230;
+
+        var start = int.MaxValue;
+        for (var y = picture.Height / 3; y < picture.Height * 2 / 3; y++)
+        {
+            var x = 0;
+            while (x < picture.Width && !IsLight(picture.ColourAt(x, y)))
+            {
+                x++;
+            }
+
+            while (x < picture.Width && IsLight(picture.ColourAt(x, y)))
+            {
+                x++;
+            }
+
+            start = Math.Min(start, x);
+        }
+
+        return start;
+    }
+
+    /// <remarks>
     /// The entry's border is magenta all round, with corners rounded by more than its thickness: its
     /// top has the border too, and its very corner is outside it.
     /// </remarks>
@@ -174,8 +229,9 @@ public abstract class InputBorderTests : SamplePageTests
     /// The box iOS takes away from a text field is what held its text off the edge. Across the middle
     /// of each boxed entry, the entry's background lies between the text and the border down the side
     /// the text starts from, for at least <see cref="LeastGap"/> points: from the left of the boxed
-    /// entry, and from the right of one laid out right to left and thicker there. A picture's pixels
-    /// to the point are read off the left border, two points thick in both.
+    /// entry, and from the right of one laid out right to left. A picture's pixels to the point are
+    /// read off the top border, two points thick in both: Windows lays a border's sides out right to
+    /// left too, so the side that is thicker in one is not the same on every platform.
     /// </remarks>
     [Theory]
     [InlineData(BoxedEntry, false)]
@@ -188,13 +244,14 @@ public abstract class InputBorderTests : SamplePageTests
         try
         {
             var picture = Png.Read(Ui.BringIntoView(Ui.ByAutomationId(entry), scroller).GetScreenshot().AsByteArray);
+            var pixelsToThePoint = TopBand(picture, IsMagenta) / 2.0;
+            Assert.True(pixelsToThePoint > 0, $"{entry} has no magenta border at its top.");
             var gap = double.MaxValue;
 
             for (var y = picture.Height / 3; y < picture.Height * 2 / 3; y++)
             {
-                var pixelsToThePoint = BorderFrom(picture, y, fromTheRight: false).Width / 2.0;
                 var (inside, width) = BorderFrom(picture, y, fromTheRight);
-                Assert.True(width > 0 && pixelsToThePoint > 0, $"{entry} has no magenta border down its sides, {y} pixels down.");
+                Assert.True(width > 0, $"{entry} has no magenta border down the side its text starts from, {y} pixels down.");
 
                 // The pixel next to the border is blended with it, and is counted without being read.
                 var step = fromTheRight ? -1 : 1;
