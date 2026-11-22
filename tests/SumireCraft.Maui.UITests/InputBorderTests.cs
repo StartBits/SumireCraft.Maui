@@ -165,6 +165,55 @@ public abstract class InputBorderTests : SamplePageTests
         }
     }
 
+    /// <remarks>
+    /// The box iOS takes away from a text field is what held its text off the edge. Across the middle
+    /// of the boxed entry, what lies inside its left border, for twice the border's width, is the
+    /// entry's background and not its placeholder.
+    /// </remarks>
+    [Fact]
+    public void ABorderDownTheSide_KeepsTheTextOffIt()
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+
+        try
+        {
+            var picture = Png.Read(Ui.BringIntoView(Ui.ByAutomationId(BoxedEntry), scroller).GetScreenshot().AsByteArray);
+
+            for (var y = picture.Height / 3; y < picture.Height * 2 / 3; y++)
+            {
+                var x = 0;
+                while (x < picture.Width / 3 && !IsMagenta(picture.ColourAt(x, y)))
+                {
+                    x++;
+                }
+
+                var border = 0;
+                while (IsMagenta(picture.ColourAt(x + border, y)))
+                {
+                    border++;
+                }
+
+                Assert.True(border > 0, $"The entry has no magenta border at its left, {y} pixels down.");
+
+                // The pixel next to the border is blended with it, and is passed over.
+                for (var inside = x + border + 1; inside < x + (border * 3); inside++)
+                {
+                    Assert.True(
+                        IsBoxBackground(picture.ColourAt(inside, y)),
+                        $"The entry's text reaches its left border, {y} pixels down: {picture.ColourAt(inside, y)}.");
+                }
+            }
+        }
+        finally
+        {
+            Ui.ScrollToTop(scroller);
+        }
+    }
+
+    // The boxed entry's own background, #F3EDF7.
+    private static bool IsBoxBackground((byte, byte, byte) c) => Near(243, 237, 247, 16)(c);
+
     // Mac Catalyst scales an iPad's points to 77% of the Mac's, so a line one point thick falls across
     // pixels and is blended with the white around it: purple there reads as (158, 108, 158).
     private static bool IsPurple((byte Red, byte Green, byte Blue) c) => c.Red - c.Green > 40 && c.Blue - c.Green > 40;
@@ -177,8 +226,8 @@ public abstract class InputBorderTests : SamplePageTests
     private static bool IsViolet((byte, byte, byte) c) => Near(132, 103, 224)(c);
 
     // A colour close to the one given: the line's colour drawn, blended a little at its edges.
-    private protected static Func<(byte, byte, byte), bool> Near(int red, int green, int blue) =>
-        c => Math.Abs(c.Item1 - red) < 70 && Math.Abs(c.Item2 - green) < 70 && Math.Abs(c.Item3 - blue) < 70;
+    private protected static Func<(byte, byte, byte), bool> Near(int red, int green, int blue, int within = 70) =>
+        c => Math.Abs(c.Item1 - red) < within && Math.Abs(c.Item2 - green) < within && Math.Abs(c.Item3 - blue) < within;
 
     // How many rows of the line's colour make the lowest band of it in the bottom third of the
     // element, down a column through its middle. Some platforms give a control more room below its

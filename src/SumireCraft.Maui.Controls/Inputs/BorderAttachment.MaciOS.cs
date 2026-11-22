@@ -22,8 +22,15 @@ internal sealed partial class BorderAttachment
     // The outline the view is clipped to while a corner is rounded.
     private CAShapeLayer? _clip;
 
+    // How far the text keeps from a border down a side, past the border itself: about what the text
+    // field's own box kept it from its edge.
+    private const double SideGap = 8;
+
     // The box the text field had before its border was drawn, given back when it no longer is.
     private UITextBorderStyle? _originalBorder;
+
+    // What the text field held at its sides before, given back with its box.
+    private (UIView? Left, UITextFieldViewMode LeftMode, UIView? Right, UITextFieldViewMode RightMode) _originalSides;
 
     // Watches the bounds of the view's layer, to keep the border in place.
     private IDisposable? _bounds;
@@ -35,10 +42,16 @@ internal sealed partial class BorderAttachment
             return;
         }
 
-        if (view is UITextField field && _originalBorder is null)
+        if (view is UITextField field)
         {
-            _originalBorder = field.BorderStyle;
-            field.BorderStyle = UITextBorderStyle.None;
+            if (_originalBorder is null)
+            {
+                _originalBorder = field.BorderStyle;
+                _originalSides = (field.LeftView, field.LeftViewMode, field.RightView, field.RightViewMode);
+                field.BorderStyle = UITextBorderStyle.None;
+            }
+
+            KeepTextOffTheSides(field, look.Thickness);
         }
 
         if (_border is null || !ReferenceEquals(_border.SuperLayer, view.Layer))
@@ -80,9 +93,37 @@ internal sealed partial class BorderAttachment
         if (platformView is UITextField field && _originalBorder is { } border)
         {
             field.BorderStyle = border;
+            (field.LeftView, field.LeftViewMode, field.RightView, field.RightViewMode) = _originalSides;
         }
 
         _originalBorder = null;
+        _originalSides = default;
+    }
+
+    // Taking the text field's box away also takes away the room it kept between its edge and the
+    // text, which a line under the text does not miss but a border down a side does: the text would
+    // run onto it. An empty view at each such side keeps the text off by the border and a gap.
+    private void KeepTextOffTheSides(UITextField field, Thickness thickness)
+    {
+        if (thickness.Left > 0)
+        {
+            field.LeftView = new UIView(new CoreGraphics.CGRect(0, 0, thickness.Left + SideGap, 1));
+            field.LeftViewMode = UITextFieldViewMode.Always;
+        }
+        else
+        {
+            (field.LeftView, field.LeftViewMode) = (_originalSides.Left, _originalSides.LeftMode);
+        }
+
+        if (thickness.Right > 0)
+        {
+            field.RightView = new UIView(new CoreGraphics.CGRect(0, 0, thickness.Right + SideGap, 1));
+            field.RightViewMode = UITextFieldViewMode.Always;
+        }
+        else
+        {
+            (field.RightView, field.RightViewMode) = (_originalSides.Right, _originalSides.RightMode);
+        }
     }
 
     private static UIColor? TextColor(UIView view) => view switch
