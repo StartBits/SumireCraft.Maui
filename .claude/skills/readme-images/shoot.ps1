@@ -1,6 +1,7 @@
 # Takes the pictures in README.md from the sample's Showcase page on a running Android emulator:
-# assets/hero.gif, assets/badges.png and assets/taps.gif. Everything is found by AutomationId, so a
-# change to the page's layout needs no change here. See SKILL.md beside this file.
+# assets/hero.gif, assets/badges.png, assets/taps.gif, assets/fields.png and assets/inputs.png.
+# Everything is found by AutomationId, so a change to the page's layout needs no change here. See
+# SKILL.md beside this file.
 #
 #   powershell -File .claude/skills/readme-images/shoot.ps1            # into a folder under %TEMP%
 #   powershell -File .claude/skills/readme-images/shoot.ps1 -Copy      # and then into assets/
@@ -103,6 +104,21 @@ function ConvertTo-Gif([string] $out, [string[]] $clips, [string] $crop, [double
     & $ffmpeg -v error -y @inputs -filter_complex $graph -loop 0 (Join-Path $OutDir $out)
 }
 
+# Nothing is touched until the sample is the application in front: a swipe goes to whatever is.
+$focus = (& $adb shell dumpsys window) -match 'mCurrentFocus'
+if (-not ($focus -match 'com\.companyname\.sumirecraft\.maui\.sample')) {
+    throw 'The sample is not the application in front. Open the Showcase page in the sample.'
+}
+
+# Android gives the first entry on the page the focus as it opens, and scrolls to it, which takes
+# the sections recorded with touches off the top of the screen: back to the top first. A swipe
+# through `input` draws no touch; it is in a 1080x2400 screen's pixels.
+foreach ($i in 1..2) {
+    & $adb shell input swipe 540 300 540 1900 600
+    Start-Sleep -Milliseconds 500
+}
+Start-Sleep -Seconds 1
+
 $ui = Get-Showcase
 foreach ($id in 'ShowcaseBadges', 'ShowcaseCounter', 'ShowcaseAddOne', 'ShowcaseAddMany', 'ShowcaseTaps', 'ShowcaseTapTarget', 'ShowcaseOpened', 'ShowcaseReset') {
     if (-not $ui.ContainsKey($id)) {
@@ -172,7 +188,41 @@ cmd /c "`"$adb`" exec-out screencap -p > `"$screen`""
 ConvertTo-Gif 'hero.gif' @('counter', 'taps') (Rows $ui.ShowcaseCounter $ui.ShowcaseTaps) 1.5
 ConvertTo-Gif 'taps.gif' @('taps') (Rows $ui.ShowcaseTaps $ui.ShowcaseTaps) 2
 
-$pictures = 'hero.gif', 'badges.png', 'taps.gif'
+# The still pictures below the first screen, taken at the end of the page, where both are on the
+# screen at once. A swipe through `input` draws no touch. The swipes are in a 1080x2400 screen's
+# pixels, from near its bottom to near its top; two reach the end of the page with room to spare.
+foreach ($i in 1..2) {
+    & $adb shell input swipe 540 1900 540 300 600
+    Start-Sleep -Milliseconds 500
+}
+Start-Sleep -Seconds 1
+try {
+    $below = Get-Showcase
+    foreach ($id in 'ShowcaseScroll', 'ShowcaseFields', 'ShowcaseInputs') {
+        if (-not $below.ContainsKey($id)) {
+            throw "$id is not on screen at the end of the page. Nothing was copied."
+        }
+    }
+    # The dump cuts a section's bounds at the edge of the scroll view, so a section that meets the
+    # edge is one partly off the screen, and its picture would be cut short.
+    if ($below.ShowcaseFields.Y1 -le $below.ShowcaseScroll.Y1 -or $below.ShowcaseInputs.Y2 -ge $below.ShowcaseScroll.Y2) {
+        throw 'The sections below the first screen do not fit on one screen together. Nothing was copied.'
+    }
+
+    $lower = Join-Path $OutDir 'screen-lower.png'
+    cmd /c "`"$adb`" exec-out screencap -p > `"$lower`""
+    & $ffmpeg -v error -y -i $lower -vf "crop=$(Rows $below.ShowcaseFields $below.ShowcaseFields),scale=720:-1:flags=lanczos" (Join-Path $OutDir 'fields.png')
+    & $ffmpeg -v error -y -i $lower -vf "crop=$(Rows $below.ShowcaseInputs $below.ShowcaseInputs),scale=720:-1:flags=lanczos" (Join-Path $OutDir 'inputs.png')
+}
+finally {
+    # Back to the top, where the next run finds the sections it records.
+    foreach ($i in 1..2) {
+        & $adb shell input swipe 540 300 540 1900 600
+        Start-Sleep -Milliseconds 500
+    }
+}
+
+$pictures = 'hero.gif', 'badges.png', 'taps.gif', 'fields.png', 'inputs.png'
 foreach ($name in $pictures) {
     $file = Get-Item (Join-Path $OutDir $name)
     '{0,-11} {1,9:N0} bytes  {2}' -f $file.Name, $file.Length, $file.FullName
