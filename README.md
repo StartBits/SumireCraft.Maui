@@ -399,6 +399,19 @@ set falls back to the field's default on that page. A style for every `Label`, l
 Styles.xaml a new project starts with, still reaches both labels; where it and the field's defaults
 set the same thing, the field's defaults win.
 
+A long title or error wraps onto as many lines as it needs, as any `Label` does, and the field grows
+to hold them, or, given a height of its own, gives its content less room. The line kept for a
+missing error is one, so an error of two lines still moves what lies below the field. To cut either
+short instead, set `LineBreakMode` or `MaxLines` in the style for its class:
+
+```xml
+<Style TargetType="Label" Class="SmrFieldError">
+    <Setter Property="LineBreakMode" Value="TailTruncation" />
+</Style>
+```
+
+A title cut short at its end loses the required mark along with its last words.
+
 An application that stays in the light theme gets the light theme's red as long as .NET MAUI knows
 it: set `UserAppTheme = AppTheme.Light` in your `App`. Or write the colour plainly in a
 `SmrFieldError` style, which then holds in either theme.
