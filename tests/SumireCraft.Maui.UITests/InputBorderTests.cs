@@ -53,7 +53,7 @@ public abstract class InputBorderTests : SamplePageTests
     {
         Open();
 
-        Assert.True(BandOnScreen(input, Near(red, green, blue)) > 0, $"{input} has no line of ({red}, {green}, {blue}) at its bottom.");
+        Assert.True(BandOnScreen(input, Line(red, green, blue)) > 0, $"{input} has no line of ({red}, {green}, {blue}) at its bottom.");
     }
 
     /// <remarks>
@@ -65,7 +65,7 @@ public abstract class InputBorderTests : SamplePageTests
     {
         Open();
         var scroller = Ui.ByAutomationId(PageScroll);
-        var orange = Near(255, 140, 0);
+        var orange = Line(255, 140, 0);
 
         try
         {
@@ -254,6 +254,22 @@ public abstract class InputBorderTests : SamplePageTests
     private protected static Func<(byte, byte, byte), bool> Near(int red, int green, int blue, int within = 70) =>
         c => Math.Abs(c.Item1 - red) < within && Math.Abs(c.Item2 - green) < within && Math.Abs(c.Item3 - blue) < within;
 
+    // A line of the colour given, on a white page, however much of it a pixel holds. Mac Catalyst
+    // scales an iPad's points to 77% of the Mac's, so a line one point thick falls across two rows of
+    // pixels, each the colour blended with white: green there reads as (93, 151, 93) and
+    // (123, 166, 123). What each pixel takes away from white points the same way as what the colour
+    // does, and is at least a third as much; black text and a grey placeholder point elsewhere.
+    private protected static Func<(byte, byte, byte), bool> Line(int red, int green, int blue) => c =>
+    {
+        double[] colour = [255 - red, 255 - green, 255 - blue];
+        double[] pixel = [255 - c.Item1, 255 - c.Item2, 255 - c.Item3];
+        var dot = (colour[0] * pixel[0]) + (colour[1] * pixel[1]) + (colour[2] * pixel[2]);
+        var colourLength = Math.Sqrt((colour[0] * colour[0]) + (colour[1] * colour[1]) + (colour[2] * colour[2]));
+        var pixelLength = Math.Sqrt((pixel[0] * pixel[0]) + (pixel[1] * pixel[1]) + (pixel[2] * pixel[2]));
+
+        return pixelLength >= colourLength / 3 && dot / (colourLength * pixelLength) >= 0.98;
+    };
+
     // How many rows of the line's colour make the lowest band of it in the bottom third of the
     // element, down a column through its middle. Some platforms give a control more room below its
     // box than the box takes -- a WinUI date picker does -- so the line need not be the last row.
@@ -378,7 +394,7 @@ public abstract class PickerBorderTests : InputBorderTests
     {
         Open();
 
-        Assert.True(BandOnScreen(picker, Near(red, green, blue)) > 0, $"{picker} has no line of ({red}, {green}, {blue}) at its bottom.");
+        Assert.True(BandOnScreen(picker, Line(red, green, blue)) > 0, $"{picker} has no line of ({red}, {green}, {blue}) at its bottom.");
     }
 }
 
