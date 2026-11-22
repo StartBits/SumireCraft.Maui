@@ -56,6 +56,14 @@ Two problems drive the library:
 Each of these was argued out with the maintainer. Do not propose reversing one unprompted; if a change
 seems to need it, stop and say so.
 
+- The library is a .NET MAUI library, and what an app author knows from .NET MAUI holds in it: where
+  .NET MAUI has a convention for the same thing, the library follows it, platform by platform, rather
+  than one of its own. A departure is a decision of its own, argued out and written down where app
+  authors read it, as `SmrBadgeView.TextFlowDirection` is. Laid out right to left, an input's
+  `BorderThickness` puts its left at the right, as .NET MAUI lays out a `Margin` or a `Padding`, and
+  its corners go where .NET MAUI's `Border` puts them: mirrored on Windows, in place on Android.
+  Measured on .NET MAUI 10, on Windows and Android; iOS and Mac Catalyst are taken to be Android's
+  until measured on the Mac. A new version of .NET MAUI is measured again rather than assumed.
 - `SmrTapBehavior` reads a burst once, when it ends, and never early -- not even a lone tap. Firing early
   opened the debug room halfway through a burst. A view that only needs one tap wants `TapGestureRecognizer`.
 - A line whose command cannot execute does not hand the burst to a lower line, and a burst still fires

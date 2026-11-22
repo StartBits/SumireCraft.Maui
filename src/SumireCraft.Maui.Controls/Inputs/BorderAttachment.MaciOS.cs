@@ -109,17 +109,12 @@ internal sealed partial class BorderAttachment
     // text, which a line under the text does not miss but a border down a side does: the text would
     // run onto it. An empty view at each such side keeps the text off by the border and a gap. UIKit
     // shows the left view at the side the text starts from, which is the right of a field laid out
-    // right to left, while the border is drawn where its thickness says.
+    // right to left, and the thickness given for the left is that side's too (BorderLook.LaidOut).
     private void KeepTextOffTheSides(UITextField field, Thickness thickness)
     {
-        var flow = ((IVisualElementController)_view).EffectiveFlowDirection;
-        var (start, end) = (flow & EffectiveFlowDirection.RightToLeft) != 0
-            ? (thickness.Right, thickness.Left)
-            : (thickness.Left, thickness.Right);
-
-        if (start > 0)
+        if (thickness.Left > 0)
         {
-            field.LeftView = new UIView(new CoreGraphics.CGRect(0, 0, start + SideGap, 1));
+            field.LeftView = new UIView(new CoreGraphics.CGRect(0, 0, thickness.Left + SideGap, 1));
             field.LeftViewMode = UITextFieldViewMode.Always;
         }
         else
@@ -127,9 +122,9 @@ internal sealed partial class BorderAttachment
             (field.LeftView, field.LeftViewMode) = (_originalSides.Left, _originalSides.LeftMode);
         }
 
-        if (end > 0)
+        if (thickness.Right > 0)
         {
-            field.RightView = new UIView(new CoreGraphics.CGRect(0, 0, end + SideGap, 1));
+            field.RightView = new UIView(new CoreGraphics.CGRect(0, 0, thickness.Right + SideGap, 1));
             field.RightViewMode = UITextFieldViewMode.Always;
         }
         else
@@ -160,17 +155,20 @@ internal sealed partial class BorderAttachment
         var bounds = view.Bounds;
         var local = new RectF(0, 0, (float)bounds.Width, (float)bounds.Height);
 
+        // UIKit draws a layer's path where it is told, so a border laid out right to left is told so.
+        var look = Look.LaidOut(((IVisualElementController)_view).EffectiveFlowDirection);
+
         CATransaction.Begin();
         CATransaction.DisableActions = true;
 
         _border.Frame = bounds;
-        _border.Path = BorderGeometry.Ring(local, Look, 1).AsCGPath();
+        _border.Path = BorderGeometry.Ring(local, look, 1).AsCGPath();
 
-        if (IsRounded(Look.CornerRadius))
+        if (IsRounded(look.CornerRadius))
         {
             _clip ??= new CAShapeLayer();
             _clip.Frame = bounds;
-            _clip.Path = BorderGeometry.Fill(local, Look, 1).AsCGPath();
+            _clip.Path = BorderGeometry.Fill(local, look, 1).AsCGPath();
             view.Layer.Mask = _clip;
         }
         else if (_clip is not null)

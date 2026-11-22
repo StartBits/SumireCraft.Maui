@@ -35,15 +35,16 @@ internal sealed partial class BorderAttachment
             _original ??= current;
         }
 
+        // Android draws the sides where it is told, so a border laid out right to left is told so.
+        look = look.LaidOut(((IVisualElementController)_view).EffectiveFlowDirection);
         var padding = _padding ??= (edit.PaddingLeft, edit.PaddingTop, edit.PaddingRight, edit.PaddingBottom);
         var color = look.Color?.ToPlatform() ?? new Android.Graphics.Color(edit.CurrentTextColor);
         var drawn = new BorderDrawable(FillOf(current), look, color, context.ToPixels(1));
 
         // The border is drawn inside the input, over the room that kept the text off its edge: a
-        // border down a side takes that room by its thickness, and the text moves in by as much,
-        // whichever way the input is laid out. A line under the text, as thin as the Material line,
-        // lies where that line did, in room of its own below the text; a thick border at the top or
-        // the bottom is left to come nearer the text.
+        // border down a side takes that room by its thickness, and the text moves in by as much. A
+        // line under the text, as thin as the Material line, lies where that line did, in room of its
+        // own below the text; a thick border at the top or the bottom is left to come nearer the text.
         edit.Background = drawn;
         edit.SetPadding(
             padding.Left + Pixels(context, look.Thickness.Left),

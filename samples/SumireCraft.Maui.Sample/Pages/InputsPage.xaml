@@ -133,14 +133,15 @@
           BorderColor="Teal" />
       </Grid>
 
-      <!-- The box laid out right to left, its text starting from the right: the text keeps off the
-           side it starts from. Below the others the tests look for, so that it pushes none of them
-           off a phone's first screen. -->
+      <!-- The box laid out right to left, its text starting from the right. As a Margin or a Padding
+           does, the thickness given for the left is the side the text starts from, which is the
+           right here, and the text keeps off it. Below the others the tests look for, so that it
+           pushes none of them off a phone's first screen. -->
       <smr:SmrEntry
         AutomationId="RightToLeftBoxedEntry"
         FlowDirection="RightToLeft"
         Placeholder="Right to left, thick at its start"
-        BorderThickness="2,2,8,2"
+        BorderThickness="8,2,2,2"
         CornerRadius="8"
         BorderColor="Magenta"
         BackgroundColor="#F3EDF7" />

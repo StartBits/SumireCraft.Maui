@@ -95,10 +95,19 @@ public abstract class InputBorderTests : SamplePageTests
         var entry = Find(AbcEntry);
         var before = Band(entry, IsViolet);
 
-        entry.Click();
+        try
+        {
+            entry.Click();
 
-        var after = Settled(() => Band(Find(AbcEntry), IsViolet), changedFrom: before);
-        Assert.True(after > before, $"The line was {before} pixels thick before the entry had the focus, and {after} with it.");
+            var after = Settled(() => Band(Find(AbcEntry), IsViolet), changedFrom: before);
+            Assert.True(after > before, $"The line was {before} pixels thick before the entry had the focus, and {after} with it.");
+        }
+        finally
+        {
+            // The keyboard the focus brought up covers the bottom of the page, where Android leaves
+            // what it covers out of the tree.
+            Ui.DismissKeyboard();
+        }
     }
 
     /// <remarks>
@@ -229,9 +238,8 @@ public abstract class InputBorderTests : SamplePageTests
     /// The box iOS takes away from a text field is what held its text off the edge. Across the middle
     /// of each boxed entry, the entry's background lies between the text and the border down the side
     /// the text starts from, for at least <see cref="LeastGap"/> points: from the left of the boxed
-    /// entry, and from the right of one laid out right to left. A picture's pixels to the point are
-    /// read off the top border, two points thick in both: Windows lays a border's sides out right to
-    /// left too, so the side that is thicker in one is not the same on every platform.
+    /// entry, and from the right of one laid out right to left, where its border is thicker. A
+    /// picture's pixels to the point are read off the top border, two points thick in both.
     /// </remarks>
     [Theory]
     [InlineData(BoxedEntry, false)]
@@ -265,6 +273,36 @@ public abstract class InputBorderTests : SamplePageTests
             }
 
             Assert.True(gap >= LeastGap, $"{entry}'s text comes within {gap:F1} points of the border it starts from.");
+        }
+        finally
+        {
+            Ui.ScrollToTop(scroller);
+        }
+    }
+
+    /// <remarks>
+    /// As .NET MAUI lays out a Margin or a Padding, the thickness given for the left is the side the
+    /// text starts from, and the right the side it ends at: laid out right to left, the entry given
+    /// eight points at the left and two elsewhere is eight points thick at its right and two at its
+    /// left. The two are compared, not measured: Windows scales a point to a fraction of pixels, and
+    /// blends the edges of a thin border more than a thick one's, so the right is asked to be well over
+    /// twice the left rather than four times.
+    /// </remarks>
+    [Fact]
+    public void ABorderLaidOutRightToLeft_HasItsLeftThicknessAtTheRight()
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+
+        try
+        {
+            var picture = Png.Read(Ui.BringIntoView(Ui.ByAutomationId(RightToLeftBoxedEntry), scroller).GetScreenshot().AsByteArray);
+            var y = picture.Height / 2;
+
+            var right = BorderFrom(picture, y, fromTheRight: true).Width;
+            var left = BorderFrom(picture, y, fromTheRight: false).Width;
+
+            Assert.True(left > 0 && right >= 2.5 * left, $"{RightToLeftBoxedEntry}'s border is {left} pixels thick at its left and {right} at its right.");
         }
         finally
         {

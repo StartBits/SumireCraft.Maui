@@ -64,6 +64,9 @@ internal sealed partial class BorderAttachment
         _brush ??= new SolidColorBrush(color);
         _brush.Color = color;
 
+        // WinUI mirrors a control laid out right to left by itself, its border and corners included,
+        // as it does .NET MAUI's own Border, so the border is handed over as given (BorderLook.LaidOut
+        // is for the other platforms).
         var thickness = new WinThickness(look.Thickness.Left, look.Thickness.Top, look.Thickness.Right, look.Thickness.Bottom);
         var resources = new Dictionary<string, object>();
         foreach (var key in brushes)
