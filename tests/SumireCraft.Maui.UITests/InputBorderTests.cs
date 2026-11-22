@@ -468,8 +468,8 @@ public abstract class InputBorderTests : SamplePageTests
             Expect(state, wanted);
 
             // The label changes at once, but the switch slides for a moment longer, and on iOS a tap
-            // sent while it slides was seen to go nowhere, now and then: the next test pressing it
-            // found it as it was.
+            // sent while it slides was seen to go nowhere, now and then: the next press found it as
+            // it was.
             Thread.Sleep(500);
         }
 
