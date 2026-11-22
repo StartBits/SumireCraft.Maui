@@ -10,7 +10,7 @@ version of the last release that did; a release's heading says what it leaves ou
 
 A release that raises the minimum version of .NET MAUI says so under *Changed*.
 
-## [1.1.0]
+## [1.1.0] - 2026-11-22
 
 ### Added
 
