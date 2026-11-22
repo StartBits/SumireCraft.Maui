@@ -1,4 +1,3 @@
-using Microsoft.Maui.Graphics;
 using SumireCraft.Maui.Controls;
 
 namespace SumireCraft.Maui.UnitTests.Inputs;
