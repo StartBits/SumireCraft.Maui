@@ -10,11 +10,14 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
   <!-- The title of every field that keeps the class SmrFieldTitle, restyled once for the whole
-       application without writing a template. Indented a little, to line up with the text inside
-       an entry. A UI test reads the indent to see that a style here reaches the label inside a
-       field's template. -->
+       application without writing a template: a little larger than an entry's text and a little
+       lighter than black, indented to line up with the text inside an entry, and with no room below
+       it, since an entry keeps room enough above its text. A UI test reads the indent to see that a
+       style here reaches the label inside a field's template. -->
   <Style TargetType="Label" Class="SmrFieldTitle">
-    <Setter Property="Margin" Value="4,0,0,4" />
+    <Setter Property="Margin" Value="4,0,0,0" />
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
   </Style>
 
   <!-- The mark after a required field's title. A span takes no style class, so its style goes

@@ -323,6 +323,12 @@ view's item. A `BindingContext` set on the behavior itself is used for every vie
 
 Puts a title above whatever takes the input, and its error below.
 
+![Two required fields, Name and Email, each with a red mark after its title, and Email with its error below it](assets/fields.png)
+
+The red marks and the titles' size, colour and indent are the sample application's own: a style for
+the mark and a style for the class `SmrFieldTitle`, written as shown below. Without them the mark
+looks like the title, and the title, 14 in the text's own colour, starts at the field's edge.
+
 ```xml
 xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
 
@@ -525,6 +531,8 @@ as both `DateTarget` and `TimeTarget` holds the date alone, and the input's time
 
 .NET MAUI's `Entry`, `Editor`, `Picker`, `DatePicker` and `TimePicker`, each with three properties
 more that draw its box, alike on every platform.
+
+![An Entry as Android draws it, an SmrEntry on a violet line, one in a rounded box, and an SmrPicker in the same box](assets/inputs.png)
 
 ```xml
 <smr:SmrEntry Text="{Binding Name}" BorderThickness="0,0,0,1" />

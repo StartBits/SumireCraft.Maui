@@ -1,13 +1,13 @@
 ---
 name: readme-images
-description: Taking the pictures in README.md again -- assets/hero.gif, assets/badges.png and assets/taps.gif -- from the sample's Showcase page on the Android emulator. Use when a widget's look or behaviour changes, when the Showcase page changes, or when the maintainer asks for new pictures.
+description: Taking the pictures in README.md again -- assets/hero.gif, assets/badges.png, assets/taps.gif, assets/fields.png and assets/inputs.png -- from the sample's Showcase page on the Android emulator. Use when a widget's look or behaviour changes, when the Showcase page changes, or when the maintainer asks for new pictures.
 ---
 
 # README pictures
 
 The pictures in `README.md` live in `assets/` and come from one page, the sample's
 `Pages/ShowcasePage`, on the Android emulator. All of them are Android: the maintainer chose one
-platform so that the README looks of a piece. `shoot.ps1` beside this file takes all three in one
+platform so that the README looks of a piece. `shoot.ps1` beside this file takes all five in one
 run.
 
 | File | Where in README.md | What it shows |
@@ -15,10 +15,16 @@ run.
 | `assets/hero.gif` | under the title | a badge counting up to `99+`, then one tap and a burst of five |
 | `assets/badges.png` | the start of *SmrBadgeView* | a number, `99+` and a dot, then the same row right to left |
 | `assets/taps.gif` | the start of *SmrTapBehavior* | one tap opening the inbox, five taps opening the debug room |
+| `assets/fields.png` | the start of *SmrField* | two required fields, the second with its error |
+| `assets/inputs.png` | the start of *SmrEntry, SmrEditor, ...* | an `Entry` as the platform draws it, one on a line, one in a rounded box, and a boxed picker |
 
 The page has a section per picture, and every section and control carries an `AutomationId`
 starting with `Showcase`. The script finds them on screen by that name, so the layout can change
-without touching the script; a new picture means a new section with its own `AutomationId`.
+without touching the script; a new picture means a new section with its own `AutomationId`. The
+first three sections are on the first screen: the two GIFs are recorded there with touches, and
+`badges.png` is cut from it. The still pictures below them are taken after the script has scrolled
+to the end of the page, so a new still section goes at the bottom, and the sections below the first
+screen have to fit on one screen together: the script checks that they are wholly on it.
 
 ## Steps
 
@@ -67,4 +73,10 @@ without touching the script; a new picture means a new section with its own `Aut
   the script holds the last screen for a moment. It waits 1.5 s before the first touch, part of it
   before the recorder is running, and cuts 0.5 s, leaving a still moment at the start.
 - **Sections are found by `uiautomator dump`.** An `AutomationId` lands in `resource-id`, layouts
-  included, with its bounds in screen pixels; the crops are taken from those.
+  included, with its bounds in screen pixels; the crops are taken from those. A section below the
+  screen is not in the dump at all, which is why the still pictures are found again after scrolling.
+- **`uiautomator dump` was seen to fail while Appium was running** for the UI tests ("null root
+  node"), and to work once it was stopped. Stop Appium before shooting.
+- **XAML sets attributes before child elements.** A `Picker` given `SelectedIndex` as an attribute
+  and its `ItemsSource` as a child element shows nothing; the page gives the items as a resource,
+  in an attribute written before the selection.
