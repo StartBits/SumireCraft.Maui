@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  The styles for the types an application called Abc wraps the widgets in, kept beside the types.
+  They name the classes and keys the types name, so no Smr name is left in them. App.xaml merges
+  this dictionary after Resources/Styles/SmrStyles.xaml.
+-->
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:abc="clr-namespace:SumireCraft.Maui.Sample.Wrapping">
+
+  <!-- AbcEntry stands on a line in the application's violet, twice as thick while it has the focus.
+       A style that gives the visual states replaces the groups the style for every Entry gave, so it
+       says Disabled again too, in Styles.xaml's colours. -->
+  <Style TargetType="abc:AbcEntry">
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="BorderColor" Value="#8467E0" />
+    <Setter Property="VisualStateManager.VisualStateGroups">
+      <VisualStateGroupList>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="Disabled">
+            <VisualState.Setters>
+              <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+            </VisualState.Setters>
+          </VisualState>
+          <VisualState x:Name="Focused">
+            <VisualState.Setters>
+              <Setter Property="BorderThickness" Value="0,0,0,2" />
+            </VisualState.Setters>
+          </VisualState>
+        </VisualStateGroup>
+      </VisualStateGroupList>
+    </Setter>
+  </Style>
+
+  <!-- The title of AbcEntryField, which names this class in place of SmrFieldTitle. The style for
+       SmrFieldTitle does not reach it, so this one says the indent again. -->
+  <Style TargetType="Label" Class="AbcEntryFieldTitle">
+    <Setter Property="Margin" Value="4,0,0,4" />
+    <!-- A face of its own rather than Bold: iOS and Mac Catalyst draw no bold of OpenSans-Regular,
+         the font the template gives every label. -->
+    <Setter Property="FontFamily" Value="OpenSansSemibold" />
+  </Style>
+
+  <!-- The mark after AbcEntryField's title, under the key it names in place of
+       SmrFieldRequiredMark. -->
+  <Style x:Key="AbcEntryFieldRequiredMark" TargetType="Span">
+    <Setter Property="TextColor" Value="#B3261E" />
+    <Setter Property="FontAttributes" Value="Bold" />
+  </Style>
+
+</ResourceDictionary>

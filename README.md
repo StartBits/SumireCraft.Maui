@@ -11,10 +11,14 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 | | | What .NET MAUI leaves to you |
 | --- | --- | --- |
 | **UI** | [SmrBadgeView](#smrbadgeview) -- a count or a dot over the corner of any view | A badge that stays on the content's own corner, mirrors for right-to-left, and never pushes the layout around as the count grows. |
+| | [SmrField](#smrfield) -- a title above an input, and its error below | Every form repeats a title label, the input and an error label by hand, and their spacing drifts from page to page. This holds the error's line so nothing below jumps, and is restyled from App.xaml. |
+| | [SmrDateTimeInput](#smrdatetimeinput) -- a date and a time that can each stay empty | One `DateTime` bound to a `DatePicker` and a `TimePicker` loses a part each time the other writes, and cannot say that only the date was entered. `DateTimeInput` holds the two apart, and each picker takes its own. |
+| | [SmrEntry and the other inputs](#smrentry-smreditor-smrpicker-smrdatepicker-and-smrtimepicker) -- an input whose box you draw | An `Entry` is a rounded box on iOS, a box with an accent on Windows and a line on Android. `BorderThickness`, `CornerRadius` and `BorderColor` draw it, and the four other inputs, alike on every platform: a line under the text, or a border all round. |
 | **Input** | [SmrTapBehavior](#smrtapbehavior) -- a different command for one tap, a double tap, or five | A single-tap recognizer fires on the way to a double tap. This reads the whole burst once, is safe in a `Style`, and its bindings resolve. |
 | **Reliability** | [Exception reporting](#exceptions) -- one place to send every exception you catch | .NET MAUI catches nothing on an application's behalf. Log it, show it, or forward it to your crash reporter, from one place. |
 | | [Safety net](#the-safety-net) (opt-in) -- reports what nothing caught, as far as .NET hears of it | A throw on a background task can take the process down without a trace. |
 | | [Busy gate](#busy-gate) -- is anything in flight, anywhere in the app? | `AsyncRelayCommand` guards one command. The gate spans commands, pages and layers. |
+| | [ObserveHandler](#observehandler) -- when a page or a view comes in, and when it goes | A page that subscribes to a long-lived service is held by it after it closes. Which of .NET MAUI's events means "closed" -- two handler events, a null to check, an order to get right -- is easy to get wrong. |
 
 ### What gets in, and what stays out
 
@@ -29,11 +33,15 @@ weaver that writes `try`/`catch` for you -- because no two applications agree on
 | --- | --- |
 | `SumireCraft.Maui.Controls` | The widgets. This is the package you normally want. |
 | `SumireCraft.Maui.Core` | Exception reporting and the safety net, the busy gate, badge counting and lifetime helpers. Useful on its own, without any of the widgets. |
+| `SumireCraft.Core` | `DateTimeInput`, and nothing that depends on a UI framework: plain `net10.0`, for a view model's or a server's project as well. Controls brings it in. |
 
 Core is for .NET MAUI applications, and depends on .NET MAUI itself (`Microsoft.Maui.Controls`),
 since it plugs into `MauiAppBuilder`. A library that is not a .NET MAUI project -- a networking
 layer shared with an ASP.NET Core server, say -- takes .NET MAUI along with it if it references
-Core for the busy gate. A package of the parts that need no .NET MAUI is not planned for now.
+Core for the busy gate. `SumireCraft.Core`, which needs no .NET MAUI, holds `DateTimeInput` alone
+for now. The busy gate and the rest of `SumireCraft.Maui.Core` stay where they are for every 1.x
+release: a type moved to another package would break applications built against the ones already
+published.
 
 ## Install
 
@@ -48,6 +56,7 @@ dotnet add package SumireCraft.Maui.Core
 ```
 
 Both packages also target plain `net10.0`, so an application's unit test project can reference them.
+`SumireCraft.Core` targets plain `net10.0` and nothing else.
 
 ## Usage
 
@@ -85,6 +94,7 @@ extension method of your own or another library's.
 | --- | --- |
 | `SumireCraft.Maui.Core` | `SumireCraft.Maui`, plus one per feature: `.Badges`, `.Exceptions`, `.Gates`, `.Lifetime`, `.Taps` |
 | `SumireCraft.Maui.Controls` | `SumireCraft.Maui.Controls`, all of it, so one `xmlns` reaches every widget |
+| `SumireCraft.Core` | One per feature: `SumireCraft.DateTimes` |
 
 In XAML, that one `xmlns` is a URI:
 
@@ -240,6 +250,12 @@ A type of your own can derive from `SmrBadgeView`. Set properties in its constru
 defaults, set `BadgeTemplate` there to change the look, or override `CreateDefaultBadge()` to
 change the look while leaving `BadgeTemplate` free for whoever uses your type.
 
+What it marks sits three levels down -- the badge view, its layout and the `ContentPresenter` .NET
+MAUI's templating needs -- two more than a `Grid` holding a view and a badge by hand. Each level is
+a native view to measure and arrange; on an Android emulator, a page of fifty took about a
+millisecond more per badge than the same page written by hand. Worth knowing for a long list with a
+badge on every row.
+
 ### SmrTapBehavior
 
 Runs a different command depending on how many times a view was tapped.
@@ -303,12 +319,379 @@ same instance to every view the style is applied to. Each view counts its own ta
 resolve against the view that was tapped, so `CommandParameter="{Binding .}"` hands over that
 view's item. A `BindingContext` set on the behavior itself is used for every view instead.
 
+### SmrField
+
+Puts a title above whatever takes the input, and its error below.
+
+![Two required fields, Name and Email, each with a red mark after its title, and Email with its error below it](assets/fields.png)
+
+The red marks and the titles' size, colour and indent are the sample application's own: a style for
+the mark and a style for the class `SmrFieldTitle`, written as shown below. Without them the mark
+looks like the title, and the title, 14 in the text's own colour, starts at the field's edge.
+
+```xml
+xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+
+<smr:SmrField Title="Name" ErrorText="{Binding NameError}">
+    <Entry Text="{Binding Name}" />
+</smr:SmrField>
+```
+
+The field reads no validation of its own. The error is whatever text `ErrorText` is given -- by your
+view model, a validation library, or anything else -- and `HasError` says whether there is one, for
+a trigger on the content to follow.
+
+The title and the error take the height of their text, and the content whatever is left, so a field
+given a height of its own grows its content, an `Editor` say. A missing title leaves no row behind,
+unless `ReserveTitleSpace="True"` keeps a line for it, so that a field without a title lines up
+with a titled one beside it. A missing error keeps its line by default, so that an error coming and
+going does not push what lies below the field up and down; `ReserveErrorSpace="False"` lets the
+field close up instead. A field with `ReserveErrorSpace="False"` also suits a value that is only
+shown, a `Label` under a title, which never has an error to keep a line for.
+
+**Required.** `IsRequired="True"` puts a mark after the title, `*` unless `RequiredMark` says
+otherwise. The mark follows the title as it is, so one that wants a space before it says so:
+`RequiredMark=" *"`, or `RequiredMark="&#x2009;*"` for a thin space in XAML. A span takes no
+margin, so a space is how the two are set apart. The mark only shows: whether something was
+entered is still yours to check, and to report through `ErrorText`.
+
+```xml
+<smr:SmrField Title="Name" IsRequired="True" RequiredMarkDescription="required">
+    <Entry Text="{Binding Name}" />
+</smr:SmrField>
+
+<smr:SmrField Title="Email" IsRequired="True" RequiredMark=" (required)">
+    <Entry Text="{Binding Email}" />
+</smr:SmrField>
+```
+
+The mark looks like the title by default. It is a `Span` after the title's text, so that it stays
+right after the last word of a title that wraps, and a span takes no style class in .NET MAUI; its
+look is a style for `Span` under the key `SmrFieldRequiredMark` instead, in App.xaml or a page's
+resources, found the way a dynamic resource is:
+
+```xml
+<Style x:Key="SmrFieldRequiredMark" TargetType="Span">
+    <Setter Property="TextColor" Value="#B3261E" />
+    <Setter Property="FontAttributes" Value="Bold" />
+</Style>
+```
+
+A screen reader reads the title as drawn, mark and all, and most read `*` as "star" or "asterisk".
+`RequiredMarkDescription` gives the words to read in its place, in your application's language:
+with `"required"`, the field above is read as "Name required".
+
+**Restyling.** The title and the error are labels with the style classes `SmrFieldTitle` and
+`SmrFieldError`. A style for either class in App.xaml restyles every field, and one in a page's
+resources restyles that page's fields:
+
+```xml
+<Style TargetType="Label" Class="SmrFieldError">
+    <Setter Property="TextColor" Value="DarkOrange" />
+</Style>
+```
+
+What such a style leaves unset keeps the field's own default: a font size of 14 for the title and 12
+for the error, and Material 3's error red, `#B3261E` in the light theme and `#F2B8B5` in the dark.
+A colour in your style may be written plainly or with `{AppThemeBinding}`. A page's style for a
+class hides App.xaml's for that class whole, as any style in .NET MAUI does, so what only App.xaml
+set falls back to the field's default on that page. A style for every `Label`, like the one in the
+Styles.xaml a new project starts with, still reaches both labels; where it and the field's defaults
+set the same thing, the field's defaults win.
+
+A long title or error wraps onto as many lines as it needs, as any `Label` does, and the field grows
+to hold them, or, given a height of its own, gives its content less room. The line kept for a
+missing error is one, so an error of two lines still moves what lies below the field. To cut either
+short instead, set `LineBreakMode` or `MaxLines` in the style for its class:
+
+```xml
+<Style TargetType="Label" Class="SmrFieldError">
+    <Setter Property="LineBreakMode" Value="TailTruncation" />
+</Style>
+```
+
+A title cut short at its end loses the required mark along with its last words.
+
+An application that stays in the light theme gets the light theme's red as long as .NET MAUI knows
+it: set `UserAppTheme = AppTheme.Light` in your `App`. Or write the colour plainly in a
+`SmrFieldError` style, which then holds in either theme.
+
+The names are the field's to change: `TitleStyleClass`, `ErrorStyleClass` and
+`RequiredMarkStyleKey` hold them, and a type of your own derived from `SmrField` can set them in its
+constructor, so that your styles name your own classes (see
+[Wrapping a widget](#wrapping-a-widget-in-a-type-of-your-own)). An implicit style for `SmrField`
+that sets them reaches fields of that type alone, not those of a type derived from it, unless it
+says `ApplyToDerivedTypes="True"`.
+
+A screen reader reads the title, the content and the error in the order they are drawn, and does
+not stop on the blank line kept for an error. The field writes nothing on the content, so a name or
+a hint you give it stays yours. An error that appears is read when it is reached, not announced the
+moment it appears.
+
+A `ControlTemplate` of your own replaces the title, the error and their styles together; it shows
+`Title` and `ErrorText` through `{Binding Title, Source={RelativeSource TemplatedParent}}`, and the
+content through a `ContentPresenter`. It shows the mark for itself too, from `IsRequired` and
+`RequiredMark`: `RequiredMarkDescription`, `RequiredMarkStyleKey`, `TitleStyleClass` and
+`ErrorStyleClass` are for the default template alone.
+
+What a field holds sits three levels down -- the field, the root of its template and the
+`ContentPresenter` .NET MAUI's templating needs -- two more than a `VerticalStackLayout` holding a
+title, an input and an error by hand. Each level is a native view to measure and arrange; on an
+Android emulator, a page of fifty fields took about a millisecond more per field than the same page
+written by hand.
+
+### SmrDateTimeInput
+
+Attached properties that bind a date picker and a time picker to a `DateTimeInput`, a value whose
+date and time are entered separately and can each be empty. `SmrDatePicker` and `SmrTimePicker`
+take it in a property of their own, `DateTimeInput`, and start empty:
+
+```xml
+<smr:SmrDatePicker DateTimeInput="{Binding Start}" />
+<smr:SmrTimePicker DateTimeInput="{Binding Start}" />
+```
+
+That property is the attached one under a shorter name, which .NET MAUI's own pickers take too. It
+announces a change under the attached property's name, `Date` or `Time`, so bind to it from the
+view model as above; a binding that reads `DateTimeInput` off the picker is not told of a new input.
+
+```xml
+<DatePicker smr:SmrDateTimeInput.Date="{Binding Start}" />
+<TimePicker smr:SmrDateTimeInput.Time="{Binding Start}" />
+```
+
+```csharp
+using SumireCraft.DateTimes;
+
+public DateTimeInput Start { get; set; } = new();   // raise PropertyChanged if you replace it later
+
+// Later, when saving:
+if (Start.IsComplete)
+{
+    DateTime start = Start.DateAndTime!.Value;
+}
+```
+
+The date picker takes the input's date and the time picker its time, and each leaves the other
+part alone. Bound to one input and placed wherever the page wants them, the two take a date and a
+time. The pickers stay .NET MAUI's own: `Format`, `MinimumDate`, `TextColor`, your styles for them
+and everything else are as they were.
+
+An input without a date or a time is shown empty. A `DatePicker` or `TimePicker` given no input is
+not joined to one, and shows what it shows by itself: a `DatePicker` shows today. `SmrDatePicker`
+and `SmrTimePicker` show nothing until given an input.
+
+**The input.** `DateTimeInput` holds a `DateOnly?` and a `TimeOnly?` and nothing else.
+`DateAsDateOnly`, `DateAsDateTime`, `TimeAsTimeOnly`, `TimeAsTimeSpan` and `TimeAsDateTime` read and
+write one part through the type a control wants; `DateAndTime` reads and writes both, and
+`IsComplete` says whether both were entered. It converts to `DateTime?` by itself, and
+`someDateTime.ToDateTimeInput()` makes one. It lives in the `SumireCraft.Core` package, which
+depends on no UI framework, so a view model's project can use it without .NET MAUI.
+
+An input raises no change notification. A picker shows what its input held when it was given, and
+what is picked afterwards; to show other values, give the picker another input -- from a property
+that does notify:
+
+```csharp
+Start = new DateTimeInput(DateTime.Now);   // raises PropertyChanged for Start
+```
+
+**A view model without an input.** A joined picker always has an input. One bound to a property
+that is null makes an empty input and, as the binding is two-way by default, writes it back, so the
+view model can read what was entered.
+
+**What the platform's pickers do.** A `DatePicker`'s own `Date` and the input's date are one value,
+and so are a `TimePicker`'s own `Time` and the input's time, so what is shown and what the input
+holds never differ:
+
+- A `DatePicker` shows nothing outside `MinimumDate` and `MaximumDate`, 1900 to 2100 by default,
+  and moves a date outside them to the nearest end. The input takes the date shown. To keep such a
+  date, widen the range: `MinimumDate="1000-01-01"`.
+- On Windows, the `TimePicker` of .NET MAUI 10.0.20 cannot show an empty time. It shows midnight,
+  and the input takes that, so on Windows a time is never empty once a time picker has shown it,
+  and `IsComplete` is true as soon as there is a date. This is .NET MAUI's own `TimePicker` on
+  Windows, with or without this library. Its current source hands Windows the empty time instead;
+  which release that starts with has not been checked, and 10.0.20 is the only one tried here.
+  On Android an empty time stays empty, as an empty date does on both. iOS and Mac Catalyst have
+  not been tried yet.
+
+**A picker from another library.** Tell `DateTarget` or `TimeTarget` which of the picker's
+bindable properties holds its date or its time, handed over with `x:Static`. A style for the
+picker's type says it once for every page:
+
+```xml
+<Style TargetType="vendor:VendorDatePicker">
+  <Setter Property="smr:SmrDateTimeInput.DateTarget"
+          Value="{x:Static vendor:VendorDatePicker.SelectedDateProperty}" />
+</Style>
+<Style TargetType="vendor:VendorTimePicker">
+  <Setter Property="smr:SmrDateTimeInput.TimeTarget"
+          Value="{x:Static vendor:VendorTimePicker.SelectedTimeProperty}" />
+</Style>
+```
+
+```xml
+<vendor:VendorDatePicker smr:SmrDateTimeInput.Date="{Binding Start}" />
+<vendor:VendorTimePicker smr:SmrDateTimeInput.Time="{Binding Start}" />
+```
+
+The property's type picks how the part is held: a date as `DateTime?` or `DateOnly?`, a time as
+`TimeSpan?`, `TimeOnly?` or `DateTime?`. A property that cannot be empty, a plain `DateTime` among
+them, cannot show an empty input, and the picker is left alone. A property holds one part: one given
+as both `DateTarget` and `TimeTarget` holds the date alone, and the input's time is left as it is.
+
+### SmrEntry, SmrEditor, SmrPicker, SmrDatePicker and SmrTimePicker
+
+.NET MAUI's `Entry`, `Editor`, `Picker`, `DatePicker` and `TimePicker`, each with three properties
+more that draw its box, alike on every platform.
+
+![An Entry as Android draws it, an SmrEntry on a violet line, one in a rounded box, and an SmrPicker in the same box](assets/inputs.png)
+
+```xml
+<smr:SmrEntry Text="{Binding Name}" BorderThickness="0,0,0,1" />
+<smr:SmrEntry Text="{Binding Name}" BorderThickness="1" CornerRadius="4" />
+```
+
+| Property | Default | What it does |
+| --- | --- | --- |
+| `BorderThickness` | `null` | Each side's thickness. `0,0,0,1` is a line under the text. |
+| `CornerRadius` | `null` | Each corner's radius. |
+| `BorderColor` | `null` | The border's colour. `null` takes the text's, `TextColor`, and with no `TextColor` the platform's own text colour. |
+
+Until `BorderThickness` or `CornerRadius` is given, an input is drawn in the platform's own box, as
+.NET MAUI draws it. Given either, the box is the library's: one thick all round unless
+`BorderThickness` says otherwise, with square corners unless `CornerRadius` does. A background colour
+fills the same shape. Clearing both gives the platform's box back. Laid out right to left, the
+thickness given for the left is at the right, the side the text starts from, as a `Margin` or a
+`Padding` is. The corners move to the other side on Windows and stay where they are elsewhere, as
+.NET MAUI's own `Border` does: a `CornerRadius` of `8,0,0,0` rounds the top right on Windows and the
+top left on the other platforms. Everything else is the input it derives from, and a style you wrote
+for every `Entry` -- the Styles.xaml of a new project has one for each of the five -- reaches
+`SmrEntry` too.
+
+A style says it once for every page, and a visual state changes it while the input has the focus:
+
+```xml
+<Style TargetType="smr:SmrEntry">
+  <Setter Property="BorderThickness" Value="0,0,0,1" />
+  <Setter Property="VisualStateManager.VisualStateGroups">
+    <VisualStateGroupList>
+      <VisualStateGroup x:Name="CommonStates">
+        <VisualState x:Name="Normal" />
+        <VisualState x:Name="Disabled">
+          <VisualState.Setters>
+            <Setter Property="TextColor" Value="{StaticResource Gray300}" />
+          </VisualState.Setters>
+        </VisualState>
+        <VisualState x:Name="Focused">
+          <VisualState.Setters>
+            <Setter Property="BorderThickness" Value="0,0,0,2" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+    </VisualStateGroupList>
+  </Setter>
+</Style>
+```
+
+A style for `SmrEntry` goes on top of your style for every `Entry`: what it leaves unset, the font
+and the height of the Styles.xaml of a new project among them, still comes from there. The visual
+states are one value, though, so a style that gives them replaces the groups your style for every
+`Entry` gave, and says again whatever of them it keeps, such as `Disabled`. Each of the five
+declares the three properties itself, so a style for `SmrEntry` sets an entry's, and `SmrPicker`
+takes a style of its own.
+
+To put a title above an input and an error below it, place it in a [`SmrField`](#smrfield).
+
+An `SmrEditor` has its border around the whole box, however many lines of text it holds. On Mac
+Catalyst, where .NET MAUI shows the system's date picker, a compact pill whose look is the system's
+own, `SmrDatePicker` and `SmrTimePicker` keep that look.
+
+Each platform's input is a native control with a box of its own, and nothing in .NET MAUI takes
+that box away, so this is one of the few places the library reaches the platform: on Android the
+border takes the place of the Material line under the text, on iOS and Mac Catalyst a text field's
+box is taken away and a layer drawn over it, and on Windows the control's own border is set, in
+every state the control has.
+
+### A templated widget of your own
+
+`SmrField` is built on `SmrTemplatedView`, a `ContentView` that brings a control template of its
+own, which your styles replace like any other: an implicit style for its type, an explicit one, or a
+style for every templated view at once (`TargetType="smr:SmrTemplatedView"` with
+`ApplyToDerivedTypes="True"`). A style that leaves the template alone, one that only sets a margin
+say, keeps it. Derive from it to give a widget of your own the same behaviour:
+
+```csharp
+public class AbcCard : SmrTemplatedView
+{
+    private static readonly ControlTemplate CardTemplate = new(() =>
+        new Border { Padding = 12, Content = new ContentPresenter() });
+
+    public AbcCard()
+        : base(CardTemplate)
+    {
+    }
+}
+```
+
+The default is kept in the view's own `Resources`. Giving the view a dictionary of your own, in code
+or in XAML, keeps it too: `Resources` then returns a dictionary that holds the default and merges
+yours, which is left as it was.
+
 ### Wrapping a widget in a type of your own
 
 No public widget is sealed. Derive `AbcTapBehavior` from `SmrTapBehavior` and `AbcTap` from
 `SmrTap`, use only your own types in your pages, and replacing this library one day is one change
 per type rather than one per page. The sample's
 [`Wrapping/`](samples/SumireCraft.Maui.Sample/Wrapping) folder shows how.
+
+A field can bring its input along, so that a page names neither `SmrField` nor the entry inside:
+
+```csharp
+public class AbcEntryField : SmrField
+{
+    public static readonly BindableProperty TextProperty = BindableProperty.Create(
+        nameof(Text), typeof(string), typeof(AbcEntryField), defaultBindingMode: BindingMode.TwoWay);
+
+    public AbcEntryField()
+    {
+        TitleStyleClass = "AbcEntryFieldTitle";
+        ErrorStyleClass = "AbcEntryFieldError";
+        RequiredMarkStyleKey = "AbcEntryFieldRequiredMark";
+
+        var entry = new Entry();
+        entry.SetBinding(Entry.TextProperty, static (AbcEntryField field) => field.Text,
+            BindingMode.TwoWay, source: this);
+        Content = entry;
+    }
+
+    public string? Text
+    {
+        get => (string?)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
+    }
+}
+```
+
+```xml
+<abc:AbcEntryField Title="Email" Text="{Binding Email}" ErrorText="{Binding EmailError}" />
+
+<!-- In App.xaml -->
+<Style TargetType="Label" Class="AbcEntryFieldTitle">
+    <Setter Property="FontAttributes" Value="Bold" />
+</Style>
+```
+
+The field's default template and look come along with it; only the class names and the mark's key
+your styles reach are yours. So a style for the class `SmrFieldTitle` does not reach it, its title
+having another class. Nor does an implicit style for `SmrField`, since it reaches a derived type
+only with `ApplyToDerivedTypes="True"`, as [SmrField](#smrfield) says.
+
+Everything public on `SmrField` -- `Title`, `IsRequired`, `Content` and the rest -- is public on
+`AbcEntryField` too, so a page can still write it, and replacing the library one day means writing
+again whatever of it your pages use. The entry is the field's, not the page's: what a page is to set
+on it, `Placeholder` or `Keyboard` say, is one more property on the field, passed on the way `Text`
+is. `AutomationId` is no exception; written on the field, it names the field, not the entry.
 
 ## Exceptions
 
@@ -395,6 +778,13 @@ records: it never marks an exception handled, and it never keeps alive an applic
 about to die. It is off by default all the same, because those events belong to the whole process.
 What it hears goes to your handlers like any other report, so with no handler registered it
 records nothing.
+
+On Android with .NET 10, an exception that escapes on the UI thread reaches
+`AppDomain.UnhandledException` too, once Android has given up on it, with the exception as it was
+thrown. So you need not subscribe to `AndroidEnvironment.UnhandledExceptionRaiser`, as Xamarin
+applications did, for the net to hear it. A subscription carried over that sets `e.Handled = true`
+swallows the exception there: the application keeps running, `AppDomain.UnhandledException` is
+never raised, and the net reports nothing, so report to the sink from it yourself if you keep it.
 
 It hears only what those events carry, so not every failure is caught. A crash in native code, or
 the operating system stopping the application, ends it without raising any of them, and nothing is
@@ -503,6 +893,51 @@ public sealed class UploadViewModel([FromKeyedServices("uploads")] IBusyGate upl
 `UseSumireCraft()` registers the application's gate without a key, so the two can be registered in
 either order.
 
+The sample's BusyGate page shows all of this at work: a second tap ignored, two commands that hold
+each other back through the application's gate, an upload in a gate of its own, and a gate left
+busy on purpose, cleared by the watchdog five seconds later.
+
+## ObserveHandler
+
+A page that subscribes to something that lives longer than it does -- a service, a static event, a
+message hub -- is held by it after it closes, together with everything on it, and nothing says so.
+`ObserveHandler`, in `SumireCraft.Maui.Lifetime`, calls back when a page or a view is connected to
+the platform and when it is disconnected, which .NET MAUI does to a page as it closes:
+
+```csharp
+using SumireCraft.Maui.Lifetime;
+
+public OrderPage(OrderService orders)
+{
+    InitializeComponent();
+    this.ObserveHandler(
+        onConnected: () => orders.Changed += OnOrdersChanged,
+        onDisconnected: () => orders.Changed -= OnOrdersChanged);
+}
+```
+
+A page popped from a `Shell` or dismissed as a modal is disconnected, and so is every view on it,
+so a control of your own can take and give back what it needs the same way. Whether a page closed
+another way is disconnected is .NET MAUI's to decide; where it matters, look. The callbacks
+alternate, connected first; a page that already has a handler when you call it is connected at
+once, and one given a handler again, such as a page kept and pushed again, is connected again.
+
+- **Connected means alive, not shown.** A page under another pushed on a `Shell`, or on a flyout
+  item that is not shown, stays connected. What should stop while a page is hidden belongs in
+  `Appearing` and `Disappearing`, and whether a connect comes before or after `Appearing` is the
+  platform's.
+- **A view taken out of a layout while its page stays is not disconnected.** Disconnect it, and
+  whatever is inside it, with .NET MAUI's `view.DisconnectHandlers()`. Nothing is disconnected on
+  its own where `HandlerProperties.DisconnectPolicy` is `Manual`.
+- **Do not touch `PlatformView` in `onDisconnected`.** It may already be gone, depending on the
+  platform and on how the page closed; let go of what your own code took.
+- **An exception in a callback is let out**, as from any event handler, on the UI thread where the
+  page is opening or closing. A callback that can fail catches for itself.
+
+Observing subscribes to the element's own events alone, so it keeps nothing alive and there is
+nothing to unsubscribe. The sample's ObserveHandler page counts the pages open on a long-lived
+service, in and out.
+
 ## Building blocks
 
 Smaller pieces the features above are built from, published because they are useful on their own.
@@ -563,11 +998,13 @@ an older one, but it has not been tried there yet.
   [support for that .NET MAUI](https://dotnet.microsoft.com/platform/support/policy/maui) ends,
   and possibly longer. That support is shorter than the .NET it runs on: a .NET MAUI version's
   support ends six months or so after the next one ships, even on a long-term support .NET.
-- **Core is released only when it changes.** Both packages take their numbers from one sequence:
+- **Core is released only when it changes.** The packages take their numbers from one sequence:
   Controls takes every one, Core only those of releases that change it. So Core can skip numbers
   (1.0.1, then 1.0.3), Controls is never behind it, and each Controls release asks for the Core
   it was built with or later, up to the next major version of Controls: Controls 1.x takes
   Core 1.x only. Referencing a newer Core than that directly gets a warning (NU1608) from NuGet.
+  `SumireCraft.Core` is numbered the same way as `SumireCraft.Maui.Core`, on its own, and bounded
+  the same way: Controls 1.x takes `SumireCraft.Core` 1.x only.
 - **The .NET MAUI version is a minimum.** A minor release may raise it, and the
   [changelog](CHANGELOG.md) says so in that release's entry.
 - **Fixes go to the latest release only.** An earlier major version is not patched, so taking a
@@ -583,7 +1020,7 @@ release that needs a newer .NET.
 | Platform | Run on |
 | --- | --- |
 | Android | An emulator (Android 16, API 36) |
-| iOS | iPhone simulators (iOS 26.5 and 27.0) |
+| iOS | An iPhone simulator (iOS 27.2) |
 | Mac Catalyst | A Mac (macOS 27.2) |
 | Windows | A Windows 11 PC |
 

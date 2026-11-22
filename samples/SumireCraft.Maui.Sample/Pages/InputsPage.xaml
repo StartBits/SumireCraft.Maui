@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+             xmlns:abc="clr-namespace:SumireCraft.Maui.Sample.Wrapping"
+             x:Class="SumireCraft.Maui.Sample.Pages.InputsPage"
+             Title="Inputs">
+
+  <!-- What the tests look for is at the top, on a phone's first screen without scrolling: Android
+       leaves whatever is below the screen out of the tree. The rest is for reading by hand. -->
+  <ScrollView AutomationId="InputsPageScroll">
+    <VerticalStackLayout
+      Padding="24"
+      Spacing="16">
+
+      <Label
+        AutomationId="InputsPageTitle"
+        Text="Inputs"
+        Style="{StaticResource Headline}"
+        HorizontalTextAlignment="Start" />
+
+      <Label
+        Text="SmrEntry and the other four draw their box as told: a line under the text, a border all round, corners rounded or square, in the text's colour unless given one." />
+
+      <smr:SmrEntry
+        AutomationId="ColouredEntry"
+        Placeholder="Teal text on a purple line"
+        TextColor="Teal"
+        BorderThickness="0,0,0,1"
+        BorderColor="Purple" />
+
+      <!-- An entry of the application's own, underlined by its style in Wrapping/AbcStyles.xaml,
+           whose visual state for the focus thickens the line. -->
+      <abc:AbcEntry
+        AutomationId="AbcEntry"
+        Placeholder="AbcEntry, thicker while focused" />
+
+      <!-- Turned off, the entry has the platform's box back, its text where the platform keeps it;
+           given a background, it keeps its border. -->
+      <HorizontalStackLayout Spacing="8">
+        <Switch
+          x:Name="BorderSwitch"
+          AutomationId="BorderSwitch"
+          IsToggled="True" />
+        <Label
+          AutomationId="BorderState"
+          VerticalTextAlignment="Center">
+          <Label.Triggers>
+            <DataTrigger TargetType="Label" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="True">
+              <Setter Property="Text" Value="Bordered" />
+            </DataTrigger>
+            <DataTrigger TargetType="Label" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="False">
+              <Setter Property="Text" Value="Not bordered" />
+            </DataTrigger>
+          </Label.Triggers>
+        </Label>
+        <Switch
+          x:Name="BackgroundSwitch"
+          AutomationId="BackgroundSwitch" />
+        <Label
+          AutomationId="BackgroundState"
+          VerticalTextAlignment="Center">
+          <Label.Triggers>
+            <DataTrigger TargetType="Label" Binding="{Binding IsToggled, Source={x:Reference BackgroundSwitch}}" Value="True">
+              <Setter Property="Text" Value="On a background" />
+            </DataTrigger>
+            <DataTrigger TargetType="Label" Binding="{Binding IsToggled, Source={x:Reference BackgroundSwitch}}" Value="False">
+              <Setter Property="Text" Value="On the page" />
+            </DataTrigger>
+          </Label.Triggers>
+        </Label>
+      </HorizontalStackLayout>
+
+      <smr:SmrEntry
+        AutomationId="ToggledEntry"
+        Placeholder="Outlined in red, while the switch is on"
+        BorderColor="Red">
+        <smr:SmrEntry.Triggers>
+          <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="True">
+            <Setter Property="BorderThickness" Value="2" />
+          </DataTrigger>
+          <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BackgroundSwitch}}" Value="True">
+            <Setter Property="BackgroundColor" Value="#EADDFF" />
+          </DataTrigger>
+        </smr:SmrEntry.Triggers>
+      </smr:SmrEntry>
+
+      <!-- A border all round with rounded corners, on a background of its own that fills the same
+           shape. -->
+      <smr:SmrEntry
+        AutomationId="BoxedEntry"
+        Placeholder="A magenta box, rounded"
+        BorderThickness="2"
+        CornerRadius="8"
+        BorderColor="Magenta"
+        BackgroundColor="#F3EDF7" />
+
+      <!-- Each of the other inputs on a line of a colour of its own, for a test to tell them apart. -->
+      <smr:SmrEditor
+        AutomationId="UnderlinedEditor"
+        Placeholder="SmrEditor, on an orange line"
+        HeightRequest="64"
+        BorderThickness="0,0,0,1"
+        BorderColor="DarkOrange" />
+
+      <smr:SmrPicker
+        AutomationId="UnderlinedPicker"
+        Title="SmrPicker, on a green line"
+        BorderThickness="0,0,0,1"
+        BorderColor="Green">
+        <smr:SmrPicker.ItemsSource>
+          <x:Array Type="{x:Type x:String}">
+            <x:String>One</x:String>
+            <x:String>Two</x:String>
+            <x:String>Three</x:String>
+          </x:Array>
+        </smr:SmrPicker.ItemsSource>
+      </smr:SmrPicker>
+
+      <!-- Side by side, to stay on a phone's first screen. On Mac Catalyst these two are the
+           system's date picker, a pill, and are left as they are. -->
+      <Grid
+        ColumnDefinitions="*,*"
+        ColumnSpacing="12">
+        <smr:SmrDatePicker
+          AutomationId="UnderlinedDatePicker"
+          BorderThickness="0,0,0,1"
+          BorderColor="Blue" />
+        <smr:SmrTimePicker
+          Grid.Column="1"
+          AutomationId="UnderlinedTimePicker"
+          BorderThickness="0,0,0,1"
+          BorderColor="Teal" />
+      </Grid>
+
+      <!-- The box laid out right to left, its text starting from the right. As a Margin or a Padding
+           does, the thickness given for the left is the side the text starts from, which is the
+           right here, and the text keeps off it. Below the others the tests look for, so that it
+           pushes none of them off a phone's first screen. -->
+      <smr:SmrEntry
+        AutomationId="RightToLeftBoxedEntry"
+        FlowDirection="RightToLeft"
+        Placeholder="Right to left, thick at its start"
+        BorderThickness="8,2,2,2"
+        CornerRadius="8"
+        BorderColor="Magenta"
+        BackgroundColor="#F3EDF7" />
+
+      <smr:SmrEntry
+        AutomationId="PlainEntry"
+        Placeholder="Given no border: the platform's box" />
+
+    </VerticalStackLayout>
+  </ScrollView>
+
+</ContentPage>

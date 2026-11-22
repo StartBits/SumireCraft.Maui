@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SumireCraft.Maui.Sample.Pages.ObserveHandlerPage"
+             Title="ObserveHandler">
+
+  <VerticalStackLayout
+    Padding="24"
+    Spacing="16">
+
+    <Label
+      AutomationId="ObserveHandlerPageTitle"
+      Text="ObserveHandler"
+      Style="{StaticResource Headline}"
+      HorizontalTextAlignment="Start" />
+
+    <Label
+      Text="Each page opened from here counts itself in a long-lived service while it is connected, and out as it closes. The count goes back to 0 when they have all closed." />
+
+    <Label
+      x:Name="CountLabel"
+      AutomationId="OpenPageCount"
+      FontAttributes="Bold" />
+
+    <Button
+      AutomationId="PushObservedPage"
+      Text="Push a page"
+      Clicked="OnPushClicked" />
+
+    <Button
+      AutomationId="ShowObservedModal"
+      Text="Show a modal"
+      Clicked="OnModalClicked" />
+
+  </VerticalStackLayout>
+
+</ContentPage>

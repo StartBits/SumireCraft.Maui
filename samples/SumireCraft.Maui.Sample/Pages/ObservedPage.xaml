@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SumireCraft.Maui.Sample.Pages.ObservedPage"
+             Title="Observed page">
+
+  <VerticalStackLayout
+    Padding="24"
+    Spacing="16">
+
+    <Label
+      Text="This page is counted in while it is connected, and out as it closes." />
+
+    <!-- The automation identifiers of these three are given in code, numbered by the page's depth. -->
+    <Label
+      x:Name="CountLabel"
+      FontAttributes="Bold" />
+
+    <Button
+      x:Name="AnotherButton"
+      Text="Push another"
+      Clicked="OnAnotherClicked" />
+
+    <!-- Not "Close", which Windows already shows as the window's own button. -->
+    <Button
+      x:Name="BackButton"
+      Text="Back"
+      Clicked="OnBackClicked" />
+
+  </VerticalStackLayout>
+
+</ContentPage>

@@ -8,6 +8,10 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
         <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+        <!-- The styles for SumireCraft's widgets, and for the application's own types wrapped
+             around them, each in a dictionary of its own. -->
+        <ResourceDictionary Source="Resources/Styles/SmrStyles.xaml" />
+        <ResourceDictionary Source="Wrapping/AbcStyles.xaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

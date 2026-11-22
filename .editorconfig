@@ -51,6 +51,11 @@ csharp_style_expression_bodied_methods = when_on_single_line:suggestion
 csharp_style_expression_bodied_properties = true:suggestion
 csharp_style_expression_bodied_accessors = true:suggestion
 
+# primary constructors: a choice made per type, not a rule (IDE0290). One suits a type that only
+# keeps or passes on what it is given; it cannot be made protected, keeps its parameters as
+# writable fields, and has no body for checks. SmrTemplatedView keeps a protected constructor.
+csharp_style_prefer_primary_constructors = false:silent
+
 # braces and qualification
 csharp_prefer_braces = true:warning
 dotnet_style_qualification_for_field = false:suggestion

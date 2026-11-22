@@ -8,6 +8,7 @@
     <Project Path="samples/SumireCraft.Maui.Sample/SumireCraft.Maui.Sample.csproj" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/SumireCraft.Core/SumireCraft.Core.csproj" />
     <Project Path="src/SumireCraft.Maui.Controls/SumireCraft.Maui.Controls.csproj" />
     <Project Path="src/SumireCraft.Maui.Core/SumireCraft.Maui.Core.csproj" />
   </Folder>

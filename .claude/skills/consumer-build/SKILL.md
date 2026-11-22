@@ -26,7 +26,8 @@ Running the UI tests is the `ui-tests` skill. They drive the newest of `bin/Debu
 
 Pack first: the package has to exist before it can be found. Packing again under the same version
 is not enough: restore takes the copy already in the global packages folder, so delete
-`~/.nuget/packages/sumirecraft.maui.*/<version>` before building Consumer again. The extra restore
+`~/.nuget/packages/sumirecraft.maui.*/<version>` and `~/.nuget/packages/sumirecraft.core/<version>`
+before building Consumer again. The extra restore
 source is set in the sample's own project file rather than in `nuget.config`, because `artifacts/`
 is not in the repository and a source pointing at a folder nobody has is a restore error for
 everybody.

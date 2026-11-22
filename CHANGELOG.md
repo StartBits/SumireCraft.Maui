@@ -3,10 +3,52 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-A release that leaves `SumireCraft.Maui.Core` unchanged publishes `SumireCraft.Maui.Controls`
-alone, and says so in its heading; Core keeps the version of the last release that changed it.
+`SumireCraft.Maui.Controls` is published with every release. `SumireCraft.Maui.Core` and
+`SumireCraft.Core` are published only in a release that changes them, and otherwise keep the
+version of the last release that did; a release's heading says what it leaves out
+(*Controls only*, *without SumireCraft.Maui.Core* or *without SumireCraft.Core*).
 
 A release that raises the minimum version of .NET MAUI says so under *Changed*.
+
+## [1.1.0] - 2026-11-22
+
+### Added
+
+- `SmrField` in `SumireCraft.Maui.Controls`, which puts a title above whatever takes the input and
+  its error below. The error's line is kept by default, so that nothing below moves when an error
+  comes and goes; `ReserveErrorSpace` turns that off. `ReserveTitleSpace` keeps a line for a missing
+  title, so that a field without one lines up with a titled one beside it. The title and the error
+  are restyled through the style classes `SmrFieldTitle` and `SmrFieldError`, from App.xaml or a
+  page's resources, names which `TitleStyleClass` and `ErrorStyleClass` change. `IsRequired` puts a
+  mark after the title, `*` unless `RequiredMark` says otherwise, restyled through a style for
+  `Span` under the key `SmrFieldRequiredMark`; `RequiredMarkDescription` gives a screen reader the
+  words to read in its place.
+- `SmrTemplatedView` in `SumireCraft.Maui.Controls`, a content view that brings a default control
+  template which an application's styles replace like any other, including a style for every
+  templated view at once. `SmrField` is built on it, and an application's own widgets can be too.
+- `SmrDateTimeInput` in `SumireCraft.Maui.Controls`, attached properties that bind a `DatePicker`
+  (`Date`) and a `TimePicker` (`Time`) to a `DateTimeInput`, two-way by default. Bound to one input,
+  the two take a date and a time, either of which can stay empty -- but for a time on Windows with
+  .NET MAUI 10.0.20, whose `TimePicker` turns an empty time into midnight. A picker from another
+  library is joined the same way once `DateTarget` or `TimeTarget` names the bindable property it
+  holds its date or time in, which a style for its type can do for every page.
+- `SmrEntry`, `SmrEditor`, `SmrPicker`, `SmrDatePicker` and `SmrTimePicker` in
+  `SumireCraft.Maui.Controls`, .NET MAUI's five inputs with `BorderThickness`, `CornerRadius` and
+  `BorderColor` (the text's colour unless set), which draw their box alike on every platform -- a
+  line under the text, or a border all round with rounded corners -- in place of the platform's own
+  once either of the first two is given. A style for every input of the kind reaches them too.
+  `SmrDatePicker` and `SmrTimePicker` take a `DateTimeInput` in a property of their own, the
+  attached one under a shorter name, and start empty.
+- `ObserveHandler()` in `SumireCraft.Maui.Core`, namespace `SumireCraft.Maui.Lifetime`, an extension
+  method that calls back when an element is connected to the platform and when it is disconnected,
+  as .NET MAUI does to a page popped from a `Shell` or dismissed as a modal, and to every view on
+  it: the moments for a page or a control to take hold of a long-lived service or a resource, and
+  to let go of it.
+- A new package, `SumireCraft.Core`, which depends on no UI framework and targets plain `net10.0`.
+  It holds `DateTimeInput` in the namespace `SumireCraft.DateTimes`: a date and a time that are
+  entered separately and can each be empty, read and written through `DateOnly`, `TimeOnly`,
+  `DateTime` or `TimeSpan`. `SumireCraft.Maui.Controls` depends on it, and like
+  `SumireCraft.Maui.Core` it is released only when it changes.
 
 ## [1.0.0] - 2026-11-03
 
@@ -59,4 +101,5 @@ The first release, of both packages.
 - `SumireCraft.Maui.Controls` depends on `SumireCraft.Maui.Core` below its own next major version,
   so NuGet warns when an application takes a newer Core than that.
 
+[1.1.0]: https://github.com/startbits/SumireCraft.Maui/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/startbits/SumireCraft.Maui/releases/tag/v1.0.0

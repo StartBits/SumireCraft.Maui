@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\SumireCraft.Core\SumireCraft.Core.csproj" />
     <ProjectReference Include="..\..\src\SumireCraft.Maui.Controls\SumireCraft.Maui.Controls.csproj" />
     <ProjectReference Include="..\..\src\SumireCraft.Maui.Core\SumireCraft.Maui.Core.csproj" />
   </ItemGroup>

@@ -45,14 +45,26 @@ Two problems drive the library:
 - **Not a platform-handler library.** Do not write handlers or `Platforms/` code unless there is
   no cross-platform way to achieve the behaviour. When it is genuinely unavoidable the mechanism
   is in place (see *Platform-specific code* below), but reach for it last and say why.
-- **Not comprehensive.** Prefer one well-behaved widget over five half-finished ones. Prefer a
-  narrow, obvious API over a configurable one.
+- **Not comprehensive.** Prefer one well-behaved widget over five half-finished ones. Prefer what is
+  obvious to the app author over what is minimal, and never add an option for its own sake. A
+  shortcut for the common case is welcome beside the general mechanism, as
+  `SmrDatePicker.DateTimeInput` sits beside the attached `SmrDateTimeInput.Date`, when both run on
+  one implementation and so cannot drift apart.
 
 ## Settled decisions
 
 Each of these was argued out with the maintainer. Do not propose reversing one unprompted; if a change
 seems to need it, stop and say so.
 
+- The library is a .NET MAUI library, and what an app author knows from .NET MAUI holds in it: where
+  .NET MAUI has a convention for the same thing, the library follows it, platform by platform, rather
+  than one of its own. A departure is a decision of its own, argued out and written down where app
+  authors read it, as `SmrBadgeView.TextFlowDirection` is. Laid out right to left, an input's
+  `BorderThickness` puts its left at the right, as .NET MAUI lays out a `Margin` or a `Padding`, and
+  its corners go where .NET MAUI's `Border` puts them: mirrored on Windows, in place on Android, iOS
+  and Mac Catalyst. Measured on .NET MAUI 10 on all four: on iOS and Mac Catalyst, as on Android, a
+  `Margin` and a layout's or a `Border`'s `Padding` are mirrored, while a `Label`'s `Padding` and a
+  `Border`'s corners stay in place. A new version of .NET MAUI is measured again rather than assumed.
 - `SmrTapBehavior` reads a burst once, when it ends, and never early -- not even a lone tap. Firing early
   opened the debug room halfway through a burst. A view that only needs one tap wants `TapGestureRecognizer`.
 - A line whose command cannot execute does not hand the burst to a lower line, and a burst still fires
@@ -104,14 +116,22 @@ start that writes for the maintainer.
 | --- | --- | --- | --- |
 | `src/SumireCraft.Maui.Controls` | `SumireCraft.Maui.Controls` | `SumireCraft.Maui.Controls` | The widgets. The main package. |
 | `src/SumireCraft.Maui.Core` | `SumireCraft.Maui.Core` | `SumireCraft.Maui` and one per feature (`.Badges`, `.Exceptions`, `.Gates`, `.Lifetime`, `.Taps`) | Exception reporting and the safety net, the busy gate, the logic behind the widgets, lifetime helpers. |
+| `src/SumireCraft.Core` | `SumireCraft.Core` | `SumireCraft` and one per feature (`.DateTimes`) | What depends on no UI framework: `DateTimeInput`. Plain `net10.0` alone. |
 
 `Controls` depends on `Core`. `Core` is published separately and must stay useful on its own:
 the safety mechanisms are valuable to someone who wants none of our widgets.
 
-`Core` is released only when it changes, so the two packages can carry different versions;
+"Core" in this file and in the build files is `SumireCraft.Maui.Core`. `SumireCraft.Core` is always
+written out in full. It holds what a view model's or a server's project can use without .NET MAUI,
+`Controls` depends on it, and it is numbered as `Core` is, on its own: released only when it
+changes (`build/Version.props`, `SumireCraftCoreVersion`). Nothing moves into it from `SumireCraft.Maui.Core` before 2.0.0: a type
+that changed assemblies would break applications holding the published packages.
+
+`Core` is released only when it changes, so it and `Controls` can carry different versions;
 `build/Version.props` explains the numbering. A change to `Core`, or to a build file it takes in
 (`global.json` and the root `Directory.*.props` included),
 means `Core` gets the next release's number too, and `release.yml` refuses to publish otherwise.
+The same holds for `SumireCraft.Core`, which takes in the same build files.
 
 **Rule of thumb:** `Controls` holds widgets — the pieces an app author reaches for when building a
 page. A behavior is a widget for this purpose: it is something you attach to a view and think
@@ -122,6 +142,10 @@ So a widget's public type goes in `Controls`, and the logic it delegates to goes
 `SmrTapBehavior` is the worked example: the behavior is in `Controls`, while `TapSequence`, the
 rules for reading a burst of taps, is in `Core` and knows nothing about views. `SmrBadgeView` and
 `BadgeCounter` split the same way.
+
+A base class for widgets is the exception: the application writes it in XAML, as a style's
+`TargetType` or as the base of a widget of its own, so it goes in `Controls`, where the one xmlns
+reaches it. `SmrTemplatedView` is one.
 
 Parts of `Core` depend on each other through interfaces only. `BusyWatchdog` takes an
 `IBusyGate` and an `IExceptionSink`, never `BusyGate` or `ExceptionSink`, so each part can be
@@ -166,7 +190,8 @@ assets/                             the pictures in README.md, taken on Android 
 build/                              version numbers, pack settings and platform routing rules
 src/Directory.Build.props|targets   settings for the published libraries only (IsAotCompatible, trim analyzer)
 src/SumireCraft.Maui.Core/          Badges/ , Exceptions/ , Extensions/ , Gates/ , Hosting/ , Lifetime/ , Taps/
-src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , Taps/) , Hosting/
+src/SumireCraft.Maui.Controls/      <Widget>/ (Badges/ , DateTimes/ , Fields/ , Inputs/ , Taps/) , Templates/ , Hosting/
+src/SumireCraft.Core/               DateTimes/
 samples/Directory.Build.props       settings for applications only (Mac Catalyst runtime identifiers and minimum)
 samples/SumireCraft.Maui.Sample/    the application the UI tests drive, and examples (not packed)
 tests/SumireCraft.Maui.UnitTests/   xUnit v3, plain net10.0 (the libraries build for it too)
@@ -194,7 +219,10 @@ widget it derives from, not on a page of its own.
 
 The sample's look stops at its icon and splash screen, in the violet `#8467E0` the package icon
 shares. `Resources/Styles/Colors.xaml` stays as .NET MAUI's template left it, but for its
-indentation, which is two spaces like every XAML file here.
+indentation, which is two spaces like every XAML file here. The styles the sample gives the widgets
+go in `Resources/Styles/SmrStyles.xaml`, and those for `Wrapping/`'s types in
+`Wrapping/AbcStyles.xaml`, both merged by `App.xaml`; not in `App.xaml` itself, and not in the
+template's `Styles.xaml`.
 
 The library ships no aspect or weaver for exception handling, and the sample does not use one
 either: its `try`/`catch` is written out. Metalama replaces the compiler and Fody rewrites the
@@ -352,11 +380,10 @@ These are the paths that matter:
 - `tests/`, because the commit check and CI run the tests by themselves.
 
 Two lists cover them, for two kinds of writer. `permissions.ask` in `.claude/settings.json` makes
-Claude ask before it edits one, even where an allow rule would let the edit through; `src/` and
-`tests/` are left out of it,
-being the everyday work, and read in review instead. `.github/CODEOWNERS` holds every pull request
-that touches one for the maintainer, whoever wrote it. A path added here goes into both, or into
-`CODEOWNERS` alone with the reason.
+Claude ask before it edits one, even where an allow rule would let the edit through. `src/` and
+`tests/` are left out of it, being the everyday work, and are read in review instead.
+`.github/CODEOWNERS` holds every pull request that touches one for the maintainer, whoever wrote it.
+A path added here goes into both, or into `CODEOWNERS` alone with the reason.
 
 The ask rules cover Claude's own editing tools only. A file written by a shell command passes them
 by, which is one more reason to write files with Write and Edit.
@@ -486,6 +513,9 @@ The library is kept by one person, and fixes come at that pace.
   the original partial-method form, and that form forbids an accessibility modifier. Say so in a
   comment where it happens.
 - Every public type and member carries an XML documentation comment.
+- One top-level type per file in `src/`, named after it. The exception is a type that exists only
+  to hold up another and is hidden from applications (`[EditorBrowsable(Never)]`), such as
+  `TemplatedViewDefaults`: it sits in that type's file, after it.
 - Target frameworks: `net10.0-android`, `net10.0-ios`, `net10.0-maccatalyst`,
   `net10.0-windows10.0.19041.0`, and plain `net10.0` for the libraries. Minimum OS: Android 21, iOS 15, MacCatalyst 15, Windows 10.0.17763.
 - Package versions are centrally managed in `Directory.Packages.props`. Never put a `Version`

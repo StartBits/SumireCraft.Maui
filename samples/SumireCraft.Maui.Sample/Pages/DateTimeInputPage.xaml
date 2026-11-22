@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
+             x:Class="SumireCraft.Maui.Sample.Pages.DateTimeInputPage"
+             Title="DateTimeInput">
+
+  <!-- Short and narrow enough to fit on a phone without scrolling: Android leaves whatever is off
+       the screen out of the tree, and the buttons and the state have to be found. -->
+  <ScrollView>
+    <VerticalStackLayout
+      Padding="24"
+      Spacing="16">
+
+      <Label
+        AutomationId="DateTimeInputPageTitle"
+        Text="DateTimeInput"
+        Style="{StaticResource Headline}"
+        HorizontalTextAlignment="Start" />
+
+      <Label
+        Text="A date picker and a time picker bound to one DateTimeInput: one takes its date, the other its time, and either can stay empty." />
+
+      <smr:SmrField Title="Date" ReserveErrorSpace="False">
+        <smr:SmrDatePicker
+          AutomationId="StartDate"
+          DateTimeInput="{Binding Start}" />
+      </smr:SmrField>
+
+      <smr:SmrField Title="Time" ReserveErrorSpace="False">
+        <smr:SmrTimePicker
+          AutomationId="StartTime"
+          DateTimeInput="{Binding Start}" />
+      </smr:SmrField>
+
+      <!-- An input says nothing when it changes, so the page reads it when asked. -->
+      <HorizontalStackLayout Spacing="8">
+        <Button
+          AutomationId="ReadInput"
+          Text="Read"
+          Command="{Binding ReadCommand}" />
+        <Label
+          AutomationId="InputState"
+          Text="{Binding State}"
+          VerticalTextAlignment="Center" />
+      </HorizontalStackLayout>
+
+      <!-- Each puts another input in the view model, which is how the pickers are shown other
+           values. Null leaves the view model without one, and a picker then makes it one. -->
+      <HorizontalStackLayout Spacing="8">
+        <Button
+          AutomationId="FillInput"
+          Text="Fill"
+          Command="{Binding FillCommand}" />
+        <Button
+          AutomationId="EarlyInput"
+          Text="1066"
+          Command="{Binding EarlyCommand}" />
+      </HorizontalStackLayout>
+
+      <HorizontalStackLayout Spacing="8">
+        <Button
+          AutomationId="EmptyInput"
+          Text="Empty"
+          Command="{Binding EmptyCommand}" />
+        <Button
+          AutomationId="NullInput"
+          Text="Null"
+          Command="{Binding NullCommand}" />
+      </HorizontalStackLayout>
+
+    </VerticalStackLayout>
+  </ScrollView>
+
+</ContentPage>

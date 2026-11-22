@@ -12,15 +12,20 @@
          1.0.2  Controls 1.0.2  Core 1.0.1   Controls alone
          1.0.3  Controls 1.0.3  Core 1.0.3   Core changed: the next free number, not 1.0.2
 
-       So SumireVersion is the release, and the tag is v$(SumireVersion). SumireCoreVersion is
-       either the same or the version of an earlier release, whose tag the same script diffs
-       against.
-       Controls names the Core it was built with as its minimum, because packing reads Core's own
-       Version through the project reference, and the next major version of Controls as the bound
-       (BoundCoreDependency in the Controls project). -->
+       "Core" here is SumireCraft.Maui.Core. SumireCraft.Core, the package that depends on no UI
+       framework, is numbered the same way and on its own: it takes a number only in a release
+       that changes it, whether or not Core changes too. It was first released in 1.1.0.
+
+       So SumireVersion is the release, and the tag is v$(SumireVersion). SumireCoreVersion and
+       SumireCraftCoreVersion are each either the same or the version of an earlier release, whose
+       tag the same script diffs against.
+       Controls names each Core it was built with as its minimum, because packing reads their own
+       Version through the project references, and the next major version of Controls as the
+       bound (BoundCoreDependency in the Controls project). -->
   <PropertyGroup>
-    <SumireVersion>1.0.0</SumireVersion>
-    <SumireCoreVersion>1.0.0</SumireCoreVersion>
+    <SumireVersion>1.1.0</SumireVersion>
+    <SumireCoreVersion>1.1.0</SumireCoreVersion>
+    <SumireCraftCoreVersion>1.1.0</SumireCraftCoreVersion>
   </PropertyGroup>
 
 </Project>

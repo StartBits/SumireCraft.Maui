@@ -39,6 +39,16 @@ internal abstract class SampleUi(AppiumDriver driver)
     public abstract By ByText(string text);
 
     /// <summary>
+    /// Finds a view by what a screen reader is given to read for it, its
+    /// <c>SemanticProperties.Description</c>.
+    /// </summary>
+    /// <remarks>
+    /// On Windows and Apple's platforms that takes the place of the text the view displays, so it is
+    /// found the way text is. Android keeps the two apart.
+    /// </remarks>
+    public virtual By ByDescription(string description) => ByText(description);
+
+    /// <summary>
     /// Finds a button on an alert by the text the application gave it.
     /// </summary>
     public virtual By ByAlertButton(string text) => ByText(text);
@@ -82,18 +92,26 @@ internal sealed class WindowsUi(AppiumDriver driver) : SampleUi(driver)
 
     // The tree holds what is off screen as well, but with nowhere for it: a zero size and a
     // position that means nothing. So the wheel is turned over the scroll view until the target
-    // has a size. The driver turns no wheel through its own actions; this extension is the way.
+    // has a size and sits in the upper two thirds of the scroll view, or will scroll no further. A
+    // window can reach below the screen's working area, where the taskbar covers it, and a picture
+    // of an element there shows the taskbar or whatever window lies below. The driver turns no wheel
+    // through its own actions; this extension is the way.
     public override AppiumElement BringIntoView(By target, By scroller)
     {
+        int? last = null;
         for (var turn = 0; turn < 20; turn++)
         {
             var element = Driver.FindElement(target);
+            var view = Driver.FindElement(scroller);
+            var shown = element.Size.Width > 0 && element.Size.Height > 0;
 
-            if (element.Size.Width > 0 && element.Size.Height > 0)
+            if (shown && (element.Location.Y + element.Size.Height <= view.Location.Y + (view.Size.Height * 2 / 3)
+                || element.Location.Y == last))
             {
                 return element;
             }
 
+            last = shown ? element.Location.Y : null;
             TurnWheel(scroller, -3);
         }
 
@@ -130,6 +148,9 @@ internal sealed class AndroidUi(AppiumDriver driver) : SampleUi(driver)
     // typed would match the box it was typed into as well.
     public override By ByText(string text) =>
         By.XPath($"//*[@text='{text}' and not(self::android.widget.EditText)]");
+
+    // A description is the view's content description, which TalkBack reads instead of its text.
+    public override By ByDescription(string description) => By.XPath($"//*[@content-desc='{description}']");
 
     // Compared without regard to case. A dialog button may be styled to draw its text in
     // capitals, and whether the driver then reports the text as written or as drawn depends on the

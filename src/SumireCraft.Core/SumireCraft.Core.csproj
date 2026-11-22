@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Plain net10.0 alone: nothing here touches a platform or a UI framework, and an application
+         on any platform can reference a net10.0 library. -->
+    <TargetFramework>$(SumirePlainTargetFramework)</TargetFramework>
+
+    <RootNamespace>SumireCraft</RootNamespace>
+    <AssemblyName>SumireCraft.Core</AssemblyName>
+
+    <!-- Released only when it changes; build\Version.props explains the numbering. -->
+    <Version>$(SumireCraftCoreVersion)</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package">
+    <PackageId>SumireCraft.Core</PackageId>
+    <Title>SumireCraft.Core</Title>
+    <Description>A value for a date and a time that are entered separately and can each be empty. Depends on no UI framework.</Description>
+    <SumirePackageTags>datetime;dateonly;timeonly;datepicker;timepicker</SumirePackageTags>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\Package.props" />
+
+</Project>
