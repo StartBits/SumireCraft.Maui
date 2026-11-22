@@ -540,9 +540,13 @@ more that draw its box, alike on every platform.
 Until `BorderThickness` or `CornerRadius` is given, an input is drawn in the platform's own box, as
 .NET MAUI draws it. Given either, the box is the library's: one thick all round unless
 `BorderThickness` says otherwise, with square corners unless `CornerRadius` does. A background colour
-fills the same shape. Clearing both gives the platform's box back. Everything else is the input it
-derives from, and a style you wrote for every `Entry` -- the Styles.xaml of a new project has one for
-each of the five -- reaches `SmrEntry` too.
+fills the same shape. Clearing both gives the platform's box back. Laid out right to left, the
+thickness given for the left is at the right, the side the text starts from, as a `Margin` or a
+`Padding` is. The corners move to the other side on Windows and stay where they are elsewhere, as
+.NET MAUI's own `Border` does: a `CornerRadius` of `8,0,0,0` rounds the top right on Windows and the
+top left on the other platforms. Everything else is the input it derives from, and a style you wrote
+for every `Entry` -- the Styles.xaml of a new project has one for each of the five -- reaches
+`SmrEntry` too.
 
 A style says it once for every page, and a visual state changes it while the input has the focus:
 

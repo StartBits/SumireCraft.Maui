@@ -18,6 +18,10 @@ internal sealed partial class BorderAttachment
     // The background drawn here last, to tell it from one .NET MAUI put in since.
     private Drawable? _drawn;
 
+    // The padding the input had before its border was drawn, in pixels: the room the Material
+    // background kept between the input's edge and its text.
+    private (int Left, int Top, int Right, int Bottom)? _padding;
+
     partial void Apply(object platformView, BorderLook look)
     {
         if (platformView is not EditText edit || edit.Context is not { } context)
@@ -31,10 +35,22 @@ internal sealed partial class BorderAttachment
             _original ??= current;
         }
 
+        // Android draws the sides where it is told, so a border laid out right to left is told so.
+        look = look.LaidOut(((IVisualElementController)_view).EffectiveFlowDirection);
+        var padding = _padding ??= (edit.PaddingLeft, edit.PaddingTop, edit.PaddingRight, edit.PaddingBottom);
         var color = look.Color?.ToPlatform() ?? new Android.Graphics.Color(edit.CurrentTextColor);
         var drawn = new BorderDrawable(FillOf(current), look, color, context.ToPixels(1));
 
-        SetKeepingPadding(edit, drawn);
+        // The border is drawn inside the input, over the room that kept the text off its edge: a
+        // border down a side takes that room by its thickness, and the text moves in by as much. A
+        // line under the text, as thin as the Material line, lies where that line did, in room of its
+        // own below the text; a thick border at the top or the bottom is left to come nearer the text.
+        edit.Background = drawn;
+        edit.SetPadding(
+            padding.Left + Pixels(context, look.Thickness.Left),
+            padding.Top,
+            padding.Right + Pixels(context, look.Thickness.Right),
+            padding.Bottom);
         _drawn = drawn;
     }
 
@@ -54,17 +70,30 @@ internal sealed partial class BorderAttachment
 
     partial void Restore(object platformView)
     {
-        if (platformView is EditText edit && ReferenceEquals(edit.Background, _drawn))
+        if (platformView is EditText edit)
         {
-            SetKeepingPadding(edit, _original);
+            if (ReferenceEquals(edit.Background, _drawn))
+            {
+                edit.Background = _original;
 
-            // The background given back may be older than the application's now: have .NET MAUI
-            // make it again from what the input says.
-            _view.Handler?.UpdateValue(nameof(IView.Background));
+                // The background given back may be older than the application's now: have .NET MAUI
+                // make it again from what the input says.
+                _view.Handler?.UpdateValue(nameof(IView.Background));
+            }
+
+            // The Material background brings its own padding back with it, but not the padding the
+            // input had if that was not the Material background's -- one an application set through
+            // a handler, say -- and .NET MAUI keeps the padding as it is when it puts a background
+            // of its own in. So the padding the input had is given back whoever's background it has.
+            if (_padding is { } padding)
+            {
+                edit.SetPadding(padding.Left, padding.Top, padding.Right, padding.Bottom);
+            }
         }
 
         _original = null;
         _drawn = null;
+        _padding = null;
     }
 
     // The application's background, which comes first in the layers .NET MAUI draws an input with
@@ -77,12 +106,5 @@ internal sealed partial class BorderAttachment
         _ => null,
     };
 
-    // Android takes the padding from the background, so a new background moves the text. .NET MAUI
-    // keeps it in place the same way.
-    private static void SetKeepingPadding(EditText edit, Drawable? background)
-    {
-        var (left, top, right, bottom) = (edit.PaddingLeft, edit.PaddingTop, edit.PaddingRight, edit.PaddingBottom);
-        edit.Background = background;
-        edit.SetPadding(left, top, right, bottom);
-    }
+    private static int Pixels(Android.Content.Context context, double units) => (int)Math.Round(context.ToPixels(units));
 }

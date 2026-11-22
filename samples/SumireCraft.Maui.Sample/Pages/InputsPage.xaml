@@ -35,7 +35,8 @@
         AutomationId="AbcEntry"
         Placeholder="AbcEntry, thicker while focused" />
 
-      <!-- Turned off, the entry has the platform's box back; given a background, it keeps its line. -->
+      <!-- Turned off, the entry has the platform's box back, its text where the platform keeps it;
+           given a background, it keeps its border. -->
       <HorizontalStackLayout Spacing="8">
         <Switch
           x:Name="BorderSwitch"
@@ -72,11 +73,11 @@
 
       <smr:SmrEntry
         AutomationId="ToggledEntry"
-        Placeholder="On a red line, while the switch is on"
+        Placeholder="Outlined in red, while the switch is on"
         BorderColor="Red">
         <smr:SmrEntry.Triggers>
           <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="True">
-            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderThickness" Value="2" />
           </DataTrigger>
           <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BackgroundSwitch}}" Value="True">
             <Setter Property="BackgroundColor" Value="#EADDFF" />
@@ -131,6 +132,19 @@
           BorderThickness="0,0,0,1"
           BorderColor="Teal" />
       </Grid>
+
+      <!-- The box laid out right to left, its text starting from the right. As a Margin or a Padding
+           does, the thickness given for the left is the side the text starts from, which is the
+           right here, and the text keeps off it. Below the others the tests look for, so that it
+           pushes none of them off a phone's first screen. -->
+      <smr:SmrEntry
+        AutomationId="RightToLeftBoxedEntry"
+        FlowDirection="RightToLeft"
+        Placeholder="Right to left, thick at its start"
+        BorderThickness="8,2,2,2"
+        CornerRadius="8"
+        BorderColor="Magenta"
+        BackgroundColor="#F3EDF7" />
 
       <smr:SmrEntry
         AutomationId="PlainEntry"

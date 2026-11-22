@@ -95,6 +95,7 @@ internal sealed partial class BorderAttachment
             case nameof(VisualElement.Height):
             case nameof(VisualElement.Background):
             case nameof(VisualElement.BackgroundColor):
+            case nameof(VisualElement.FlowDirection):
                 // What a platform draws the border from may have changed under it.
                 if (_platformView is not null)
                 {

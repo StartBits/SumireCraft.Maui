@@ -38,7 +38,9 @@
        SmrFieldTitle does not reach it, so this one says the indent again. -->
   <Style TargetType="Label" Class="AbcEntryFieldTitle">
     <Setter Property="Margin" Value="4,0,0,4" />
-    <Setter Property="FontAttributes" Value="Bold" />
+    <!-- A face of its own rather than Bold: iOS and Mac Catalyst draw no bold of OpenSans-Regular,
+         the font the template gives every label. -->
+    <Setter Property="FontFamily" Value="OpenSansSemibold" />
   </Style>
 
   <!-- The mark after AbcEntryField's title, under the key it names in place of

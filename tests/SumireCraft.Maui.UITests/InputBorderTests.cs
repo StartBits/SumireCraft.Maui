@@ -19,7 +19,14 @@ public abstract class InputBorderTests : SamplePageTests
     private const string AbcEntry = "AbcEntry";
     private const string ToggledEntry = "ToggledEntry";
     private const string BoxedEntry = "BoxedEntry";
+    private const string RightToLeftBoxedEntry = "RightToLeftBoxedEntry";
+    private const string PlainEntry = "PlainEntry";
     private const string Editor = "UnderlinedEditor";
+
+    // The least room, in points, kept between a border down a side and the text: less than any
+    // platform's own box keeps, more than a text run onto the border would leave. Android keeps the
+    // least, 3.8 points to the edge of the text's room, which a letter's own edge reads as 2.7.
+    private const double LeastGap = 2;
 
     private protected InputBorderTests(SampleAppFixture app)
         : base(app)
@@ -48,7 +55,7 @@ public abstract class InputBorderTests : SamplePageTests
     {
         Open();
 
-        Assert.True(BandOnScreen(input, Near(red, green, blue)) > 0, $"{input} has no line of ({red}, {green}, {blue}) at its bottom.");
+        Assert.True(BandOnScreen(input, Line(red, green, blue)) > 0, $"{input} has no line of ({red}, {green}, {blue}) at its bottom.");
     }
 
     /// <remarks>
@@ -60,7 +67,7 @@ public abstract class InputBorderTests : SamplePageTests
     {
         Open();
         var scroller = Ui.ByAutomationId(PageScroll);
-        var orange = Near(255, 140, 0);
+        var orange = Line(255, 140, 0);
 
         try
         {
@@ -88,10 +95,19 @@ public abstract class InputBorderTests : SamplePageTests
         var entry = Find(AbcEntry);
         var before = Band(entry, IsViolet);
 
-        entry.Click();
+        try
+        {
+            entry.Click();
 
-        var after = Settled(() => Band(Find(AbcEntry), IsViolet), changedFrom: before);
-        Assert.True(after > before, $"The line was {before} pixels thick before the entry had the focus, and {after} with it.");
+            var after = Settled(() => Band(Find(AbcEntry), IsViolet), changedFrom: before);
+            Assert.True(after > before, $"The line was {before} pixels thick before the entry had the focus, and {after} with it.");
+        }
+        finally
+        {
+            // The keyboard the focus brought up covers the bottom of the page, where Android leaves
+            // what it covers out of the tree.
+            Ui.DismissKeyboard();
+        }
     }
 
     /// <remarks>
@@ -143,6 +159,59 @@ public abstract class InputBorderTests : SamplePageTests
     }
 
     /// <remarks>
+    /// A border down the sides moves the text in, by its thickness on Android and by the room iOS
+    /// keeps in place of its box. Taken away, the text goes back to where the platform keeps it: where
+    /// it is in the entry given no border, the same width on the page. Both placeholders start with a
+    /// round letter, read the same to a pixel.
+    /// </remarks>
+    [Fact]
+    public void ABorderTakenAway_PutsTheTextBackWhereThePlatformKeepsIt()
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+
+        try
+        {
+            SetBordered(false);
+            var toggled = TextStart(Png.Read(Find(ToggledEntry).GetScreenshot().AsByteArray));
+            var plain = TextStart(Png.Read(Ui.BringIntoView(Ui.ByAutomationId(PlainEntry), scroller).GetScreenshot().AsByteArray));
+
+            Assert.True(Math.Abs(toggled - plain) <= 2, $"With its border taken away, the entry's text starts {toggled} pixels in, and the plain entry's {plain}.");
+        }
+        finally
+        {
+            Ui.ScrollToTop(scroller);
+            SetBordered(true);
+        }
+    }
+
+    // How many pixels in from the left the text starts, across the middle of an input: past the edge
+    // of the platform's box, if it draws one there, and the light room inside it.
+    private static int TextStart(Png picture)
+    {
+        static bool IsLight((byte Red, byte Green, byte Blue) c) => c.Red > 230 && c.Green > 230 && c.Blue > 230;
+
+        var start = int.MaxValue;
+        for (var y = picture.Height / 3; y < picture.Height * 2 / 3; y++)
+        {
+            var x = 0;
+            while (x < picture.Width && !IsLight(picture.ColourAt(x, y)))
+            {
+                x++;
+            }
+
+            while (x < picture.Width && IsLight(picture.ColourAt(x, y)))
+            {
+                x++;
+            }
+
+            start = Math.Min(start, x);
+        }
+
+        return start;
+    }
+
+    /// <remarks>
     /// The entry's border is magenta all round, with corners rounded by more than its thickness: its
     /// top has the border too, and its very corner is outside it.
     /// </remarks>
@@ -165,6 +234,106 @@ public abstract class InputBorderTests : SamplePageTests
         }
     }
 
+    /// <remarks>
+    /// The box iOS takes away from a text field is what held its text off the edge. Across the middle
+    /// of each boxed entry, the entry's background lies between the text and the border down the side
+    /// the text starts from, for at least <see cref="LeastGap"/> points: from the left of the boxed
+    /// entry, and from the right of one laid out right to left, where its border is thicker. A
+    /// picture's pixels to the point are read off the top border, two points thick in both.
+    /// </remarks>
+    [Theory]
+    [InlineData(BoxedEntry, false)]
+    [InlineData(RightToLeftBoxedEntry, true)]
+    public void ABorderDownTheSideTheTextStartsFrom_KeepsTheTextOffIt(string entry, bool fromTheRight)
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+
+        try
+        {
+            var picture = Png.Read(Ui.BringIntoView(Ui.ByAutomationId(entry), scroller).GetScreenshot().AsByteArray);
+            var pixelsToThePoint = TopBand(picture, IsMagenta) / 2.0;
+            Assert.True(pixelsToThePoint > 0, $"{entry} has no magenta border at its top.");
+            var gap = double.MaxValue;
+
+            for (var y = picture.Height / 3; y < picture.Height * 2 / 3; y++)
+            {
+                var (inside, width) = BorderFrom(picture, y, fromTheRight);
+                Assert.True(width > 0, $"{entry} has no magenta border down the side its text starts from, {y} pixels down.");
+
+                // The pixel next to the border is blended with it, and is counted without being read.
+                var step = fromTheRight ? -1 : 1;
+                var background = 1;
+                for (var x = inside + step; x > 0 && x < picture.Width - 1 && IsBoxBackground(picture.ColourAt(x, y)); x += step)
+                {
+                    background++;
+                }
+
+                gap = Math.Min(gap, background / pixelsToThePoint);
+            }
+
+            Assert.True(gap >= LeastGap, $"{entry}'s text comes within {gap:F1} points of the border it starts from.");
+        }
+        finally
+        {
+            Ui.ScrollToTop(scroller);
+        }
+    }
+
+    /// <remarks>
+    /// As .NET MAUI lays out a Margin or a Padding, the thickness given for the left is the side the
+    /// text starts from, and the right the side it ends at: laid out right to left, the entry given
+    /// eight points at the left and two elsewhere is eight points thick at its right and two at its
+    /// left. The two are compared, not measured: Windows scales a point to a fraction of pixels, and
+    /// blends the edges of a thin border more than a thick one's, so the right is asked to be well over
+    /// twice the left rather than four times.
+    /// </remarks>
+    [Fact]
+    public void ABorderLaidOutRightToLeft_HasItsLeftThicknessAtTheRight()
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+
+        try
+        {
+            var picture = Png.Read(Ui.BringIntoView(Ui.ByAutomationId(RightToLeftBoxedEntry), scroller).GetScreenshot().AsByteArray);
+            var y = picture.Height / 2;
+
+            var right = BorderFrom(picture, y, fromTheRight: true).Width;
+            var left = BorderFrom(picture, y, fromTheRight: false).Width;
+
+            Assert.True(left > 0 && right >= 2.5 * left, $"{RightToLeftBoxedEntry}'s border is {left} pixels thick at its left and {right} at its right.");
+        }
+        finally
+        {
+            Ui.ScrollToTop(scroller);
+        }
+    }
+
+    // Where the magenta border met first from one end of a row ends, and how many pixels wide it is.
+    private static (int Inside, int Width) BorderFrom(Png picture, int y, bool fromTheRight)
+    {
+        var step = fromTheRight ? -1 : 1;
+        var x = fromTheRight ? picture.Width - 1 : 0;
+
+        for (var moved = 0; moved < picture.Width / 3 && !IsMagenta(picture.ColourAt(x, y)); moved++)
+        {
+            x += step;
+        }
+
+        var width = 0;
+        while (x >= 0 && x < picture.Width && IsMagenta(picture.ColourAt(x, y)))
+        {
+            width++;
+            x += step;
+        }
+
+        return (x, width);
+    }
+
+    // The boxed entry's own background, #F3EDF7.
+    private static bool IsBoxBackground((byte, byte, byte) c) => Near(243, 237, 247, 16)(c);
+
     // Mac Catalyst scales an iPad's points to 77% of the Mac's, so a line one point thick falls across
     // pixels and is blended with the white around it: purple there reads as (158, 108, 158).
     private static bool IsPurple((byte Red, byte Green, byte Blue) c) => c.Red - c.Green > 40 && c.Blue - c.Green > 40;
@@ -177,8 +346,24 @@ public abstract class InputBorderTests : SamplePageTests
     private static bool IsViolet((byte, byte, byte) c) => Near(132, 103, 224)(c);
 
     // A colour close to the one given: the line's colour drawn, blended a little at its edges.
-    private protected static Func<(byte, byte, byte), bool> Near(int red, int green, int blue) =>
-        c => Math.Abs(c.Item1 - red) < 70 && Math.Abs(c.Item2 - green) < 70 && Math.Abs(c.Item3 - blue) < 70;
+    private protected static Func<(byte, byte, byte), bool> Near(int red, int green, int blue, int within = 70) =>
+        c => Math.Abs(c.Item1 - red) < within && Math.Abs(c.Item2 - green) < within && Math.Abs(c.Item3 - blue) < within;
+
+    // A line of the colour given, on a white page, however much of it a pixel holds. Mac Catalyst
+    // scales an iPad's points to 77% of the Mac's, so a line one point thick falls across two rows of
+    // pixels, each the colour blended with white: green there reads as (93, 151, 93) and
+    // (123, 166, 123). What each pixel takes away from white points the same way as what the colour
+    // does, and is at least a third as much; black text and a grey placeholder point elsewhere.
+    private protected static Func<(byte, byte, byte), bool> Line(int red, int green, int blue) => c =>
+    {
+        double[] colour = [255 - red, 255 - green, 255 - blue];
+        double[] pixel = [255 - c.Item1, 255 - c.Item2, 255 - c.Item3];
+        var dot = (colour[0] * pixel[0]) + (colour[1] * pixel[1]) + (colour[2] * pixel[2]);
+        var colourLength = Math.Sqrt((colour[0] * colour[0]) + (colour[1] * colour[1]) + (colour[2] * colour[2]));
+        var pixelLength = Math.Sqrt((pixel[0] * pixel[0]) + (pixel[1] * pixel[1]) + (pixel[2] * pixel[2]));
+
+        return pixelLength >= colourLength / 3 && dot / (colourLength * pixelLength) >= 0.98;
+    };
 
     // How many rows of the line's colour make the lowest band of it in the bottom third of the
     // element, down a column through its middle. Some platforms give a control more room below its
@@ -280,6 +465,12 @@ public abstract class InputBorderTests : SamplePageTests
         if (Text(state) != wanted)
         {
             Find(toggle).Click();
+            Expect(state, wanted);
+
+            // The label changes at once, but the switch slides for a moment longer, and on iOS a tap
+            // sent while it slides was seen to go nowhere, now and then: the next press found it as
+            // it was.
+            Thread.Sleep(500);
         }
 
         Expect(state, wanted);
@@ -304,7 +495,7 @@ public abstract class PickerBorderTests : InputBorderTests
     {
         Open();
 
-        Assert.True(BandOnScreen(picker, Near(red, green, blue)) > 0, $"{picker} has no line of ({red}, {green}, {blue}) at its bottom.");
+        Assert.True(BandOnScreen(picker, Line(red, green, blue)) > 0, $"{picker} has no line of ({red}, {green}, {blue}) at its bottom.");
     }
 }
 
