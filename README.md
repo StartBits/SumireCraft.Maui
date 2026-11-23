@@ -29,11 +29,11 @@ weaver that writes `try`/`catch` for you -- because no two applications agree on
 
 ## Packages
 
-| Package | Description |
-| --- | --- |
-| `SumireCraft.Maui.Controls` | The widgets. This is the package you normally want. |
-| `SumireCraft.Maui.Core` | Exception reporting and the safety net, the busy gate, badge counting and lifetime helpers. Useful on its own, without any of the widgets. |
-| `SumireCraft.Core` | `DateTimeInput`, and nothing that depends on a UI framework: plain `net10.0`, for a view model's or a server's project as well. Controls brings it in. |
+| Package | Version | Description |
+| --- | --- | --- |
+| [`SumireCraft.Maui.Controls`](https://www.nuget.org/packages/SumireCraft.Maui.Controls) | [![SumireCraft.Maui.Controls on NuGet](https://img.shields.io/nuget/v/SumireCraft.Maui.Controls)](https://www.nuget.org/packages/SumireCraft.Maui.Controls) | The widgets. This is the package you normally want. |
+| [`SumireCraft.Maui.Core`](https://www.nuget.org/packages/SumireCraft.Maui.Core) | [![SumireCraft.Maui.Core on NuGet](https://img.shields.io/nuget/v/SumireCraft.Maui.Core)](https://www.nuget.org/packages/SumireCraft.Maui.Core) | Exception reporting and the safety net, the busy gate, badge counting and lifetime helpers. Useful on its own, without any of the widgets. |
+| [`SumireCraft.Core`](https://www.nuget.org/packages/SumireCraft.Core) | [![SumireCraft.Core on NuGet](https://img.shields.io/nuget/v/SumireCraft.Core)](https://www.nuget.org/packages/SumireCraft.Core) | `DateTimeInput`, and nothing that depends on a UI framework: plain `net10.0`, for a view model's or a server's project as well. Controls brings it in. |
 
 Core is for .NET MAUI applications, and depends on .NET MAUI itself (`Microsoft.Maui.Controls`),
 since it plugs into `MauiAppBuilder`. A library that is not a .NET MAUI project -- a networking
