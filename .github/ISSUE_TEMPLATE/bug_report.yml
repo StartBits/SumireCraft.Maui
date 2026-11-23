@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in the library went wrong, or did not do what you expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time. You do not need to know the cause or the fix --
+        what happened to you is what helps. Only the first box is needed.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected to see instead.
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: How to make it happen
+      description: Steps, or a few lines of XAML or C#, if you have them.
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Platforms
+      description: Where you saw it.
+      multiple: true
+      options:
+        - Android
+        - iOS
+        - Mac Catalyst
+        - Windows
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: The SumireCraft package and .NET MAUI versions, if you know them.
+      placeholder: SumireCraft.Maui.Controls 1.1.0, .NET MAUI 10.0.20
