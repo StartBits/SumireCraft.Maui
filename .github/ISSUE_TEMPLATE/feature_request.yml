@@ -1,0 +1,21 @@
+name: Feature request
+description: Something you wish the library did, or did differently.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time. You do not need to know how it should be built --
+        what you were trying to do is what helps. Only the first box is needed.
+  - type: textarea
+    id: what-for
+    attributes:
+      label: What you want to do
+      description: What you were building, and where the library got in the way or fell short.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How you do it today
+      description: A workaround, another library, or nothing yet.
