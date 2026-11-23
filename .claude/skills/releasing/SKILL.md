@@ -144,6 +144,21 @@ it:
    are kept because the ruleset that forbids deleting them also guards `main`, and is never
    switched off to make a deletion pass. Once more than one major version takes fixes, release
    branches start to matter after their release, and which to keep is decided again then.
+6. Once the packages are on nuget.org, make the GitHub release on the new tag. The page is
+   public, so the notes are shown to the maintainer and approved first:
+   `gh release create vx.y.z --verify-tag --title vx.y.z --notes-file <notes> --latest`.
+   `--verify-tag` stays: without it, `gh` makes a missing tag itself, on the default branch, and
+   only `release.yml` makes tags. The notes file is written outside the repository (the
+   scratchpad), so that it is never committed. The notes open with
+   `Released on nuget.org on <date>.`, the day the publish job ran and made the tag, which can be
+   later than the date in the `CHANGELOG.md` heading; GitHub dates the page the day it is made,
+   and that cannot be changed. Then they link each package the release published to its page for
+   that version (`https://www.nuget.org/packages/<id>/<version>`), with `(new)` after a package
+   published for the first time, then copy the release's `CHANGELOG.md` section, each item joined
+   onto one line, because a release page shows every line break the file wraps at. They end with
+   links to `CHANGELOG.md` at the tag and to the comparison with the last tag. Nothing is
+   attached: packages come from nuget.org alone. It is made by hand, not by `release.yml`, whose
+   publish job is not edited.
 
 ## A change outside the packages
 
@@ -187,8 +202,9 @@ Only when the next release cannot wait; a fix that can goes through the release 
 1. Cut `hotfix/x.y.z` from `main`, named after the version it publishes.
 2. Fix it on that branch itself -- no branches under it -- and raise `build/Version.props` there.
    Add its dated `## [x.y.z]` section and link line to `CHANGELOG.md` as a release does.
-3. Open a pull request into `main`. The same checks apply, and merging publishes it. Delete the
-   hotfix branch, which no ruleset keeps; the tag stays.
+3. Open a pull request into `main`. The same checks apply, and merging publishes it. Make its
+   GitHub release as step 6 of *A release* does. Delete the hotfix branch, which no ruleset keeps;
+   the tag stays.
 4. If a release branch is open, merge `main` into it so the fix is not lost. `build/Version.props`
    conflicts, because both raised it:
    - `SumireVersion`: keep the release branch's, unless it is the number the hotfix just took; then
