@@ -13,10 +13,11 @@ name: Release
 #     that does not exist yet, unprotected, the first time a job names it;
 #   - on nuget.org, under the account's Trusted Publishing, a policy owned by the account that
 #     owns the packages, for repository owner StartBits, repository SumireCraft.Maui, workflow file
-#     release.yml, environment release, allowed to publish new packages as well. The environment is
-#     what makes the maintainer's approval count: without it, anyone who can push a branch could
-#     run an edited copy of this file that names no environment, and the policy would still accept
-#     its token;
+#     release.yml, environment release, scope "Push only new package versions" of the packages it
+#     names, so that no run can bring out a package nobody meant to (the releasing skill says how
+#     a release that adds a package gets through). The environment is what makes the
+#     maintainer's approval count: without it, anyone who can push a branch could run an edited
+#     copy of this file that names no environment, and the policy would still accept its token;
 #   - in the secrets of the release environment, NUGET_USER: the nuget.org user name (the profile
 #     name, not an email address).
 #

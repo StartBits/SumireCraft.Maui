@@ -40,6 +40,13 @@ stops working, so a remaining administrator makes it again, with everything the 
 of `release.yml` asks for -- the `release` environment above all -- and `NUGET_USER` changes with
 it.
 
+The policy lets the workflow push only new versions of the packages it names, so a release that
+adds a package cannot publish it as it stands. Before that release's pull request into `main` is
+merged, an administrator switches the policy's scope to *Push new packages and package versions*
+and adds the new one's name; once it is published, the scope goes back to *Push only new package
+versions*. Look at the list of names each time the policy is saved: in 1.1, adding
+`SumireCraft.Core` dropped the names already there once, and they had to be picked again.
+
 Anyone else contributes by a pull request from a fork, which the rulesets hold for a code owner.
 
 ### What is set up on GitHub
@@ -128,13 +135,15 @@ it:
    package stays as it was, say so in the heading: `(Controls only)` when both do, otherwise
    `(without SumireCraft.Maui.Core)` or `(without SumireCraft.Core)`. Then open a pull request from
    the release branch into `main`. Its checks fail unless the version has gone up and both Core
-   packages are numbered right.
-5. The maintainer merges, and the release workflow tags and publishes. The release branch stays,
-   but it is no longer open: nothing more goes into it, and the tag is what that release is found
-   by from then on. Release branches are kept because the ruleset that forbids deleting them also
-   guards `main`, and is never switched off to make a deletion pass. Once more than one major
-   version takes fixes, release branches start to matter after their release, and which to keep is
-   decided again then.
+   packages are numbered right. If the release adds a package, the nuget.org policy is widened
+   before the merge (*Accounts*): otherwise the packages pushed before the new one are published
+   and the run stops there, with no tag.
+5. The maintainer merges, and the release workflow tags and publishes. A policy widened in step 4
+   goes back to new versions only. The release branch stays, but it is no longer open: nothing
+   more goes into it, and the tag is what that release is found by from then on. Release branches
+   are kept because the ruleset that forbids deleting them also guards `main`, and is never
+   switched off to make a deletion pass. Once more than one major version takes fixes, release
+   branches start to matter after their release, and which to keep is decided again then.
 
 ## A change outside the packages
 
