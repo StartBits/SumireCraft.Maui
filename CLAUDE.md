@@ -468,13 +468,13 @@ have `release` and `release/1.1` at once. `dependabot/` branches are Dependabot'
 and outside these rules; the `releasing` skill says how its pull requests are read.
 
 **Merging into `main` releases whatever changed in a package.** What goes into a package is a
-list of paths -- `src/`, `build/`, `global.json` and the root `Directory.*.props` -- written in two
-places, each naming the other: the release workflow runs on a push to `main` that touches the
-list, and the CI workflow checks every pull request into `main` against it. A pull request that
-touches the list must raise the version and number Core as *Packages* says; merging it tags `v`
-and the Controls version (`v1.1.0`) and publishes, in the one workflow, because a tag pushed with
-`GITHUB_TOKEN` starts no other workflow. Only that workflow makes tags. So what `main` holds of the
-packages is always what nuget.org has.
+list of paths -- `src/`, `build/`, `global.json` and the root `Directory.*.props` -- written in
+three places, each naming the others: the release workflow runs on a push to `main` that touches
+the list, the CI workflow checks every pull request into `main` against it, and CI always builds a
+change that touches it. A pull request that touches the list must raise the version and number
+Core as *Packages* says; merging it tags `v` and the Controls version (`v1.1.0`) and publishes, in
+the one workflow, because a tag pushed with `GITHUB_TOKEN` starts no other workflow. Only that
+workflow makes tags. So what `main` holds of the packages is always what nuget.org has.
 
 A change that touches nothing on the list -- the README, this file, `.claude/`, the workflows, the
 sample, the tests -- raises no version and publishes nothing, so it may go to `main` straight from
@@ -549,8 +549,9 @@ touched, and the format hook rejects a misspelled name.
   package dependencies in the generated `.nuspec`.
 - CI runs on every pull request into `main` or a release branch, and the release workflow on every
   push to `main` that touches a package path. Both also run by hand (`workflow_dispatch`), which
-  publishes nothing. A change to a workflow is tried on a `try/` branch first (the `releasing`
-  skill).
+  publishes nothing. CI checks the files every time, but builds, tests and packs only when the
+  change touches something a build reads: `.github/scripts/needs-build.ps1` lists what it skips.
+  A change to a workflow is tried on a `try/` branch first (the `releasing` skill).
 - **`dotnet add package` rewrites `Directory.Packages.props` wholesale**: blank lines go, line
   endings turn to CRLF, and the new `PackageVersion` lands in the first group whatever its label.
   `.claude/settings.json` denies it to Claude Code. Add the `PackageVersion` line by hand, in the
