@@ -71,8 +71,14 @@ rather than found a bug.
 while they run. Say so before running them.
 
 An Appium server started in the background survives stopping the task: stop the `node.exe` whose
-command line contains `appium`. On a Mac, the Mac2 driver's agent can outlive its session as well,
-and holds port 10100 so that the next session fails at once with "port #10100 is busy" or
+command line contains `appium`, and look again before starting another
+(`Get-CimInstance Win32_Process -Filter "Name='node.exe'"`, its `CommandLine`), stopping any
+Appium one still there, and no other: Claude Code and its hooks run on `node.exe` too. One left
+over holds port 4723, so the new server fails with `EADDRINUSE` and the tests talk to the old one,
+which can fail every Windows and Android session with connection errors.
+
+On a Mac, the Mac2 driver's agent can outlive its session as well, and holds port 10100 so that
+the next session fails at once with "port #10100 is busy" or
 `ECONNREFUSED 127.0.0.1:10100`: `pkill -f WebDriverAgentRunner`. A session started straight after
 that can fail once or twice with the agent's xcodebuild exiting with code 65; the next one starts.
 An agent left over from an earlier run can also accept the next session and never answer it: the
@@ -81,8 +87,31 @@ test fails. So stop it, and any sample still open, before each Mac Catalyst run
 (`pkill -f WebDriverAgentRunner; pkill -f 'SumireCraft.Maui.Sample.app/'`; macOS 27.2, Mac2
 4.5.1). The second matches the application alone, not a `dotnet build` of the sample's project.
 
-Start the emulator before Appium. Close the sample before building, or its running executable
-fails the build.
+Stop them after every run that includes Mac Catalyst as well -- the iOS and Mac Catalyst run above
+is one -- whether it passed, failed or was cut short: while the agent lives, the Mac stays under
+automation, and the maintainer may be waiting on VS Code behind it. So such a run takes this form,
+with its own filters:
+
+```sh
+perl -e 'alarm 900; exec @ARGV' dotnet test --project tests/SumireCraft.Maui.UITests/SumireCraft.Maui.UITests.csproj -- --filter-class "*.MacCatalyst*"; pkill -f 'SumireCraft.Maui.UITests/bin/'; pkill -f WebDriverAgentRunner; pkill -f 'SumireCraft.Maui.Sample.app/'
+```
+
+- Run it in the background. Claude Code cuts a command in the foreground off at ten minutes at
+  most, shell and all, and the `pkill`s after it never run. `alarm` bounds the run instead; raise
+  it when a run needs longer.
+- The `pkill`s go tests first. `alarm` ends `dotnet test` alone, and the tests' own executable,
+  which Microsoft.Testing.Platform starts as a process of its own, could open another session and
+  bring the agent back. Its pattern is the executable's folder, which matches neither the line
+  itself nor a build.
+- When the line is cut off all the same, or the maintainer interrupts it, run the `pkill`s on
+  their own straight away.
+
+Start the emulator before Appium. When the sample will not install on the emulator, look at the
+space left on `/data` (`adb shell df /data`): installs that failed leave their temporary files
+there until it fills, and `adb reboot` clears them (355 MB free before, 1.1 GB after, on API 36).
+Install again only once the emulator is back at its home screen (`adb wait-for-device` waits for
+the connection alone).
+Close the sample before building, or its running executable fails the build.
 
 ## The sample
 

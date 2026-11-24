@@ -154,7 +154,10 @@ it:
    packages are numbered right. If the release adds a package, the nuget.org policy is widened
    before the merge (*Accounts*): otherwise the packages pushed before the new one are published
    and the run stops there, with no tag.
-5. The maintainer merges, and the release workflow tags and publishes. A policy widened in step 4
+5. The maintainer merges, and the release workflow tags and publishes. Its publish job waits in
+   the `release` environment until the maintainer approves it (*Review deployments*); when telling
+   them it is waiting, ask them to write `Release x.y.z` in the approval's comment, so that the
+   record of the approval names the version it let through. A policy widened in step 4
    goes back to new versions only. The release branch stays, but it is no longer open: nothing
    more goes into it, and the tag is what that release is found by from then on. Release branches
    are kept because the ruleset that forbids deleting them also guards `main`, and is never
@@ -218,7 +221,8 @@ Only when the next release cannot wait; a fix that can goes through the release 
 1. Cut `hotfix/x.y.z` from `main`, named after the version it publishes.
 2. Fix it on that branch itself -- no branches under it -- and raise `build/Version.props` there.
    Add its dated `## [x.y.z]` section and link line to `CHANGELOG.md` as a release does.
-3. Open a pull request into `main`. The same checks apply, and merging publishes it. Make its
+3. Open a pull request into `main`. The same checks apply, and merging publishes it, after the
+   approval and its `Release x.y.z` comment that step 5 of *A release* asks for. Make its
    GitHub release as step 6 of *A release* does. Delete the hotfix branch, which no ruleset keeps;
    the tag stays.
 4. If a release branch is open, merge `main` into it so the fix is not lost. `build/Version.props`
