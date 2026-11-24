@@ -1030,7 +1030,8 @@ Nothing has been run on a phone or a tablet.
 
 Every report is welcome, however it is put: a bug, a surprise, a page of this README that left you
 guessing, or just "this was annoying". You do not need to know how to fix it -- what happened to
-you is what helps. Open an issue, and thank you for taking the time.
+you is what helps. Open an issue, and thank you for taking the time. A security problem is the
+one exception: report it privately, as the [security policy](SECURITY.md) says.
 
 SumireCraft.Maui is kept by one person, so a fix can take a while to arrive. Every report is read.
 
