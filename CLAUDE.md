@@ -552,6 +552,9 @@ touched, and the format hook rejects a misspelled name.
   publishes nothing. CI checks the files every time, but builds, tests and packs only when the
   change touches something a build reads: `.github/scripts/needs-build.ps1` lists what it skips.
   A change to a workflow is tried on a `try/` branch first (the `releasing` skill).
+- A known vulnerability in a package the solution takes is a warning wherever it restores, which
+  the commit check stops on and CI does not. `audit.yml` restores once a week and fails on one,
+  so that a week without a change still hears of it; what to do then is *Security* above.
 - **`dotnet add package` rewrites `Directory.Packages.props` wholesale**: blank lines go, line
   endings turn to CRLF, and the new `PackageVersion` lands in the first group whatever its label.
   `.claude/settings.json` denies it to Claude Code. Add the `PackageVersion` line by hand, in the

@@ -115,6 +115,10 @@ it:
   workflows sit outside the package paths, so its pull requests can go to `main`. Not for NuGet:
   the .NET MAUI version is a minimum chosen on purpose, and raising it is a release (*Packages* in
   `CLAUDE.md`). Dependabot alerts still cover NuGet.
+- **The weekly NuGet audit** (`audit.yml`) mails its failures to whoever last changed its `cron`
+  line, or, once GitHub has turned the schedule off for inactivity, to whoever turned it back on;
+  and only if that person's notification settings send failed Actions runs. When a maintainer
+  joins or leaves, look at who that is, and at their settings.
 
 ## A release
 
