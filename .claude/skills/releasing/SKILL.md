@@ -81,6 +81,22 @@ it:
   by the maintainer alone. Anyone given that role later can skip the review and cut a release
   branch too, so look at both bypasses again whenever an owner is added. Take the review's
   away when a second code owner joins; the creation ruleset's stays.
+
+  Creating a `v*` tag is not restricted, though a tag made by mistake can then be neither moved
+  nor deleted. `release.yml` makes the tag with `GITHUB_TOKEN`, and GitHub refuses GitHub Actions
+  on a ruleset's bypass list (*must be part of the ruleset source or owner organization*), so a
+  restriction would stop the release itself. A GitHub App of the organization's own could make
+  the tag instead, at the cost of a private key and one more action; it was put to the
+  maintainer, who chose not to have it. What keeps a tag from being made by hand is care:
+  Claude Code asks before `git push`, `gh api` and `gh release`, step 6 of *A release* passes
+  `--verify-tag`, and a release made in the browser picks the existing tag rather than typing a
+  new one. `check-versions.ps1` takes every version tag (`v1.2.3`) as published, so a stray one
+  with the next number stops that release before it publishes, and one with a higher number
+  (`v9.0.0`) stops every release below it. Whoever finds one tells the maintainer before anything
+  else: removing it means lifting the tag ruleset, and that is theirs to decide.
+- **Merge commits only.** The rulesets on `main` and `release/**` allow no other merge method
+  (*Git workflow* in `CLAUDE.md`), and the repository's settings (*General*, *Pull Requests*)
+  allow merge commits alone too, so the merge button offers nothing the rulesets would refuse.
 - **The `release` environment**, which `release.yml`'s publish job runs in: the maintainer as
   required reviewer, deployments from `main` only, and `NUGET_USER` as its secret rather than the
   repository's. It holds only if the nuget.org policy names the environment too (the comment at
