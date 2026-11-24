@@ -35,7 +35,8 @@ on:
   push:
     branches: [main]
     # What goes into a package. Also written in .github/scripts/check-versions.ps1, which ci.yml
-    # runs on every pull request into main; keep the two in step.
+    # runs on every pull request into main, and in .github/scripts/needs-build.ps1, which always
+    # builds it; keep the three in step.
     paths:
       - 'src/**'
       - 'build/**'

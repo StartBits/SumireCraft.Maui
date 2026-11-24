@@ -13,9 +13,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# What goes into a package. Also written as the paths filter in release.yml, which names this file;
-# keep the two in step. Cautious on purpose: Directory.Packages.props and global.json count even when
-# only a test or the sample needed the change.
+# What goes into a package. Also written as the paths filter in release.yml, and in needs-build.ps1,
+# which always builds them because ci.yml skips this check along with the build; keep the three in
+# step. Cautious on purpose: Directory.Packages.props and global.json count even when only a test or
+# the sample needed the change.
 $packagePaths = @('src', 'build', 'global.json', ':(glob)Directory.*.props')
 
 # What of that goes into Core: all but Controls, and but the numbers themselves, which change in every

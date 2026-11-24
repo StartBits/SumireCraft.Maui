@@ -6,13 +6,17 @@ name: CI
 #
 # Run by hand (Run workflow, on the Actions tab) it does the same for any branch, and checks the
 # versions only when given a base.
+#
+# A change that touches nothing a build reads skips everything after the file check
+# (.github/scripts/needs-build.ps1). The job still runs, and so passes, because the rulesets require
+# a check called build: a workflow held back by a paths filter would leave it waiting for good.
 on:
   pull_request:
     branches: [main, 'release/**']
   workflow_dispatch:
     inputs:
       base:
-        description: 'Check versions against this commit, as a pull request into main based on it would be. Leave empty to skip the check.'
+        description: 'Compare with this commit, as a pull request into main based on it would be: check the versions, and build only if something a build reads changed. Leave empty to build everything and skip the version check.'
         required: false
         default: ''
 
@@ -44,23 +48,36 @@ jobs:
       - name: Check files
         run: node .claude/hooks/check-commit.mjs --all
 
+      # Against the same base as the version check, so that run by hand with a base it decides as
+      # the pull request would, and run by hand without one it builds. The steps after it test for
+      # anything but false, so that a decision that never arrived builds.
+      - name: Decide whether to build
+        id: scope
+        shell: pwsh
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
+        run: ./.github/scripts/needs-build.ps1 -Base $env:BASE
+
       - name: Setup .NET
+        if: steps.scope.outputs.build != 'false'
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           global-json-file: global.json
 
       - name: Install MAUI workloads
+        if: steps.scope.outputs.build != 'false'
         run: dotnet workload install maui-windows android ios maccatalyst
 
       # In the configuration it builds in: the Windows sample needs a runtime pack in Release alone,
       # and a build that does not restore cannot fetch it.
       - name: Restore
+        if: steps.scope.outputs.build != 'false'
         run: dotnet restore SumireCraft.Maui.slnx -p:Configuration=Release
 
       # Run by hand with a base, so that the check can be tried on a try/ branch before a real pull
-      # request depends on it.
+      # request depends on it. Skipped with the build: what needs-build.ps1 skips is no package path.
       - name: Check versions
-        if: (github.event_name == 'pull_request' && github.base_ref == 'main') || inputs.base != ''
+        if: steps.scope.outputs.build != 'false' && ((github.event_name == 'pull_request' && github.base_ref == 'main') || inputs.base != '')
         shell: pwsh
         # Through the environment rather than written into the script, because base is typed by hand.
         env:
@@ -68,15 +85,19 @@ jobs:
         run: ./.github/scripts/check-versions.ps1 -Base $env:BASE
 
       - name: Build
+        if: steps.scope.outputs.build != 'false'
         run: dotnet build SumireCraft.Maui.slnx -c Release --no-restore
 
       - name: Test
+        if: steps.scope.outputs.build != 'false'
         run: dotnet test --project tests/SumireCraft.Maui.UnitTests/SumireCraft.Maui.UnitTests.csproj -c Release --no-build -- --report-xunit-trx --report-xunit-trx-filename test-results.trx
 
       - name: Pack
+        if: steps.scope.outputs.build != 'false'
         run: dotnet pack SumireCraft.Maui.slnx -c Release --no-build -o artifacts
 
       - name: Upload packages
+        if: steps.scope.outputs.build != 'false'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: nupkg
@@ -85,7 +106,7 @@ jobs:
             artifacts/*.snupkg
 
       - name: Upload test results
-        if: always()
+        if: always() && steps.scope.outputs.build != 'false'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: test-results
