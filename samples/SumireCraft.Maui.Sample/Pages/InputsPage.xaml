@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:smr="https://github.com/startbits/SumireCraft.Maui"
              xmlns:abc="clr-namespace:SumireCraft.Maui.Sample.Wrapping"
+             xmlns:inputs="clr-namespace:SumireCraft.Maui.Sample.Inputs"
              x:Class="SumireCraft.Maui.Sample.Pages.InputsPage"
              Title="Inputs">
 
@@ -71,19 +72,37 @@
         </Label>
       </HorizontalStackLayout>
 
-      <smr:SmrEntry
-        AutomationId="ToggledEntry"
-        Placeholder="Outlined in red, while the switch is on"
-        BorderColor="Red">
-        <smr:SmrEntry.Triggers>
-          <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="True">
-            <Setter Property="BorderThickness" Value="2" />
-          </DataTrigger>
-          <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BackgroundSwitch}}" Value="True">
-            <Setter Property="BackgroundColor" Value="#EADDFF" />
-          </DataTrigger>
-        </smr:SmrEntry.Triggers>
-      </smr:SmrEntry>
+      <!-- Beside it, an entry whose text the application moves in through a mapper
+           (Inputs/IndentedEntry): turned off, it has that room back too. Side by side, to stay on a
+           phone's first screen. -->
+      <Grid
+        ColumnDefinitions="*,*"
+        ColumnSpacing="12">
+        <smr:SmrEntry
+          AutomationId="ToggledEntry"
+          Placeholder="Outlined in red"
+          BorderColor="Red">
+          <smr:SmrEntry.Triggers>
+            <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="True">
+              <Setter Property="BorderThickness" Value="2" />
+            </DataTrigger>
+            <DataTrigger TargetType="smr:SmrEntry" Binding="{Binding IsToggled, Source={x:Reference BackgroundSwitch}}" Value="True">
+              <Setter Property="BackgroundColor" Value="#EADDFF" />
+            </DataTrigger>
+          </smr:SmrEntry.Triggers>
+        </smr:SmrEntry>
+        <inputs:IndentedEntry
+          Grid.Column="1"
+          AutomationId="IndentedEntry"
+          Placeholder="On an indent, in red"
+          BorderColor="Red">
+          <inputs:IndentedEntry.Triggers>
+            <DataTrigger TargetType="inputs:IndentedEntry" Binding="{Binding IsToggled, Source={x:Reference BorderSwitch}}" Value="True">
+              <Setter Property="BorderThickness" Value="2" />
+            </DataTrigger>
+          </inputs:IndentedEntry.Triggers>
+        </inputs:IndentedEntry>
+      </Grid>
 
       <!-- A border all round with rounded corners, on a background of its own that fills the same
            shape. -->
@@ -146,9 +165,19 @@
         BorderColor="Magenta"
         BackgroundColor="#F3EDF7" />
 
-      <smr:SmrEntry
-        AutomationId="PlainEntry"
-        Placeholder="Given no border: the platform's box" />
+      <!-- Never given a border: the platform's box, and where ToggledEntry and IndentedEntry, beside
+           the switch, put their text back when it is off. -->
+      <Grid
+        ColumnDefinitions="*,*"
+        ColumnSpacing="12">
+        <smr:SmrEntry
+          AutomationId="PlainEntry"
+          Placeholder="Given no border" />
+        <inputs:IndentedEntry
+          Grid.Column="1"
+          AutomationId="PlainIndentedEntry"
+          Placeholder="On an indent, no border" />
+      </Grid>
 
     </VerticalStackLayout>
   </ScrollView>

@@ -3,6 +3,7 @@ using SumireCraft.Maui.Controls;
 using SumireCraft.Maui.Exceptions;
 using SumireCraft.Maui.Gates;
 using SumireCraft.Maui.Sample.Exceptions;
+using SumireCraft.Maui.Sample.Inputs;
 using SumireCraft.Maui.Sample.Pages;
 
 namespace SumireCraft.Maui.Sample;
@@ -29,6 +30,9 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+
+        // The Inputs page's indented entries, whose room the application makes through a mapper.
+        IndentedEntry.AddMapping();
 
         // Handlers run in the order they are registered. The log goes first, so that a failure is
         // on record whatever the alert does after it.
