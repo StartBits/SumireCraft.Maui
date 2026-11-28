@@ -221,8 +221,9 @@ through the release branch.
 Dependabot's weekly pull request is such a change too, one that arrives by itself on a
 `dependabot/` branch it names (`.github/dependabot.yml`). It is known by its author,
 `dependabot[bot]`, not by that name, which anyone who can push could give a branch. It did not
-come from the conversation, so it is read like any outside change: `security-review` joins, and
-each new SHA is checked against its action's own repository (*Security* in `CLAUDE.md`). Its CI
+come from the conversation, so it is read like any outside change (the `outside-changes` skill):
+fetched and written out, not checked out, until `security-review` has said **CLEAR**, and each
+new SHA checked against its action's own repository. Its CI
 proves less than it seems: `download-artifact` and `NuGet/login` run only in `release.yml`'s
 publish job, which no pull request starts, so for those two read the release notes between the
 versions, and let a major version wait for a release that can afford to find out. The maintainer
@@ -272,7 +273,8 @@ undone.
 
 `download-artifact` runs only in `release.yml`'s publish job, which no run from a `try/` branch
 reaches. To try a new version of it with `upload-artifact`, put the pull requests' changes on the
-`try/` branch and add a job of its own there, after the build job, whose `permissions` hold
+`try/` branch -- once `security-review` has said **CLEAR** on both, at the SHAs it read -- and add
+a job of its own there, after the build job, whose `permissions` hold
 `contents: read` and nothing more: no `environment`, no `id-token`, no tag, no push. It downloads
 `nupkg` with the step the publish job uses and lists what arrived. Never edit the publish job
 itself, not even on a `try/` branch: it can write tags, and the tag ruleset lets no one delete one.
