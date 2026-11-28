@@ -57,6 +57,12 @@ screen have to fit on one screen together: the script checks that they are wholl
 4. Show the maintainer, then run it again with `-Copy` to put the files in `assets/`. The README
    already points at them, so nothing else changes unless a picture is added or removed.
 
+The documentation site (`StartBits/sumirecraft-site`) shows these pictures too. It reads them by
+their paths in this repository, through a git submodule pinned to a published tag. A picture taken
+again reaches it with the next release, but one renamed or removed breaks the site's build when its
+submodule moves to that release. Step 7 of *A release* in the `releasing` skill looks for that;
+mention it to the maintainer all the same when it happens here.
+
 ## Found by trying
 
 - **`adb shell input tap` does not show touches.** "Show taps" draws only what comes from the touch
