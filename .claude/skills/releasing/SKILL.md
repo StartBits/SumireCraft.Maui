@@ -105,9 +105,11 @@ it:
 - **CODEOWNERS.** Once pushed, open `.github/CODEOWNERS` on GitHub: a line it cannot use is
   marked there.
 - **Actions**, in the organization's settings so that every repository there inherits them:
-  only actions by GitHub, verified creators and `NuGet/login`; full-SHA pinning required;
-  approval before any outside contributor's pull request runs a workflow, every time and not
-  only the first.
+  only actions by GitHub and those named one by one under *Allow or block specified actions and
+  reusable workflows*, `NuGet/login` alone for now; full-SHA pinning required; approval before
+  any outside contributor's pull request runs a workflow, every time and not only the first.
+  Marketplace verified creators are not allowed as such: an action from anyone else is named
+  there by the organization's owner before a workflow uses it.
 - **Security.** Secret scanning with push protection, the dependency graph, Dependabot alerts,
   and private vulnerability reporting. Dependabot *security updates* stay off, though GitHub
   suggests them: their pull requests raise NuGet packages, which is a release.
