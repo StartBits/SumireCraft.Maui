@@ -1,3 +1,4 @@
+using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
 
 namespace SumireCraft.Maui.UITests;
@@ -21,6 +22,8 @@ public abstract class InputBorderTests : SamplePageTests
     private const string BoxedEntry = "BoxedEntry";
     private const string RightToLeftBoxedEntry = "RightToLeftBoxedEntry";
     private const string PlainEntry = "PlainEntry";
+    private const string IndentedEntry = "IndentedEntry";
+    private const string PlainIndentedEntry = "PlainIndentedEntry";
     private const string Editor = "UnderlinedEditor";
 
     // The least room, in points, kept between a border down a side and the text: less than any
@@ -184,6 +187,40 @@ public abstract class InputBorderTests : SamplePageTests
             SetBordered(true);
         }
     }
+
+    /// <remarks>
+    /// The sample moves the indented entries' text in through the entry handler's mapper, as an
+    /// application would to make room for an icon. With its border taken away, the toggled one has
+    /// that room back as well as the platform's box: its text starts where it does in the one never
+    /// given a border. That one's text must start further in than the plain entry's, or the mapping
+    /// made no room and the comparison says nothing. The two indented entries' placeholders start
+    /// with the same words.
+    /// </remarks>
+    [Fact]
+    public void ABorderTakenAway_GivesBackTheRoomTheApplicationMadeThroughAMapper()
+    {
+        Open();
+        var scroller = Ui.ByAutomationId(PageScroll);
+
+        try
+        {
+            SetBordered(false);
+            var toggled = TextStartOf(IndentedEntry, scroller);
+            var indented = TextStartOf(PlainIndentedEntry, scroller);
+            var plain = TextStartOf(PlainEntry, scroller);
+
+            Assert.True(indented > plain + 2, $"The mapping made no room: the indented entry's text starts {indented} pixels in, and the plain entry's {plain}.");
+            Assert.True(Math.Abs(toggled - indented) <= 2, $"With its border taken away, the entry's text starts {toggled} pixels in, and that of the one never given a border {indented}.");
+        }
+        finally
+        {
+            Ui.ScrollToTop(scroller);
+            SetBordered(true);
+        }
+    }
+
+    private int TextStartOf(string input, By scroller) =>
+        TextStart(Png.Read(Ui.BringIntoView(Ui.ByAutomationId(input), scroller).GetScreenshot().AsByteArray));
 
     // How many pixels in from the left the text starts, across the middle of an input: past the edge
     // of the platform's box, if it draws one there, and the light room inside it.
