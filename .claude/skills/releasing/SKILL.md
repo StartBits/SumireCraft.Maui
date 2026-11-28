@@ -113,6 +113,13 @@ it:
 - **Security.** Secret scanning with push protection, the dependency graph, Dependabot alerts,
   and private vulnerability reporting. Dependabot *security updates* stay off, though GitHub
   suggests them: their pull requests raise NuGet packages, which is a release.
+- **Code scanning.** CodeQL's default setup, for C# and the workflows, on pushes and pull
+  requests to `main` and once a week; whether GitHub counts the release branches, guarded by
+  rulesets, as protected and scans them too has not been seen yet. It needs no workflow file, and
+  GitHub keeps its version. C# is read without a build (`build-mode: none` in its log), so nothing
+  a pull request's build files say runs in it. It leaves JavaScript out: the only JavaScript is
+  the hooks under `.claude/`, and with it chosen the analysis failed, having found JavaScript and
+  extracted none (2026-11-28). The hooks are read by `security-review` instead.
 - **Dependabot version updates** for `github-actions` alone, in `.github/dependabot.yml`: the
   workflows sit outside the package paths, so its pull requests can go to `main`. Not for NuGet:
   the .NET MAUI version is a minimum chosen on purpose, and raising it is a release (*Packages* in
