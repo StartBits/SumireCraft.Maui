@@ -6,6 +6,8 @@ Fills the gaps .NET MAUI leaves to every application -- without taking a decisio
 
 .NET 10 with .NET MAUI 10.0.20+ · Android 21+ · iOS 15+ · Mac Catalyst 15+ · Windows 10 1809+ · trimming and Native AOT compatible · MIT
 
+Documentation and API reference: [sumirecraft.startbits.com](https://sumirecraft.startbits.com/)
+
 ## What it solves
 
 | | | What .NET MAUI leaves to you |
