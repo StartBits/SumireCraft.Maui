@@ -39,9 +39,21 @@
       "PowerShell(gh release *)",
       "PowerShell(gh workflow run *)",
       "PowerShell(gh secret *)",
-      "PowerShell(gh repo edit *)"
+      "PowerShell(gh repo edit *)",
+      "Bash(git *pull/*)",
+      "Bash(git *FETCH_HEAD*)",
+      "Bash(gh pr diff*)",
+      "PowerShell(git *pull/*)",
+      "PowerShell(git *FETCH_HEAD*)",
+      "PowerShell(gh pr diff*)"
     ],
     "deny": [
+      "Bash(gh pr*checkout*)",
+      "Bash(gh co *)",
+      "Bash(git *pull *pull/*)",
+      "PowerShell(gh pr*checkout*)",
+      "PowerShell(gh co *)",
+      "PowerShell(git *pull *pull/*)",
       "Bash(dotnet nuget add source *)",
       "Bash(dotnet nuget update source *)",
       "PowerShell(dotnet nuget add source *)",

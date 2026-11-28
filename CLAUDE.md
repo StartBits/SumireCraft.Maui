@@ -6,7 +6,7 @@ This file holds what applies to every change. The rest of the guidance lives und
 where it costs nothing until it is needed:
 
 - **Skills** (`.claude/skills/`) for one kind of task, read when that task comes up: `ui-tests`,
-  `consumer-build`, `code-analysis`, `readme-images` and `releasing`.
+  `consumer-build`, `code-analysis`, `readme-images`, `releasing` and `outside-changes`.
 - **Rules** (`.claude/rules/`) for one part of the tree, loaded when a matching file is read or
   written: `platform-code`.
 - **Hooks** (`.claude/hooks/`, wired in `.claude/settings.json`) for what must happen every time
@@ -363,11 +363,37 @@ Tell the maintainer what the reviewer found and what became of each finding.
 
 `security-review` joins the loop, beside `maintainer-review` and in the same way, when a change
 touches a path that *Security* lists, adds a dependency, or did not come from this conversation --
-a pulled commit, a pull request, a patch. It is given the same files. Its *block* counts as
-*must fix*, and its **CLEAR** as **OK**.
+someone else's pull request, Dependabot's, a commit not yet pulled, a patch. It is given the same
+files. Its *block* counts as *must fix*, and its **CLEAR** as **OK**.
 
 `app-author-review` is not part of this loop. It reads the library as it stands, as an app author
 who has never seen the source, and only when the maintainer asks.
+
+### A change from outside
+
+A change that did not come from this conversation is read before anything in it runs here, and
+does not enter a working tree of this repository until then. Once there, it runs by itself:
+Claude Code reads its `.claude/settings.json` and runs its hooks from `.claude/hooks/` at the next
+command and at the end of every turn; `CLAUDE.md`, the rules and the skills become what tells
+Claude what to do; Visual Studio and VS Code load the projects and run MSBuild with whatever it
+wrote into a `.props`, a `.targets` or a project file; and `.vscode/` can run a task as the folder
+opens. So until `security-review` has said **CLEAR** on it, no one brings it into a working tree
+with any tool -- `git checkout`, `switch`, `pull`, `merge`, `cherry-pick`, `worktree add`,
+`gh pr checkout`, GitHub Desktop's or an editor's *Checkout* -- or applies it as a patch. Claude
+builds and tests nothing of it, and the maintainer looks at it in the browser or in the files
+Claude wrote out. Commits on `main` and on a release branch came in through a pull request
+reviewed when it was made, so pulling one is not this.
+
+It is fetched from `origin` alone and written out to the scratchpad by a script, byte for byte and
+under numbered names, without Claude reading it first; `security-review`, which has no shell,
+reads it first. A **CLEAR** is for the commit read, by its SHA: if the pull request's head has
+moved since, it is written out and read again, and what enters a working tree or is merged
+afterwards is that SHA. How, step by step, is the `outside-changes` skill.
+
+CI runs it meanwhile, on GitHub's machines with a token GitHub keeps read-only for both kinds: a
+fork's pull request once the maintainer approves the run, Dependabot's at once. But the workflow,
+the scripts that decide what to build and the file check are all the change's own, so for a change
+that touches `.github/` or `.claude/` a green check says nothing about any of it.
 
 ## Security
 
