@@ -125,9 +125,9 @@ it:
 1. Cut `release/x.y` from `main`, and raise `build/Version.props` there in the first commit: the
    patch for fixes alone, the minor for a feature, the major only for a breaking change. Raise
    `SumireCoreVersion` too if Core will change, and `SumireCraftCoreVersion` if SumireCraft.Core
-   will (*Packages* in `CLAUDE.md`, and the comment in `build/Version.props`). In the same commit, open a `## [x.y.z]` section at the top of
-   `CHANGELOG.md`, with no date yet, and a link line for it at the bottom, above the existing ones,
-   comparing with the last tag
+   will (*Packages* in `CLAUDE.md`, and the comment in `build/Version.props`). In the same
+   commit, open a `## [x.y.z]` section at the top of `CHANGELOG.md`, with no date yet, and a link
+   line for it at the bottom, above the existing ones, comparing with the last tag
    (`[1.1.0]: https://github.com/startbits/SumireCraft.Maui/compare/v1.0.0...v1.1.0`).
 
    Then push the branch with that commit on it. The ruleset on `release/**` requires CI on
@@ -182,6 +182,18 @@ it:
    links to `CHANGELOG.md` at the tag and to the comparison with the last tag. Nothing is
    attached: packages come from nuget.org alone. It is made by hand, not by `release.yml`, whose
    publish job is not edited.
+7. Tell the maintainer that the documentation site can move to the new tag. The site,
+   `StartBits/sumirecraft-site` at <https://sumirecraft.startbits.com/>, reads this repository as
+   a git submodule pinned to a published tag, so it shows the last release until that tag moves.
+   Moving it is a pull request in that repository, made from a session of its own, not from here.
+   Look at what changed since the last tag (`git diff --name-status v<last>..v<new>`) and name
+   to the maintainer what that pull request must change with it:
+   - `assets/` or `build/icon.png` renamed or removed: the site shows the pictures and the icon by
+     their paths here, and its build breaks on one that has gone.
+   - `global.json`: the site's own names the same SDK, and changes to match.
+   - `src/`'s three projects -- their target frameworks or `UseMaui` -- or the .NET MAUI version
+     in `Directory.Packages.props`: the site builds its API pages from those projects at plain
+     `net10.0`, and its Linux CI installs the `maui-android` workload only because of `UseMaui`.
 
 ## A change outside the packages
 
@@ -227,8 +239,8 @@ Only when the next release cannot wait; a fix that can goes through the release 
    Add its dated `## [x.y.z]` section and link line to `CHANGELOG.md` as a release does.
 3. Open a pull request into `main`. The same checks apply, and merging publishes it, after the
    approval and its `Release x.y.z` comment that step 5 of *A release* asks for. Make its
-   GitHub release as step 6 of *A release* does. Delete the hotfix branch, which no ruleset keeps;
-   the tag stays.
+   GitHub release and tell the maintainer about the site, as steps 6 and 7 of *A release* do.
+   Delete the hotfix branch, which no ruleset keeps; the tag stays.
 4. If a release branch is open, merge `main` into it so the fix is not lost. `build/Version.props`
    conflicts, because both raised it:
    - `SumireVersion`: keep the release branch's, unless it is the number the hotfix just took; then
